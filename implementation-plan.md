@@ -142,6 +142,19 @@ TaskPilot-AI/
 
 ---
 
+# 🤖 LLM Model Mapping & Fallback Architecture
+
+| Phase | Agent / Task | Primary Model (Groq) | Fallback Model (NVIDIA) | Complexity | Reason |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Step 1** | **Orchestrator Agent** | `llama-3.1-8b-instant` | `meta/llama-3.1-8b-instruct` | **Medium** | Fast routing aur pipeline transitions classification ke liye. |
+| **Step 3** | **Extraction Agent** | `llama-3.1-8b-instant` | `meta/llama-3.1-8b-instruct` | **Medium** | Chats/Emails lambe hote hain. Fast parsing ke liye 8B parameters model speed aur cost ke liye best hai. |
+| **Step 4** | **Task Fusion Agent** | `llama-3.3-70b-versatile` | `meta/llama-3.3-70b-instruct` | **High** | De-duplication ke liye deep reasoning lagti hai taaki different words wale similar task merge ho sakein. Isliye 70B models best hain. |
+| **Step 5** | **Issue Quality Agent** | `llama-3.1-8b-instant` | `meta/llama-3.1-8b-instruct` | **Medium** | Task completeness audit kar ke fix format JSON return karna hota hai. 8B parameter model is suitable. |
+| **Step 6** | **Prioritization Agent**| `llama-3.3-70b-versatile` | `meta/llama-3.3-70b-instruct` | **High** | Multi-factor matrix (Blockers, Customer impact, Urgency) par score nikalna hota hai. Large model validation accuracy solid rakhega. |
+| **Step 7** | **Daily Planning Agent** | `llama-3.3-70b-versatile` | `meta/llama-3.3-70b-instruct` | **High** | Time slots, overlaps aur schedule constraints ko solve karne ke liye 70B model best output deta hai. |
+
+---
+
 # 👥 Developer Assignments
 
 | Dev | Name | Role | Focus Area |
