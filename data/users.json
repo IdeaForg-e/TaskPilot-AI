@@ -1,0 +1,182 @@
+[
+  {
+    "id": "user-001",
+    "name": "Anil Kumar",
+    "email": "anil.pradhan@techflow.io",
+    "role": "Engineering Manager",
+    "team": "Backend",
+    "timezone": "Asia/Calcutta",
+    "manager": null,
+    "skills": ["System Architecture", "Team Leadership", "Project Management", "Python", "Java"]
+  },
+  {
+    "id": "user-002",
+    "name": "Rahul Sharma",
+    "email": "rahul.sharma@techflow.io",
+    "role": "Tech Lead",
+    "team": "Backend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["Microservices", "Kafka", "PostgreSQL", "Python", "Django"]
+  },
+  {
+    "id": "user-003",
+    "name": "Priya Patel",
+    "email": "priya.patel@techflow.io",
+    "role": "Senior Software Engineer",
+    "team": "Backend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-002",
+    "skills": ["API Design", "Redis", "Celery", "Python", "FastAPI"]
+  },
+  {
+    "id": "user-004",
+    "name": "Vikram Singh",
+    "email": "vikram.singh@techflow.io",
+    "role": "Software Engineer",
+    "team": "Backend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-002",
+    "skills": ["Python", "Django REST", "PostgreSQL", "Docker"]
+  },
+  {
+    "id": "user-005",
+    "name": "Sanjay Kumar",
+    "email": "sanjay.kumar@techflow.io",
+    "role": "Software Engineer",
+    "team": "Backend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-002",
+    "skills": ["Java", "Spring Boot", "Hibernate", "Kubernetes"]
+  },
+  {
+    "id": "user-006",
+    "name": "Meera Desai",
+    "email": "meera.desai@techflow.io",
+    "role": "Tech Lead",
+    "team": "Frontend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["React", "TypeScript", "Redux", "Next.js", "UI/UX Design"]
+  },
+  {
+    "id": "user-007",
+    "name": "Arjun Reddy",
+    "email": "arjun.reddy@techflow.io",
+    "role": "Senior Software Engineer",
+    "team": "Frontend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-006",
+    "skills": ["React", "TypeScript", "GraphQL", "Apollo Client", "Testing"]
+  },
+  {
+    "id": "user-008",
+    "name": "Pooja Mehta",
+    "email": "pooja.mehta@techflow.io",
+    "role": "Software Engineer",
+    "team": "Frontend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-006",
+    "skills": ["React", "JavaScript", "CSS", "Tailwind", "Storybook"]
+  },
+  {
+    "id": "user-009",
+    "name": "Rajesh Gupta",
+    "email": "rajesh.gupta@techflow.io",
+    "role": "Software Engineer",
+    "team": "Frontend",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-006",
+    "skills": ["Vue.js", "TypeScript", "Pinia", "Vitest"]
+  },
+  {
+    "id": "user-010",
+    "name": "Deepak Verma",
+    "email": "deepak.verma@techflow.io",
+    "role": "Tech Lead",
+    "team": "Platform",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["Go", "Kubernetes", "Terraform", "AWS", "GCP"]
+  },
+  {
+    "id": "user-011",
+    "name": "Sneha Nair",
+    "email": "sneha.nair@techflow.io",
+    "role": "Senior Software Engineer",
+    "team": "Platform",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-010",
+    "skills": ["Go", "Microservices", "gRPC", "Prometheus", "Grafana"]
+  },
+  {
+    "id": "user-012",
+    "name": "Amit Khanna",
+    "email": "amit.khanna@techflow.io",
+    "role": "Software Engineer",
+    "team": "Platform",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-010",
+    "skills": ["Python", "FastAPI", "Kafka", "Docker", "Kubernetes"]
+  },
+  {
+    "id": "user-013",
+    "name": "Ravi Shankar",
+    "email": "ravi.shankar@techflow.io",
+    "role": "DevOps Engineer",
+    "team": "DevOps",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["AWS", "Terraform", "Ansible", "Jenkins", "ArgoCD"]
+  },
+  {
+    "id": "user-014",
+    "name": "Kavita Rao",
+    "email": "kavita.rao@techflow.io",
+    "role": "QA Engineer",
+    "team": "QA",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["Test Automation", "Selenium", "Postman", "JMeter", "Cypress"]
+  },
+  {
+    "id": "user-015",
+    "name": "Nitin Joshi",
+    "email": "nitin.joshi@techflow.io",
+    "role": "QA Engineer",
+    "team": "QA",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-001",
+    "skills": ["Test Planning", "Manual Testing", "API Testing", "Load Testing"]
+  },
+  {
+    "id": "user-016",
+    "name": "Sunita Malhotra",
+    "email": "sunita.malhotra@techflow.io",
+    "role": "Product Manager",
+    "team": "Product",
+    "timezone": "Asia/Calcutta",
+    "manager": null,
+    "skills": ["Product Strategy", "Roadmapping", "User Stories", "Agile", "Stakeholder Management"]
+  },
+  {
+    "id": "user-017",
+    "name": "Tarun Bhatia",
+    "email": "tarun.bhatia@techflow.io",
+    "role": "Product Manager",
+    "team": "Product",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-016",
+    "skills": ["Market Research", "Competitive Analysis", "PRD Writing", "Prioritization"]
+  },
+  {
+    "id": "user-018",
+    "name": "Aditi Choudhury",
+    "email": "aditi.choudhury@techflow.io",
+    "role": "Designer",
+    "team": "Design",
+    "timezone": "Asia/Calcutta",
+    "manager": "user-016",
+    "skills": ["UI Design", "UX Research", "Figma", "Prototyping", "Design Systems"]
+  }
+]
