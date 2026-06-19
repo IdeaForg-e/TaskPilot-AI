@@ -34,108 +34,108 @@ TaskPilot-AI/
 ├── backend/
 │   ├── app/
 │   │   ├── __init__.py
-│   │   ├── main.py                  ← FastAPI entry point
-│   │   ├── config.py                ← Environment config
-│   │   ├── database.py              ← SQLite + SQLAlchemy setup
-│   │   ├── models/
+│   │   ├── main.py                  ← FastAPI entry point (registers routers and middleware)
+│   │   ├── config.py                ← Environment config (database URLs, LLM model names, key links)
+│   │   ├── database.py              ← SQLite + SQLAlchemy base setup (session generators)
+│   │   ├── models/                  ← Database models (SQLAlchemy ORM tables)
 │   │   │   ├── __init__.py
-│   │   │   ├── source_event.py
-│   │   │   ├── task.py
-│   │   │   ├── quality_report.py
-│   │   │   ├── priority_score.py
-│   │   │   ├── daily_plan.py
-│   │   │   └── workflow_run.py
-│   │   ├── schemas/
+│   │   │   ├── source_event.py      ← Stores raw incoming data from Jira, Slack, Emails, Github
+│   │   │   ├── task.py              ← Stores unified Master Tasks (after extraction and fusion)
+│   │   │   ├── quality_report.py    ← Stores AI evaluated task quality scores & missing fields
+│   │   │   ├── priority_score.py    ← Stores calculated priority ranks and reasoning scores
+│   │   │   ├── daily_plan.py        ← Stores planned schedules for a date (available hrs, status)
+│   │   │   └── workflow_run.py      ← Logs orchestrator pipeline steps run status and timing
+│   │   ├── schemas/                 ← Pydantic schemas (for request/response validation)
 │   │   │   ├── __init__.py
-│   │   │   ├── ingestion.py
-│   │   │   ├── task.py
-│   │   │   ├── quality.py
-│   │   │   ├── priority.py
-│   │   │   ├── plan.py
-│   │   │   └── common.py
-│   │   ├── routers/
+│   │   │   ├── ingestion.py         ← Validates raw payload ingested from external webhooks
+│   │   │   ├── task.py              ← Validates input/output structure for master tasks
+│   │   │   ├── quality.py           ← Validates structure of the quality audit report outputs
+│   │   │   ├── priority.py          ← Validates priorities, ranks, and impact factor scores
+│   │   │   ├── plan.py              ← Validates time slots, recommendations, and plans
+│   │   │   └── common.py            ← Standard shared API responses and query schemas
+│   │   ├── routers/                 ← API Controllers (exposes HTTP request endpoints)
 │   │   │   ├── __init__.py
-│   │   │   ├── ingest.py
-│   │   │   ├── extract.py
-│   │   │   ├── fuse.py
-│   │   │   ├── quality.py
-│   │   │   ├── prioritize.py
-│   │   │   ├── planner.py
-│   │   │   ├── orchestrator.py
-│   │   │   └── tasks.py
-│   │   └── services/
+│   │   │   ├── ingest.py            ← API to trigger ingestion from synthetic data files
+│   │   │   ├── extract.py           ← API to trigger extraction agent on raw events
+│   │   │   ├── fuse.py              ← API to trigger task de-duplication and merging
+│   │   │   ├── quality.py           ← API to trigger task quality checks & fetch reports
+│   │   │   ├── prioritize.py        ← API to trigger prioritization scoring calculations
+│   │   │   ├── planner.py           ← API to generate daily calendar schedules
+│   │   │   ├── orchestrator.py      ← API to trigger the full end-to-end multi-agent flow
+│   │   │   └── tasks.py             ← CRUD APIs to read, filter, or manually update tasks
+│   │   └── services/                ← Core Business Logic (interacts with agents & databases)
 │   │       ├── __init__.py
-│   │       ├── ingestion_service.py
-│   │       ├── extraction_service.py
-│   │       ├── fusion_service.py
-│   │       ├── quality_service.py
-│   │       ├── prioritization_service.py
-│   │       ├── planning_service.py
-│   │       └── orchestrator_service.py
-│   ├── agents/
+│   │       ├── ingestion_service.py ← Ingestion rules, loads JSON records to SQL DB
+│   │       ├── extraction_service.py← Handles task identification and schema population
+│   │       ├── fusion_service.py    ← Resolves title semantic matching & text merging
+│   │       ├── quality_service.py   ← Controls quality agent evaluations per task
+│   │       ├── prioritization_service.py ← Runs prioritization calculations and sorting ranks
+│   │       ├── planning_service.py  ← Fetches calendar events, maps tasks to available hours
+│   │       └── orchestrator_service.py   ← Runs pipeline states sequentially (Ingest -> Plan)
+│   ├── agents/                      ← Agent LLM wrapper layers
 │   │   ├── __init__.py
-│   │   ├── extraction_agent.py
-│   │   ├── fusion_agent.py
-│   │   ├── quality_agent.py
-│   │   ├── prioritization_agent.py
-│   │   ├── planning_agent.py
-│   │   └── prompts/
+│   │   ├── extraction_agent.py      ← Parses chats/emails to extract explicit & hidden tasks
+│   │   ├── fusion_agent.py          ← Semantically deduplicates similar tasks using LLM context
+│   │   ├── quality_agent.py         ← Rates issue quality and actionability metrics
+│   │   ├── prioritization_agent.py  ← Ranks tasks (0 to 10) based on severity and business impact
+│   │   ├── planning_agent.py        ← Allocates tasks to time slots avoiding calendar events
+│   │   └── prompts/                 ← Agent instructions & prompt templates
 │   │       ├── __init__.py
-│   │       ├── extraction_prompts.py
-│   │       ├── fusion_prompts.py
-│   │       ├── quality_prompts.py
-│   │       ├── prioritization_prompts.py
-│   │       └── planning_prompts.py
-│   ├── requirements.txt
-│   ├── .env
-│   └── .env.example
+│   │       ├── extraction_prompts.py← System prompts to identify hidden action items in conversations
+│   │       ├── fusion_prompts.py    ← Prompts to determine if two issues describe duplicate work
+│   │       ├── quality_prompts.py   ← Criteria to evaluate issues and list missing context
+│   │       ├── prioritization_prompts.py ← Decision matrices to rate production & customer impact
+│   │       └── planning_prompts.py  ← Rules for calendar scheduling, buffers, and overflow
+│   ├── requirements.txt             ← Python package dependency list (FastAPI, sqlalchemy, openai...)
+│   ├── .env                         ← Local secrets file (ignored by Git)
+│   └── .env.example                 ← Template configuration secrets reference
 │
 ├── frontend/
-│   ├── public/
+│   ├── public/                      ← Static public assets folder (icons, fonts, images)
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   │   ├── Sidebar.jsx
-│   │   │   │   ├── Header.jsx
-│   │   │   │   └── Layout.jsx
-│   │   │   ├── dashboard/
-│   │   │   │   ├── StatsCard.jsx
-│   │   │   │   ├── PipelineStatus.jsx
-│   │   │   │   └── RecentActivity.jsx
-│   │   │   ├── tasks/
-│   │   │   │   ├── TaskList.jsx
-│   │   │   │   ├── TaskCard.jsx
-│   │   │   │   └── TaskDetail.jsx
-│   │   │   ├── planner/
-│   │   │   │   ├── DailyPlanner.jsx
-│   │   │   │   └── TimeSlot.jsx
-│   │   │   ├── quality/
-│   │   │   │   ├── QualityReport.jsx
-│   │   │   │   └── QualityScore.jsx
-│   │   │   └── priority/
-│   │   │       ├── PriorityList.jsx
-│   │   │       └── PriorityCard.jsx
-│   │   ├── pages/
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Tasks.jsx
-│   │   │   ├── Planner.jsx
-│   │   │   ├── Quality.jsx
-│   │   │   └── Priority.jsx
+│   │   ├── components/              ← Reusable UI component definitions
+│   │   │   ├── layout/              ← App Shell components
+│   │   │   │   ├── Sidebar.jsx      ← Sidebar menu navigation panels
+│   │   │   │   ├── Header.jsx       ← Top navigation bar with active Pipeline triggers
+│   │   │   │   └── Layout.jsx       ← Wraps sidebar and header around pages content
+│   │   │   ├── dashboard/           ← Dashboard analytics components
+│   │   │   │   ├── StatsCard.jsx    ← Renders summary metrics (e.g. Total, Actionable, Hidden)
+│   │   │   │   ├── PipelineStatus.jsx← Renders live progress visualizer of active runs
+│   │   │   │   └── RecentActivity.jsx← Renders logs and latest events activity feed
+│   │   │   ├── tasks/               ← Unified Tasks components
+│   │   │   │   ├── TaskList.jsx     ← Main list and filters for managing master tasks
+│   │   │   │   ├── TaskCard.jsx     ← Card view for Kanban drag/drop items
+│   │   │   │   └── TaskDetail.jsx   ← Full details panel/modal with status history
+│   │   │   ├── planner/             ← Daily schedule components
+│   │   │   │   ├── DailyPlanner.jsx ← Renders daily calendar schedule blocks
+│   │   │   │   └── TimeSlot.jsx     ← Visual block representing a task or calendar meeting
+│   │   │   ├── quality/             ← Quality scoring components
+│   │   │   │   ├── QualityReport.jsx← Detailed panel showing missing info list & questions
+│   │   │   │   └── QualityScore.jsx ← Progress indicator showing numeric quality ratings
+│   │   │   └── priority/            ← Priority score components
+│   │   │       ├── PriorityList.jsx ← Tabular list of tasks ranked by priority score
+│   │   │       └── PriorityCard.jsx ← Details breakdown of calculated impact factors
+│   │   ├── pages/                   ← Main routed views
+│   │   │   ├── Dashboard.jsx        ← Overview page (shows pipeline runs, activity feed)
+│   │   │   ├── Tasks.jsx            ← Master Task list explorer page
+│   │   │   ├── Planner.jsx          ← Calendar scheduler page
+│   │   │   ├── Quality.jsx          ← Quality reports overview page
+│   │   │   └── Priority.jsx         ← Priority score matrix page
 │   │   ├── services/
-│   │   │   └── api.js
-│   │   ├── App.jsx
-│   │   ├── App.css
-│   │   ├── main.jsx
-│   │   └── index.css
-│   ├── index.html
-│   ├── vite.config.js
-│   ├── tailwind.config.js
-│   ├── postcss.config.js
-│   └── package.json
+│   │   │   └── api.js               ← Axios configuration mapping APIs to backend routes
+│   │   ├── App.jsx                  ← Base layout routing map matching routes to pages
+│   │   ├── App.css                  ← Frontend custom styling tweaks
+│   │   ├── main.jsx                 ← React mounting node configuration
+│   │   └── index.css                ← CSS entry point imports Tailwind utilities
+│   ├── index.html                   ← HTML document shell container
+│   ├── vite.config.js               ← Vite server and proxy configuration
+│   ├── tailwind.config.js           ← Tailwind CSS styling properties config
+│   ├── postcss.config.js            ← PostCSS plugin config (Vite Tailwind setup)
+│   └── package.json                 ← Frontend libraries dependencies listing
 │
-├── data/                    ← ✅ Already done
-├── implementation-plan.md
-└── README.md
+├── data/                            ← ✅ READY: Synthetic engineering dataset JSONs
+├── implementation-plan.md           ← Complete developer execution roadmap & instructions
+└── README.md                        ← Hackathon repo guidelines and setup commands
 ```
 
 ---
