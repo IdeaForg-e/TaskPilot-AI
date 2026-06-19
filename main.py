@@ -1,28 +1,20 @@
-import json
+from fastapi import FastAPI
+
+app = FastAPI()
 
 def agent1_extract(task_text):
-    if not task_text or task_text.strip() == "":
-        return {
-            "original_text": task_text,
-            "task": None,
-            "priority": "low",
-            "actionable": False,
-            "flags": ["empty_input"],
-            "reason": "Input is empty or invalid"
-        }
-
-    text = task_text.lower().strip()
+    text = task_text.lower()
 
     result = {
         "original_text": task_text,
-        "task": task_text.strip(),
+        "task": task_text,
         "priority": "medium",
         "actionable": True,
         "flags": [],
         "reason": ""
     }
 
-    vague_words = ["maybe", "something", "somehow", "issue", "problem", "fix it", "etc"]
+    vague_words = ["maybe", "something", "issue", "problem", "fix it", "asap"]
 
     if any(word in text for word in vague_words):
         result["flags"].append("vague_task")
@@ -42,7 +34,10 @@ def agent1_extract(task_text):
     return result
 
 
-output = agent1_extract("Fix login issue maybe urgent ASAP")
+@app.get("/")
+def home():
+    return {"message": "Agent 1 API is running"}
 
-# 🔥 THIS IS THE IMPORTANT PART
-print(json.dumps(output, indent=2))
+@app.get("/extract")
+def extract(task: str):
+    return agent1_extract(task)
