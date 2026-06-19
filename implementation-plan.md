@@ -74,6 +74,7 @@ TaskPilot-AI/
 │   │       └── orchestrator_service.py   ← Runs pipeline states sequentially (Ingest -> Plan)
 │   ├── agents/                      ← Agent LLM wrapper layers
 │   │   ├── __init__.py
+│   │   ├── orchestrator_agent.py    ← Router LLM agent coordinating dynamic pipeline calls
 │   │   ├── extraction_agent.py      ← Parses chats/emails to extract explicit & hidden tasks
 │   │   ├── fusion_agent.py          ← Semantically deduplicates similar tasks using LLM context
 │   │   ├── quality_agent.py         ← Rates issue quality and actionability metrics
@@ -81,6 +82,7 @@ TaskPilot-AI/
 │   │   ├── planning_agent.py        ← Allocates tasks to time slots avoiding calendar events
 │   │   └── prompts/                 ← Agent instructions & prompt templates
 │   │       ├── __init__.py
+│   │       ├── orchestrator_prompts.py← Prompts defining system state routes and classification logic
 │   │       ├── extraction_prompts.py← System prompts to identify hidden action items in conversations
 │   │       ├── fusion_prompts.py    ← Prompts to determine if two issues describe duplicate work
 │   │       ├── quality_prompts.py   ← Criteria to evaluate issues and list missing context
