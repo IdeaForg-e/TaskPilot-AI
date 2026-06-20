@@ -20,10 +20,14 @@ dist/
 
 # Local databases and vector stores
 *.db
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
 *.sqlite3
 backend/taskpilot.db
 backend/chroma_db/
 chroma_db/
+backend/data/fusion_cache.json
 
 # Environment configurations
 .env
@@ -46,3 +50,8 @@ frontend/.env
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Log files
+*.log
+logs/
+

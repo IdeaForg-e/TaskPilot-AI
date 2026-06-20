@@ -88,7 +88,7 @@ TaskPilot-AI/
 │   │       ├── quality_prompts.py   ← Criteria to evaluate issues and list missing context
 │   │       ├── prioritization_prompts.py ← Decision matrices to rate production & customer impact
 │   │       └── planning_prompts.py  ← Rules for calendar scheduling, buffers, and overflow
-│   ├── requirements.txt             ← Python package dependency list (FastAPI, sqlalchemy, openai...)
+│   ├── requirements.txt             ← Python package dependency list (FastAPI, sqlalchemy, groq, httpx...)
 │   ├── .env                         ← Local secrets file (ignored by Git)
 │   └── .env.example                 ← Template configuration secrets reference
 │
@@ -195,9 +195,7 @@ chromadb==0.5.0
 sentence-transformers==3.0.0
 crewai==0.30.0
 langchain==0.2.5
-langchain-openai==0.1.8
 langchain-community==0.2.5
-openai==1.35.0
 httpx==0.27.0
 ```
 
@@ -212,9 +210,7 @@ pip install -r requirements.txt
 Create `.env.example`:
 
 ```
-OPENAI_API_KEY=your-key-here
-OPENAI_BASE_URL=https://api.openai.com/v1
-OPENAI_MODEL=gpt-4o-mini
+GROQ_API_KEY=your-groq-key-here`nGROQ_MODEL_FAST=llama-3.1-8b-instant`nGROQ_MODEL_REASONING=llama-3.3-70b-versatile`nNVIDIA_API_KEY=your-nvidia-key-here`nNVIDIA_MODEL_FAST=meta/llama-3.1-8b-instruct`nNVIDIA_MODEL_REASONING=meta/llama-3.3-70b-instruct
 DATABASE_URL=sqlite:///./taskpilot.db
 CHROMA_PERSIST_DIR=./chroma_db
 ```
@@ -238,9 +234,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Settings:
-    OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY", "")
-    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")`n    GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "llama-3.1-8b-instant")`n    GROQ_MODEL_REASONING: str = os.getenv("GROQ_MODEL_REASONING", "llama-3.3-70b-versatile")`n    NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")`n    NVIDIA_BASE_URL: str = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")`n    NVIDIA_MODEL_FAST: str = os.getenv("NVIDIA_MODEL_FAST", "meta/llama-3.1-8b-instruct")`n    NVIDIA_MODEL_REASONING: str = os.getenv("NVIDIA_MODEL_REASONING", "meta/llama-3.3-70b-instruct")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./taskpilot.db")
     CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
     DATA_DIR: str = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
@@ -1118,19 +1112,16 @@ Return ONLY the JSON object, no other text."""
 Create `backend/agents/extraction_agent.py`:
 ```python
 import json
-from openai import OpenAI
-from app.config import settings
+from agents.llm_client import LLMClient`nfrom app.config import settings
 from app.agents.prompts.extraction_prompts import HIDDEN_TASK_PROMPT, EXPLICIT_TASK_PROMPT
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
-
+client = LLMClient(reasoning=False)`n
 class ExtractionAgent:
 
     def extract_explicit_task(self, source_type: str, content: str) -> dict:
         """Extract task from structured sources like Jira/GitHub"""
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": EXPLICIT_TASK_PROMPT.format(source_type=source_type, content=content[:3000])}],
                 temperature=0.1,
             )
@@ -1143,7 +1134,6 @@ class ExtractionAgent:
         """Detect hidden tasks from unstructured sources like Slack/Email/Meetings"""
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": HIDDEN_TASK_PROMPT.format(source_type=source_type, content=content[:3000])}],
                 temperature=0.2,
             )
@@ -1295,17 +1285,14 @@ Return ONLY the JSON object."""
 
 ```python
 import json
-from openai import OpenAI
-from app.config import settings
+from agents.llm_client import LLMClient`nfrom app.config import settings
 from app.agents.prompts.fusion_prompts import FUSION_PROMPT
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
-
+client = LLMClient(reasoning=False)`n
 class FusionAgent:
     def check_duplicate(self, task_a: dict, task_b: dict) -> dict:
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": FUSION_PROMPT.format(
                     title_a=task_a["title"], source_a=task_a.get("source", ""),
                     desc_a=task_a.get("description", "")[:500],
@@ -1496,17 +1483,14 @@ Return ONLY the JSON object."""
 
 ```python
 import json
-from openai import OpenAI
-from app.config import settings
+from agents.llm_client import LLMClient`nfrom app.config import settings
 from app.agents.prompts.quality_prompts import QUALITY_PROMPT
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
-
+client = LLMClient(reasoning=False)`n
 class QualityAgent:
     def evaluate(self, title: str, description: str, task_type: str, assignee: str, deadline: str) -> dict:
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": QUALITY_PROMPT.format(
                     title=title, description=description or "No description",
                     task_type=task_type or "unknown",
@@ -1652,17 +1636,14 @@ Return ONLY the JSON object."""
 
 ```python
 import json
-from openai import OpenAI
-from app.config import settings
+from agents.llm_client import LLMClient`nfrom app.config import settings
 from app.agents.prompts.prioritization_prompts import PRIORITY_PROMPT
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
-
+client = LLMClient(reasoning=False)`n
 class PrioritizationAgent:
     def prioritize(self, title, description, task_type, urgency, deadline, assignee, quality_score) -> dict:
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": PRIORITY_PROMPT.format(
                     title=title, description=description or "No description",
                     task_type=task_type or "unknown", urgency=urgency or "medium",
@@ -1806,17 +1787,14 @@ Return ONLY the JSON object."""
 
 ```python
 import json
-from openai import OpenAI
-from app.config import settings
+from agents.llm_client import LLMClient`nfrom app.config import settings
 from app.agents.prompts.planning_prompts import PLANNING_PROMPT
 
-client = OpenAI(api_key=settings.OPENAI_API_KEY, base_url=settings.OPENAI_BASE_URL)
-
+client = LLMClient(reasoning=False)`n
 class PlanningAgent:
     def generate_plan(self, date, available_hours, meetings, ranked_tasks) -> dict:
         try:
             response = client.chat.completions.create(
-                model=settings.OPENAI_MODEL,
                 messages=[{"role": "user", "content": PLANNING_PROMPT.format(
                     date=date, available_hours=available_hours,
                     meetings=json.dumps(meetings), ranked_tasks=json.dumps(ranked_tasks[:15]),
@@ -2323,3 +2301,4 @@ curl -X POST http://localhost:8000/api/v1/orchestrate/run
 
 *TaskPilot AI — Dell Hackathon 2026*
 *2 Days. 5 Developers. Ship It. 🚀*
+
