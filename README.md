@@ -75,15 +75,15 @@ graph TB
         end
 
         subgraph "🌐 API Layer"
-            R0[/api/v1/orchestrate]
-            R1[/api/v1/ingest]
-            R2[/api/v1/extract]
-            R3[/api/v1/fuse]
-            R4[/api/v1/quality]
-            R5[/api/v1/prioritize]
-            R6[/api/v1/daily-plan]
-            R7[/api/v1/tasks]
-            R8[/api/v1/chat]
+            R0["/api/v1/orchestrate"]
+            R1["/api/v1/ingest"]
+            R2["/api/v1/extract"]
+            R3["/api/v1/fuse"]
+            R4["/api/v1/quality"]
+            R5["/api/v1/prioritize"]
+            R6["/api/v1/daily-plan"]
+            R7["/api/v1/tasks"]
+            R8["/api/v1/chat"]
         end
     end
 
