@@ -175,7 +175,7 @@ TaskPilot-AI/
 
 ---
 
-## DAY 1 (June 19) — Foundation + APIs
+## DAY 1 (June 20) — Foundation + APIs
 
 ### Step 1: Setup Backend Project
 
@@ -952,7 +952,7 @@ Visit: `http://localhost:8000/docs` → Should see Swagger UI with all endpoints
 
 ---
 
-## DAY 2 (June 20) — Bug Fixes + Integration Support
+## DAY 2 (June 21) — Bug Fixes + Integration Support
 
 - Fix any issues Dev 2/3/5 face with models/schemas
 - Add missing API endpoints if needed
@@ -970,7 +970,7 @@ Visit: `http://localhost:8000/docs` → Should see Swagger UI with all endpoints
 
 ---
 
-## DAY 1 (June 19) — Ingestion + Extraction
+## DAY 1 (June 20) — Ingestion + Extraction
 
 ### Step 1: Wait for Dev 1 to finish Steps 1-5 (models + database)
 
@@ -1263,7 +1263,7 @@ Test with:
 
 ---
 
-## DAY 2 (June 20) — Fusion Agent
+## DAY 2 (June 21) — Fusion Agent
 
 ### Step 6: Create `backend/agents/prompts/fusion_prompts.py`
 
@@ -1445,7 +1445,7 @@ POST http://localhost:8000/api/v1/fuse
 
 ---
 
-## DAY 1 (June 19) — Quality + Prioritization
+## DAY 1 (June 20) — Quality + Prioritization
 
 ### Step 1: Create `backend/agents/prompts/quality_prompts.py`
 
@@ -1762,7 +1762,7 @@ class PrioritizationService:
 
 ---
 
-## DAY 2 (June 20) — Daily Planning Agent
+## DAY 2 (June 21) — Daily Planning Agent
 
 ### Step 7: Create `backend/agents/prompts/planning_prompts.py`
 
@@ -1954,7 +1954,7 @@ class PlanningService:
 
 ---
 
-## DAY 1 (June 19) — Project Setup + Layout + Dashboard
+## DAY 1 (June 20) — Project Setup + Layout + Dashboard
 
 ### Step 1: Create React Project
 
@@ -2072,7 +2072,7 @@ Visit: `http://localhost:5173`
 
 ---
 
-## DAY 2 (June 20) — API Integration + Polish
+## DAY 2 (June 21) — API Integration + Polish
 
 - Connect all pages to real API endpoints
 - Add loading states and error handling
@@ -2090,7 +2090,7 @@ Visit: `http://localhost:5173`
 
 ---
 
-## DAY 1 (June 19) — Orchestrator + Users Data Setup
+## DAY 1 (June 20) — Orchestrator + Users Data Setup
 
 ### Step 1: Implement `backend/app/services/orchestrator_service.py`
 
@@ -2218,7 +2218,7 @@ This single call should:
 
 ---
 
-## DAY 2 (June 20) — End-to-End Testing + Demo Prep
+## DAY 2 (June 21) — End-to-End Testing + Demo Prep
 
 ### Step 3: Verify All 5 Demo Scenarios
 
@@ -2254,7 +2254,7 @@ Prepare this demo flow:
 
 # ⏰ 2-Day Timeline
 
-## DAY 1 — June 19 (Thursday)
+## DAY 1 — June 20 (Thursday)
 
 | Time | Dev 1 | Dev 2 | Dev 3 | Dev 4 | Dev 5 |
 |------|-------|-------|-------|-------|-------|
@@ -2263,7 +2263,7 @@ Prepare this demo flow:
 | **Evening** | Step 9: Service stubs + test server | Step 5: Test ingestion + extraction | Test quality + prioritization | Step 8: Run frontend | Step 2: Test pipeline |
 | **EOD** | ✅ Server runs, Swagger shows all endpoints | ✅ Ingest + Extract working | ✅ Quality + Priority working | ✅ Frontend renders all pages | ✅ Pipeline runs end-to-end |
 
-## DAY 2 — June 20 (Friday)
+## DAY 2 — June 21 (Friday)
 
 | Time | Dev 1 | Dev 2 | Dev 3 | Dev 4 | Dev 5 |
 |------|-------|-------|-------|-------|-------|
