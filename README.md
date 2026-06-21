@@ -16,6 +16,15 @@
 | 👩‍💻 | **Disha + Jagruti** | Frontend Dev | React dashboard, all UI pages |
 | 👨‍💻 | **Anil** | Integration Lead | Orchestrator, end-to-end pipeline, demo prep |
 
+
+---
+
+## 📚 Research & Documentation
+
+* 🔍 **All Research on the Project**: [Notion Project Research Database](https://app.notion.com/p/38386af917aa8071901cfade62812c7b?v=38386af917aa806992b3000c718c8c5a&source=copy_link)
+* 🏗️ **Full Multi-Agent System Research**: [TaskPilot AI Final Multi-Agent Architecture POC](https://app.notion.com/p/TaskPilot-AI-Final-Multi-Agent-Architecture-POC-38486af917aa8093b7b2f742bac92a34?source=copy_link)
+* 🧠 **LLM Models Research**: [LLM Research on TaskPilot AI](https://app.notion.com/p/LLM-RESEARCH-ON-TASKPILOT-AI-38486af917aa80da95fced6ec01d1666?source=copy_link)
+
 ---
 
 ## 🏆 Problem Statement
