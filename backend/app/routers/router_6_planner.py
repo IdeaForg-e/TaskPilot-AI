@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.common import APIResponse
@@ -45,4 +45,40 @@ async def list_plans(db: Session = Depends(get_db)):
         return APIResponse(success=True, data=dates, message="OK")
     except Exception as exc:
         logger.error(f"Plans list failed: {exc}")
+        return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
+
+
+@router.get("/planner/calendar", response_model=APIResponse)
+async def get_calendar(db: Session = Depends(get_db)):
+    try:
+        service = PlanningService(db)
+        result = service.get_calendar()
+        return APIResponse(success=True, data=result, message="OK")
+    except Exception as exc:
+        logger.error(f"Calendar fetch failed: {exc}")
+        return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
+
+
+@router.get("/planner/day/{date}", response_model=APIResponse)
+async def get_day(date: str, db: Session = Depends(get_db)):
+    try:
+        service = PlanningService(db)
+        result = service.get_day_details(date)
+        return APIResponse(success=True, data=result, message="OK")
+    except Exception as exc:
+        logger.error(f"Day detail fetch failed: {exc}")
+        return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
+
+
+@router.post("/planner/schedule", response_model=APIResponse)
+async def schedule_tasks(
+    start_date: str = Query(..., description="YYYY-MM-DD, scheduling window start"),
+    db: Session = Depends(get_db),
+):
+    try:
+        service = PlanningService(db)
+        result = service.schedule_unplanned_tasks(start_date)
+        return APIResponse(success=True, data=result, message="Schedule generated")
+    except Exception as exc:
+        logger.error(f"Scheduling failed: {exc}")
         return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
