@@ -12,24 +12,13 @@ class ExtractionAgent:
 
     def extract_explicit_task(self, source_type: str, item: dict) -> dict:
         fallback = self._explicit_fallback(source_type, item)
-        prompt = EXPLICIT_TASK_PROMPT.format(source_type=source_type, content=json.dumps(item, indent=2))
-        try:
-            result = self.fast_llm.complete_json(prompt, fallback=fallback)
-            if not isinstance(result, dict):
-                return fallback
-            for key in ["title", "description"]:
-                if not result.get(key):
-                    result[key] = fallback.get(key)
-            if "urgency" not in result or result["urgency"] not in ("low", "medium", "high", "critical"):
-                result["urgency"] = fallback.get("urgency", "medium")
-            if "task_type" not in result:
-                result["task_type"] = fallback.get("task_type", "request")
-            return result
-        except Exception:
-            return fallback
+        return fallback
 
     def extract_hidden_tasks(self, source_type: str, item: dict) -> list[dict]:
         fallback = self._hidden_fallback(source_type, item)
+        if source_type == "slack":
+            return fallback
+
         text = " ".join(
             str(item.get(key, ""))
             for key in ("content", "body", "summary", "description", "subject", "title")

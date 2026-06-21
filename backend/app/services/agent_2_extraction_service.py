@@ -26,6 +26,9 @@ class ExtractionService:
         hidden_count = 0
         tasks = []
 
+        from concurrent.futures import ThreadPoolExecutor
+
+        hidden_events = []
         for event in events:
             item = event.metadata_json or {}
             if event.source in ("jira", "github", "incident"):
@@ -35,7 +38,19 @@ class ExtractionService:
                 explicit_count += 1
                 tasks.append(candidate)
             elif event.source in ("slack", "email", "meeting") and include_hidden:
-                for hidden in self.agent.extract_hidden_tasks(event.source, item):
+                hidden_events.append(event)
+
+        def process_hidden(event):
+            item = event.metadata_json or {}
+            res = self.agent.extract_hidden_tasks(event.source, item)
+            return event, res
+
+        if hidden_events:
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                hidden_results = list(executor.map(process_hidden, hidden_events))
+            
+            for event, results in hidden_results:
+                for hidden in results:
                     confidence = float(hidden.get("confidence", 0.7) or 0.7)
                     if confidence < min_confidence:
                         continue

@@ -13,13 +13,11 @@ class QualityService:
     def evaluate_all(self):
         self.db.query(QualityReport).delete()
         tasks = self.db.query(MasterTask).all()
-        reports = []
-        actionable = 0
-        needs_info = 0
-        total_score = 0
+        
+        from concurrent.futures import ThreadPoolExecutor
 
-        for task in tasks:
-            is_critical = (task.urgency in ("critical", "high"))
+        def eval_task(task):
+            is_critical = (task.urgency == "critical")
             result = self.agent.evaluate(
                 task.title,
                 task.description or "",
@@ -28,6 +26,20 @@ class QualityService:
                 task.deadline or "",
                 is_critical=is_critical,
             )
+            return task, result
+
+        if tasks:
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                eval_results = list(executor.map(eval_task, tasks))
+        else:
+            eval_results = []
+
+        reports = []
+        actionable = 0
+        needs_info = 0
+        total_score = 0
+
+        for task, result in eval_results:
             report = QualityReport(
                 id=str(uuid.uuid4()),
                 master_task_id=task.id,
