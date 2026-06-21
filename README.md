@@ -76,11 +76,11 @@ graph TB
         end
 
         subgraph "🧠 LLM Client"
-            LLM[LLMClient<br/>Groq max_retries=0<br/>NVIDIA Fallback<br/>Deterministic Fallback]
+            LLM["LLMClient<br/>Groq max_retries=0<br/>NVIDIA Fallback<br/>Deterministic Fallback"]
         end
 
         subgraph "🗄️ Database — SQLite"
-            DB[(source_events<br/>task_candidates<br/>master_tasks<br/>quality_reports<br/>priority_scores<br/>daily_plans<br/>time_slots<br/>workflow_runs)]
+            DB[("source_events<br/>task_candidates<br/>master_tasks<br/>quality_reports<br/>priority_scores<br/>daily_plans<br/>time_slots<br/>workflow_runs")]
         end
 
         subgraph "🌐 API Layer"
@@ -348,8 +348,8 @@ graph TD
     end
 
     subgraph "Extraction Agent Container"
-        PARSER[Structured Source Parser<br/>(Jira / GitHub / Incidents)]
-        LLM_EXTRACTOR[LLM Extraction Agent<br/>(Slack / Emails / Meetings)]
+        PARSER["Structured Source Parser<br/>(Jira / GitHub / Incidents)"]
+        LLM_EXTRACTOR["LLM Extraction Agent<br/>(Slack / Emails / Meetings)"]
         REGEX_FALLBACK[Regex & Rule Fallback Engine]
         
         EVENTS --> |Read Events| PARSER & LLM_EXTRACTOR
@@ -358,8 +358,8 @@ graph TD
     end
 
     subgraph "External LLM Providers"
-        GROQ[Groq API<br/>llama-3.1-8b-instant]
-        NIM[NVIDIA NIM API<br/>meta/llama-3.1-8b-instruct]
+        GROQ["Groq API<br/>llama-3.1-8b-instant"]
+        NIM["NVIDIA NIM API<br/>meta/llama-3.1-8b-instruct"]
         
         LLM_EXTRACTOR -.-> |Primary Query| GROQ
         LLM_EXTRACTOR -.-> |Fallback API| NIM
@@ -422,7 +422,7 @@ graph TD
 
     subgraph "Fusion Agent Container"
         MATCHER[Local SequenceMatcher & Token Overlap]
-        LLM_MERGER[LLM Similarity Evaluator<br/>(llama-3.3-70b-versatile)]
+        LLM_MERGER["LLM Similarity Evaluator<br/>(llama-3.3-70b-versatile)"]
         CLUSTERER[Agglomerative Cluster Solver]
         
         CANDIDATES --> |Read Candidates| MATCHER
@@ -432,7 +432,7 @@ graph TD
     end
 
     subgraph "Persistent Cache (data/)"
-        CACHE[(fusion_cache.json)]
+        CACHE[("fusion_cache.json")]
         LLM_MERGER <--> |Read/Write Scores| CACHE
     end
 ```
@@ -483,8 +483,8 @@ graph TD
     end
 
     subgraph "Quality Agent Container"
-        HEURISTIC[Local Heuristic Engine<br/>(Sub-1ms Regex Parser)]
-        LLM_GRADER[LLM Completeness Grader<br/>(llama-3.1-8b-instant)]
+        HEURISTIC["Local Heuristic Engine<br/>(Sub-1ms Regex Parser)"]
+        LLM_GRADER["LLM Completeness Grader<br/>(llama-3.1-8b-instant)"]
         
         MASTER --> |Read Master Tasks| HEURISTIC
         HEURISTIC --> |urgency == 'critical'| LLM_GRADER
@@ -541,7 +541,7 @@ graph TD
     subgraph "Prioritization Agent Container"
         HEURISTIC[Local Weighted Scoring Engine]
         CRITICAL_FILTER[Critical Task Qualifier]
-        LLM_PRIORITIZER[LLM Prioritization Batcher<br/>(llama-3.1-8b-instant)]
+        LLM_PRIORITIZER["LLM Prioritization Batcher<br/>(llama-3.1-8b-instant)"]
         OVERLOAD_CHECKER[Developer Workload Analyzer]
         BLOCKER_BOOSTER[Blocker Score Boost Engine]
         
@@ -616,7 +616,7 @@ graph TD
 
     subgraph "Planning Agent Container"
         MEETING_AGG[Calendar Parser & Hour Calculator]
-        LLM_PLANNER[LLM Schedule Builder<br/>(llama-3.3-70b-versatile)]
+        LLM_PLANNER["LLM Schedule Builder<br/>(llama-3.3-70b-versatile)"]
         GREEDY_FALLBACK[Deterministic Greedy Calendar Scheduler]
         
         CAL --> |Fetch Meetings| MEETING_AGG
@@ -660,21 +660,21 @@ The Chat Agent does not write directly to its own table, but queries SQL tables 
 ```mermaid
 graph TD
     subgraph "Relational Datastore (SQLite)"
-        DB[(MasterTasks, PriorityScores,<br/>DailyPlans, QualityReports)]
+        DB[("MasterTasks, PriorityScores,<br/>DailyPlans, QualityReports")]
     end
 
     subgraph "Source Data Store (data/)"
-        RAW_JSON[(incidents.json, github_data.json,<br/>jira_data.json, etc.)]
+        RAW_JSON[("incidents.json, github_data.json,<br/>jira_data.json, etc.")]
     end
 
     subgraph "Conversational Copilot Container"
-        ROUTER[Chat API Endpoint router_8_chat.py]
+        ROUTER["Chat API Endpoint router_8_chat.py"]
         INTENT[Intent Classifier & Trigger Parser]
         INJECTOR[Raw Event Injector]
         CONTEXT[Context Compiler & Prompt Assembler]
         
         ROUTER --> INTENT
-        INTENT --> |"inject" / "add task" / "p1"| INJECTOR
+        INTENT --> |Inject / Add Task / P1| INJECTOR
         INJECTOR --> |Append JSON Event| RAW_JSON
         INJECTOR --> |Trigger Pipeline Re-Run| ORCHESTRATOR[Orchestrator Pipeline]
         INTENT --> |General Questions| CONTEXT
@@ -682,7 +682,7 @@ graph TD
     end
 
     subgraph "External LLM Providers"
-        LLM[Groq / NVIDIA NIM LLM Client]
+        LLM["Groq / NVIDIA NIM LLM Client"]
         CONTEXT -.-> |Send Prompts| LLM
         ROUTER -.-> |Extraction Queries| LLM
     end
