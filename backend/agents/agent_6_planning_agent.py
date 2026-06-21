@@ -1,16 +1,16 @@
 from datetime import datetime, timedelta
 import logging
-
+ 
 from agents.llm_client import LLMClient
 from agents.prompts.agent_6_planning_prompts import PLANNING_PROMPT
-
+ 
 logger = logging.getLogger("taskpilot.planning_agent")
-
-
+ 
+ 
 class PlanningAgent:
     def __init__(self):
         self.reasoning_llm = LLMClient(reasoning=True)
-
+ 
     def generate_plan(self, date, available_hours, meetings, ranked_tasks, buffer_hours=1.0) -> dict:
         import json
         logger.info(f"PlanningAgent: Generating fallback deterministic plan first for date={date}")
@@ -28,7 +28,7 @@ class PlanningAgent:
         else:
             logger.info("PlanningAgent: Successfully generated plan from LLM.")
         return result if isinstance(result, dict) else fallback
-
+ 
     def _fallback(self, date, available_hours, meetings, ranked_tasks, buffer_hours) -> dict:
         slots = []
         for meeting in meetings:
@@ -43,14 +43,14 @@ class PlanningAgent:
                     "agent_reason": "Fixed calendar commitment; protected from task scheduling overlap.",
                 }
             )
-
+ 
         busy = [(m["start_time"], m["end_time"]) for m in meetings]
         cursor = datetime.strptime("09:00", "%H:%M")
         day_end = datetime.strptime("18:00", "%H:%M")
         planned = 0.0
         overflow = []
         rest_breaks_count = 0
-
+ 
         for task in ranked_tasks:
             duration = 1.0 if task.get("score", 0) >= 8 else 0.75
             slot = self._find_free_slot(cursor, day_end, duration, busy)
@@ -101,7 +101,7 @@ class PlanningAgent:
                     cursor = end
             else:
                 cursor = end
-
+ 
         slots.sort(key=lambda s: s["start_time"])
         load_status = "healthy"
         if overflow:
@@ -114,13 +114,28 @@ class PlanningAgent:
             "buffer_hours": buffer_hours,
             "load_status": load_status,
             "time_slots": slots,
-            "recommendations": [
-                "Start with the highest customer or production impact work.",
-                "Keep buffer time for incident follow-ups and reviews.",
-            ],
+            "recommendations": self._build_recommendations(slots, overflow),
             "overflow_tasks": overflow,
         }
-
+ 
+    def _build_recommendations(self, slots, overflow):
+        critical = [s for s in slots if s["slot_type"] == "task" and s["priority_level"] == "critical"]
+        recs = []
+        if critical:
+            recs.append(
+                f"Lead with '{critical[0]['title']}' — top-ranked critical work, protect this block first."
+            )
+        else:
+            recs.append("No critical-priority work queued today; use the time to clear routine backlog.")
+        if overflow:
+            names = ", ".join(t["title"] for t in overflow[:2] if t.get("title"))
+            recs.append(
+                f"{len(overflow)} task(s) overflowed ({names}); escalate or free up capacity tomorrow."
+            )
+        else:
+            recs.append("Full backlog fits today; keep buffer reserved for incident follow-ups.")
+        return recs
+ 
     def _find_free_slot(self, cursor, day_end, duration_hours, busy):
         duration = timedelta(hours=duration_hours)
         step = timedelta(minutes=15)
@@ -131,7 +146,7 @@ class PlanningAgent:
                 return candidate, end
             candidate += step
         return None
-
+ 
     def _overlaps_busy(self, start_dt, end_dt, busy):
         for start, end in busy:
             busy_start = datetime.strptime(start, "%H:%M")
