@@ -1,0 +1,57 @@
+# Python virtual environment and dependencies
+backend/venv/
+backend/.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Node/Frontend dependencies
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# Local databases and vector stores
+*.db
+*.db-journal
+*.sqlite-journal
+*.sqlite3-journal
+*.sqlite3
+backend/taskpilot.db
+backend/chroma_db/
+chroma_db/
+backend/data/fusion_cache.json
+
+# Environment configurations
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+backend/.env
+frontend/.env
+
+# IDE / Editor configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+logs/
+
