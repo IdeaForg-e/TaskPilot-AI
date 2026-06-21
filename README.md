@@ -105,7 +105,8 @@ graph TB
 
     %% Data Source Connections
     JIRA & GITHUB & SLACK & EMAIL & CAL & MEET & INC --> A1
-    CAL --> A6  %% Calendar is read directly by Planning Agent for availability
+    %% Calendar is read directly by Planning Agent for availability
+    CAL --> A6
 
     %% Sequential Data Dependencies
     A1 --> A2
