@@ -426,7 +426,7 @@ graph TD
         CLUSTERER[Agglomerative Cluster Solver]
         
         CANDIDATES --> |Read Candidates| MATCHER
-        MATCHER --> |Uncertainty [0.55, 0.70]| LLM_MERGER
+        MATCHER --> |Uncertainty 0.55 to 0.70| LLM_MERGER
         MATCHER & LLM_MERGER --> |Resolve Matches| CLUSTERER
         CLUSTERER --> |Write Master Tasks & Links| MASTER & LINKS
     end
