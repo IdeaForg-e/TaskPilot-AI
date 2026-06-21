@@ -100,13 +100,28 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
                 "overall_score": quality.overall_score,
                 "actionability": quality.actionability,
                 "missing_info": quality.missing_info,
-                "clarification_questions": quality.clarification_questions
+                "clarification_questions": quality.clarification_questions,
+                "clear_title_score": quality.clear_title_score,
+                "reproduction_steps_score": quality.reproduction_steps_score,
+                "error_logs_score": quality.error_logs_score,
+                "environment_score": quality.environment_score,
+                "expected_behavior_score": quality.expected_behavior_score,
+                "severity_score": quality.severity_score,
+                "assignee_score": quality.assignee_score
             } if quality else None,
             "priority": {
                 "overall_score": priority.overall_score,
                 "rank": priority.rank,
                 "explanation": priority.explanation,
                 "priority_reason": priority.priority_reason or [],
+                "severity_score": priority.severity_score,
+                "deadline_score": priority.deadline_score,
+                "production_impact_score": priority.production_impact_score,
+                "customer_impact_score": priority.customer_impact_score,
+                "dependency_score": priority.dependency_score,
+                "blocker_score": priority.blocker_score,
+                "business_impact_score": priority.business_impact_score,
+                "quality_factor_score": priority.quality_factor_score
             } if priority else None,
             "context_links": context
         }

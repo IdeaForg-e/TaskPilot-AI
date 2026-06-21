@@ -31,6 +31,7 @@ class MasterTask(Base):
     deadline = Column(String)
     urgency = Column(String)
     source_count = Column(Integer, default=1)
+    estimated_hours = Column(Float)
     is_duplicate_of = Column(String)
     fusion_run_id = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)

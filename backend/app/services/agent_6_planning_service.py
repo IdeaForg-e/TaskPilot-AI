@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import uuid
 from datetime import datetime, timedelta
@@ -10,6 +11,7 @@ from app.models.priority_score import PriorityScore
 from app.models.task import MasterTask
 
 WORKING_HOURS_PER_DAY = 8.0
+logger = logging.getLogger("taskpilot.planning_service")
 
 
 class PlanningService:
@@ -18,6 +20,7 @@ class PlanningService:
         self.agent = PlanningAgent()
 
     def generate_plan(self, user_id, date, buffer_hours=1.0):
+        logger.info(f"Generating daily plan for user={user_id} date={date} with buffer_hours={buffer_hours}")
         old_plan_ids = [
             plan.id
             for plan in self.db.query(DailyPlan)
@@ -25,12 +28,18 @@ class PlanningService:
             .all()
         ]
         if old_plan_ids:
+            logger.info(f"Deleting {len(old_plan_ids)} existing plan(s) for date={date}")
             self.db.query(TimeSlot).filter(TimeSlot.daily_plan_id.in_(old_plan_ids)).delete(synchronize_session=False)
             self.db.query(DailyPlan).filter(DailyPlan.id.in_(old_plan_ids)).delete(synchronize_session=False)
         meetings = self._meetings_for(date, user_id)
+        logger.info(f"Retrieved {len(meetings)} meeting(s) for user={user_id} date={date}")
         available = max(0, 8.0 - self._meeting_hours(meetings) - buffer_hours)
         ranked = self._ranked_tasks()
+        logger.info(f"Retrieved {len(ranked)} ranked task(s) for daily planning availability={available}h")
+        
+        logger.info("Executing daily planner agent...")
         result = self.agent.generate_plan(date, available, meetings, ranked, buffer_hours)
+        logger.info("Daily planner agent finished plan generation")
 
         plan = DailyPlan(
             id=str(uuid.uuid4()),
@@ -46,7 +55,9 @@ class PlanningService:
         self.db.add(plan)
         self.db.flush()
 
-        for slot in result.get("time_slots", []):
+        time_slots = result.get("time_slots", [])
+        logger.info(f"Saving {len(time_slots)} time slot(s) for plan_date={date}")
+        for slot in time_slots:
             self.db.add(
                 TimeSlot(
                     id=str(uuid.uuid4()),
@@ -61,11 +72,14 @@ class PlanningService:
             )
 
         self.db.commit()
+        logger.info(f"Daily plan committed successfully for date={date}")
         return self._plan_out(plan)
 
     def get_plan(self, date):
+        logger.info(f"Querying daily plan for date={date}")
         plan = self.db.query(DailyPlan).filter(DailyPlan.plan_date == date).first()
         if not plan:
+            logger.info(f"No plan found in database for date={date}")
             return {"message": f"No plan found for date {date}", "time_slots": [], "plan_date": date, "not_found": True}
         return self._plan_out(plan)
 

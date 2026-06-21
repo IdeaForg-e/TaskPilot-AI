@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
+import logging
 
 from agents.llm_client import LLMClient
 from agents.prompts.agent_6_planning_prompts import PLANNING_PROMPT
+
+logger = logging.getLogger("taskpilot.planning_agent")
 
 
 class PlanningAgent:
@@ -10,6 +13,7 @@ class PlanningAgent:
 
     def generate_plan(self, date, available_hours, meetings, ranked_tasks, buffer_hours=1.0) -> dict:
         import json
+        logger.info(f"PlanningAgent: Generating fallback deterministic plan first for date={date}")
         fallback = self._fallback(date, available_hours, meetings, ranked_tasks, buffer_hours)
         prompt = PLANNING_PROMPT.format(
             date=date,
@@ -17,7 +21,12 @@ class PlanningAgent:
             meetings=json.dumps(meetings, indent=2, ensure_ascii=False),
             ranked_tasks=json.dumps(ranked_tasks[:12], indent=2, ensure_ascii=False),
         )
+        logger.info("PlanningAgent: Invoking LLM service for optimal schedule blocks...")
         result = self.reasoning_llm.complete_json(prompt, fallback=fallback, temperature=0.2)
+        if result == fallback:
+            logger.warning("PlanningAgent: LLM call failed or timed out. Deterministic fallback plan will be returned.")
+        else:
+            logger.info("PlanningAgent: Successfully generated plan from LLM.")
         return result if isinstance(result, dict) else fallback
 
     def _fallback(self, date, available_hours, meetings, ranked_tasks, buffer_hours) -> dict:

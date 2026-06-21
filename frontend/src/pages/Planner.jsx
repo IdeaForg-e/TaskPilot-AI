@@ -10,11 +10,20 @@ const MONTH_NAMES = [
   'July', 'August', 'September', 'October', 'November', 'December'
 ];
 
+const getTodayStr = () => {
+  const today = new Date();
+  const y = today.getFullYear();
+  const m = String(today.getMonth() + 1).padStart(2, '0');
+  const d = String(today.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 export default function Planner() {
-  // Default to June 2026 since that is where the demo standups/meetings and data reside.
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(5); // 0-indexed, 5 = June
-  const [selectedDate, setSelectedDate] = useState('2026-06-18');
+  const todayStr = getTodayStr();
+  const [initY, initM] = todayStr.split('-').map(Number);
+  const [currentYear, setCurrentYear] = useState(initY);
+  const [currentMonth, setCurrentMonth] = useState(initM - 1); // 0-indexed
+  const [selectedDate, setSelectedDate] = useState(todayStr);
   const [plannedDates, setPlannedDates] = useState([]);
   
   const [plan, setPlan] = useState(null);
@@ -26,9 +35,29 @@ export default function Planner() {
   const loadPlannedDates = async () => {
     try {
       const res = await getPlansList();
-      setPlannedDates(res.data || []);
+      const dates = res.data || [];
+      setPlannedDates(dates);
+      let dateToLoad = selectedDate;
+      if (dates.length > 0) {
+        // Sort dates and select the latest one
+        const sorted = [...dates].sort();
+        dateToLoad = sorted[sorted.length - 1];
+        setSelectedDate(dateToLoad);
+        const [y, m, d] = dateToLoad.split('-').map(Number);
+        setCurrentYear(y);
+        setCurrentMonth(m - 1);
+      } else {
+        const todayStrVal = getTodayStr();
+        setSelectedDate(todayStrVal);
+        const [y, m, d] = todayStrVal.split('-').map(Number);
+        setCurrentYear(y);
+        setCurrentMonth(m - 1);
+        dateToLoad = todayStrVal;
+      }
+      loadPlanForDate(dateToLoad);
     } catch (err) {
       console.error('Failed to load planned dates list:', err);
+      loadPlanForDate(selectedDate);
     } finally {
       setLoadingList(false);
     }
@@ -54,7 +83,6 @@ export default function Planner() {
       await generatePlan({ user_id: 'user-001', date: selectedDate, buffer_hours: 1.0 });
       // Reload planned dates and then the plan
       await loadPlannedDates();
-      await loadPlanForDate(selectedDate);
     } catch (err) {
       setError(getApiErrorMessage(err));
     } finally {
@@ -64,7 +92,6 @@ export default function Planner() {
 
   useEffect(() => {
     loadPlannedDates();
-    loadPlanForDate(selectedDate);
   }, []);
 
   const handlePrevMonth = () => {

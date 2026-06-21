@@ -22,10 +22,16 @@ export default function ChatPage() {
     try {
       const listRes = await getPlansList();
       const dates = listRes.data || [];
-      let dateToLoad = '2026-06-18'; // default fallback demo date
+      let dateToLoad = '';
       if (dates.length > 0) {
         dates.sort();
         dateToLoad = dates[dates.length - 1]; // Load the latest planned day
+      } else {
+        const today = new Date();
+        const y = today.getFullYear();
+        const m = String(today.getMonth() + 1).padStart(2, '0');
+        const d = String(today.getDate()).padStart(2, '0');
+        dateToLoad = `${y}-${m}-${d}`;
       }
       const planRes = await getPlan(dateToLoad);
       setReminderPlan(planRes.data || null);

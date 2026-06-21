@@ -20,8 +20,8 @@ class LLMClient:
 
     def __init__(self, reasoning: bool = False):
         self.reasoning = reasoning
-        self.timeout = 90 if reasoning else 30
-        self.max_tokens = 2048 if reasoning else 1500
+        self.timeout = 60 if reasoning else 30
+        self.max_tokens = 3000 if reasoning else 1500
         self.providers = self._build_providers()
 
     def _build_providers(self):
@@ -159,9 +159,8 @@ class LLMClient:
     def _system_prompt(self) -> str:
         if self.reasoning:
             return (
-                "You are a careful TaskPilot reasoning agent. Think through evidence, "
-                "tradeoffs, duplicates, urgency, and planning constraints privately. "
-                "Return only the requested JSON or plain answer, with no markdown."
+                "You are a precise TaskPilot reasoning agent. "
+                "Output the final JSON structure directly without extra commentary."
             )
         return (
             "You are a precise TaskPilot extraction agent. Be concise, preserve source "
