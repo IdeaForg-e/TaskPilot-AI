@@ -18,7 +18,6 @@ class Settings:
     NVIDIA_MODEL_FAST: str = os.getenv("NVIDIA_MODEL_FAST", "meta/llama-3.1-8b-instruct")
     NVIDIA_MODEL_REASONING: str = os.getenv("NVIDIA_MODEL_REASONING", "meta/llama-3.3-70b-instruct")
     DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./taskpilot.db")
-    CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
     DATA_DIR: str = os.path.join(BASE_DIR, "data")
 
 settings = Settings()

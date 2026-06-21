@@ -27,6 +27,7 @@
 - [Problem Statement](#-the-problem)
 - [Our Solution](#-our-solution)
 - [System Architecture](#-system-architecture)
+- [Research & Concept Docs](#-research--concept-docs)
 - [Multi-Agent Pipeline](#-multi-agent-pipeline-deep-dive)
 - [Frontend Dashboard](#-frontend-dashboard)
 - [Tech Stack & Tools](#-tech-stack--tools)
@@ -271,6 +272,15 @@ erDiagram
 
 ---
 
+## 📚 Research & Concept Docs
+
+Explore our research, design documents, and conceptual POC documentation on Notion:
+
+- 📑 **[Research on TaskPilot AI](https://app.notion.com/p/38386af917aa8071901cfade62812c7b?v=38386af917aa806992b3000c718c8c5a)** — Problem definition, developer fatigue analysis, and key feature brainstorming.
+- 📐 **[TaskPilot AI – Final Multi-Agent Architecture (POC)](https://app.notion.com/p/TaskPilot-AI-Final-Multi-Agent-Architecture-POC-38486af917aa8093b7b2f742bac92a34)** — Comprehensive overview of orchestrator design, database entities, prompts, and agent logic.
+
+---
+
 ## 🤖 Multi-Agent Pipeline Deep-Dive
 
 ### Agent 0 — Orchestrator Service
@@ -351,6 +361,7 @@ Uses a **hybrid approach** — critical tasks get LLM reasoning, others use a fa
 | 🚧 Blocker Score | 10% | Whether it blocks other engineers/pipelines |
 | 💼 Business Impact | 10% | Revenue and business operations impact |
 | 📊 Quality Factor | 5% | How well-documented the task is |
+| 🔗 Dependency Score | 0% (Metadata) | Evaluates complexity and source link density (e.g., number of overlapping event signals) |
 
 **Intelligence features:**
 - **Blocker detection** via keyword analysis (escalates blocking tasks by +2.0)
