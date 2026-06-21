@@ -1,6 +1,8 @@
 import uuid
+import logging
 
 from agents.agent_5_prioritization_agent import PrioritizationAgent
+from agents.llm_client import LLMClient
 from app.models.priority_score import PriorityScore
 from app.models.quality_report import QualityReport
 from app.models.task import MasterTask
@@ -12,6 +14,7 @@ class PrioritizationService:
         self.agent = PrioritizationAgent()
 
     def prioritize_all(self):
+        logger = logging.getLogger("taskpilot.prioritization_service")
         self.db.query(PriorityScore).delete()
         quality_by_task = {
             report.master_task_id: report.overall_score
@@ -24,22 +27,49 @@ class PrioritizationService:
         # Invoke LLM prioritization in batches of 20 tasks
         batch_results = self.agent.score_batch(tasks_list, quality_by_task)
         
+        # Developer workload check
+        workload = {}
+        for task in tasks:
+            if task.assignee:
+                workload[task.assignee] = workload.get(task.assignee, 0) + 1
+
+        for assignee, count in workload.items():
+            if count > 3:
+                warning_msg = f"Developer '{assignee}' has an overloaded queue with {count} active tasks."
+                logger.warning(warning_msg)
+                LLMClient._add_diagnostic("warning", warning_msg)
+
+        blocker_keywords = ["blocks", "dependent on", "blocker for", "blocking"]
         scored = []
         for task in tasks:
             result = batch_results.get(task.id, {})
+            
+            desc_lower = (task.description or "").lower()
+            title_lower = (task.title or "").lower()
+            is_blocker = any(kw in desc_lower or kw in title_lower for kw in blocker_keywords)
+
+            overall_score = result.get("overall_score", 5.0)
+            blocker_score = result.get("blocker_score", 3.0)
+            explanation = result.get("explanation", "")
+
+            if is_blocker:
+                overall_score = min(10.0, overall_score + 2.0)
+                blocker_score = 10.0
+                explanation = f"[Blocker Boost] {explanation}"
+
             score = PriorityScore(
                 id=str(uuid.uuid4()),
                 master_task_id=task.id,
-                overall_score=result.get("overall_score", 5.0),
+                overall_score=overall_score,
                 severity_score=result.get("severity_score"),
                 deadline_score=result.get("deadline_score"),
                 production_impact_score=result.get("production_impact_score"),
                 customer_impact_score=result.get("customer_impact_score"),
                 dependency_score=result.get("dependency_score"),
-                blocker_score=result.get("blocker_score"),
+                blocker_score=blocker_score,
                 business_impact_score=result.get("business_impact_score"),
                 quality_factor_score=result.get("quality_factor_score"),
-                explanation=result.get("explanation", ""),
+                explanation=explanation,
             )
             self.db.add(score)
             scored.append((task, score))

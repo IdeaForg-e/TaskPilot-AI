@@ -11,15 +11,50 @@ class ExtractionAgent:
         self.batch_size = batch_size
 
     def extract_explicit_task(self, source_type: str, item: dict) -> dict:
-        # Use fast deterministic fallback directly — it's accurate for structured data
-        # and avoids 1+ second LLM call per event (~15 events = 15+ seconds)
         fallback = self._explicit_fallback(source_type, item)
-        return fallback
+        prompt = EXPLICIT_TASK_PROMPT.format(source_type=source_type, content=json.dumps(item, indent=2))
+        try:
+            result = self.fast_llm.complete_json(prompt, fallback=fallback)
+            if not isinstance(result, dict):
+                return fallback
+            for key in ["title", "description"]:
+                if not result.get(key):
+                    result[key] = fallback.get(key)
+            if "urgency" not in result or result["urgency"] not in ("low", "medium", "high", "critical"):
+                result["urgency"] = fallback.get("urgency", "medium")
+            if "task_type" not in result:
+                result["task_type"] = fallback.get("task_type", "request")
+            return result
+        except Exception:
+            return fallback
 
     def extract_hidden_tasks(self, source_type: str, item: dict) -> list[dict]:
-        # Use fast deterministic fallback directly to avoid 1+ second LLM call per event
         fallback = self._hidden_fallback(source_type, item)
-        return fallback
+        text = " ".join(
+            str(item.get(key, ""))
+            for key in ("content", "body", "summary", "description", "subject", "title")
+        )
+        prompt = HIDDEN_TASK_PROMPT.format(source_type=source_type, content=text)
+        try:
+            result = self.fast_llm.complete_json(prompt, fallback=fallback)
+            if not isinstance(result, list):
+                if isinstance(result, dict):
+                    result = [result]
+                else:
+                    return fallback
+            validated = []
+            for task in result:
+                if isinstance(task, dict) and task.get("title"):
+                    if not task.get("description"):
+                        task["description"] = fallback[0]["description"] if fallback else task["title"]
+                    if "urgency" not in task or task["urgency"] not in ("low", "medium", "high", "critical"):
+                        task["urgency"] = "medium"
+                    if "confidence" not in task:
+                        task["confidence"] = 0.8
+                    validated.append(task)
+            return validated if validated else fallback
+        except Exception:
+            return fallback
 
     def _explicit_fallback(self, source_type: str, item: dict) -> dict:
         title = item.get("title") or item.get("subject") or item.get("key") or "Untitled task"

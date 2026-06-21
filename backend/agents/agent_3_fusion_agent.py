@@ -31,17 +31,15 @@ class FusionAgent:
         if fallback["confidence"] >= 0.70:
             return fallback
 
-        # If similarity confidence is very low, they are definitely not duplicates.
-        # This prevents unnecessary LLM calls in the nested loops of the fusion service.
         if fallback["confidence"] < 0.55:
             return {
                 "is_duplicate": False,
                 "confidence": fallback["confidence"]
             }
 
-        title_a = task_a.get("title", "")
+        title_a = f"{task_a.get('title', '')} [Assignee: {task_a.get('assignee') or 'None'}, Platform: {task_a.get('source_platform') or 'Unknown'}]"
         desc_a = (task_a.get("description") or "")[:700]
-        title_b = task_b.get("title", "")
+        title_b = f"{task_b.get('title', '')} [Assignee: {task_b.get('assignee') or 'None'}, Platform: {task_b.get('source_platform') or 'Unknown'}]"
         desc_b = (task_b.get("description") or "")[:700]
 
         cache_key = self._get_cache_key(title_a, desc_a, title_b, desc_b)
@@ -56,7 +54,6 @@ class FusionAgent:
         )
         result = self.reasoning_llm.complete_json(prompt, fallback=fallback, temperature=0.1)
 
-        # Save to cache
         if isinstance(result, dict):
             self.cache[cache_key] = result
             try:
@@ -76,10 +73,26 @@ class FusionAgent:
         tokens_b = set(title_b.lower().replace("#", "").split())
         overlap = len(tokens_a & tokens_b) / max(len(tokens_a | tokens_b), 1)
         confidence = max(ratio, overlap)
+
+        assignee_a = task_a.get("assignee")
+        assignee_b = task_b.get("assignee")
+        if assignee_a and assignee_b and assignee_a.strip().lower() != assignee_b.strip().lower():
+            confidence -= 0.15
+
+        platform_a = task_a.get("source_platform")
+        platform_b = task_b.get("source_platform")
+        if platform_a and platform_b and platform_a != platform_b:
+            confidence -= 0.05
+
+        deadline_a = task_a.get("deadline")
+        deadline_b = task_b.get("deadline")
+        if deadline_a and deadline_b and deadline_a != deadline_b:
+            confidence -= 0.10
+
         duplicate = confidence > 0.62
         return {
             "is_duplicate": duplicate,
-            "confidence": confidence,
+            "confidence": max(0.0, confidence),
             "merged_title": title_a if len(title_a) >= len(title_b) else title_b,
             "merged_description": " ".join(
                 part

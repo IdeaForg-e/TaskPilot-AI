@@ -1,7 +1,55 @@
+from agents.llm_client import LLMClient
+from agents.prompts.agent_4_quality_prompts import QUALITY_PROMPT
+
+
 class QualityAgent:
-    def evaluate(self, title: str, description: str, task_type: str, assignee: str, deadline: str) -> dict:
+    def __init__(self):
+        self.fast_llm = LLMClient(reasoning=False)
+
+    def evaluate(self, title: str, description: str, task_type: str, assignee: str, deadline: str, is_critical: bool = False) -> dict:
         fallback = self._fallback(title, description, task_type, assignee, deadline)
-        return fallback
+        if not is_critical:
+            return fallback
+
+        prompt = QUALITY_PROMPT.format(
+            title=title,
+            description=description,
+            task_type=task_type,
+            assignee=assignee,
+            deadline=deadline
+        )
+        try:
+            result = self.fast_llm.complete_json(prompt, fallback=fallback)
+            if not isinstance(result, dict):
+                return fallback
+            
+            for field in ["clear_title", "reproduction_steps", "error_logs", "environment", "expected_behavior", "severity", "assignee"]:
+                if field not in result:
+                    result[field] = fallback[field]
+                else:
+                    try:
+                        result[field] = float(result[field])
+                    except (ValueError, TypeError):
+                        result[field] = fallback[field]
+                        
+            if "overall_score" not in result:
+                result["overall_score"] = fallback["overall_score"]
+            else:
+                try:
+                    result["overall_score"] = float(result["overall_score"])
+                except (ValueError, TypeError):
+                    result["overall_score"] = fallback["overall_score"]
+            
+            if "missing_info" not in result:
+                result["missing_info"] = fallback["missing_info"]
+            if "clarification_questions" not in result:
+                result["clarification_questions"] = fallback["clarification_questions"]
+            if "actionability" not in result:
+                result["actionability"] = fallback["actionability"]
+                
+            return result
+        except Exception:
+            return fallback
 
     def _fallback(self, title: str, description: str, task_type: str, assignee: str, deadline: str) -> dict:
         desc = description or ""

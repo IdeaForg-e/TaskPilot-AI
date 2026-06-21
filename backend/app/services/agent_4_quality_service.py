@@ -19,12 +19,14 @@ class QualityService:
         total_score = 0
 
         for task in tasks:
+            is_critical = (task.urgency in ("critical", "high"))
             result = self.agent.evaluate(
                 task.title,
                 task.description or "",
                 task.task_type or "",
                 task.assignee or "",
                 task.deadline or "",
+                is_critical=is_critical,
             )
             report = QualityReport(
                 id=str(uuid.uuid4()),

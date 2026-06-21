@@ -68,7 +68,25 @@ class PlanningAgent:
                 }
             )
             planned += duration
-            cursor = end
+            
+            break_duration = timedelta(minutes=15)
+            break_end = end + break_duration
+            if break_end <= day_end and not self._overlaps_busy(end, break_end, busy):
+                slots.append(
+                    {
+                        "start_time": end.strftime("%H:%M"),
+                        "end_time": break_end.strftime("%H:%M"),
+                        "slot_type": "buffer",
+                        "priority_level": "neutral",
+                        "title": "Rest Break / Buffer",
+                        "task_id": None,
+                        "agent_reason": "Automated rest break to avoid fatigue and maintain high cognitive performance.",
+                    }
+                )
+                busy.append((end.strftime("%H:%M"), break_end.strftime("%H:%M")))
+                cursor = break_end
+            else:
+                cursor = end
 
         slots.sort(key=lambda s: s["start_time"])
         load_status = "healthy"
