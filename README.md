@@ -220,7 +220,7 @@ sequenceDiagram
 | **Extraction** | `llama-3.1-8b-instant` | ❌ Fast | Keyword + regex-based extraction |
 | **Fusion** | `llama-3.3-70b-versatile` | ✅ Reasoning | SequenceMatcher overlap + **Persistent Cache** (`fusion_cache.json`) + strict `[0.55, 0.70]` LLM window |
 | **Quality** | Deterministic (Heuristic) | ❌ Fast | **Bypassed to Deterministic Fallback** for 20ms execution and 0 API calls |
-| **Prioritization** | `llama-3.1-8b-instant` | ❌ Fast | **Scored in batches of 10** to optimize execution and avoid SQLite locks, with a deterministic local fallback |
+| **Prioritization** | `llama-3.1-8b-instant` | ❌ Fast | **Filters only critical tasks** (using keywords, urgency levels, and score $\ge 8.0$) for LLM evaluation. Bypasses 80% of standard tasks to local scoring, and uses batches of 8 to prevent SQLite locks. |
 | **Planning** | `llama-3.3-70b-versatile` | ✅ Reasoning | Greedy time-slot calendar scheduling (uses `json.dumps` prompt escaping) |
 
 ### LLM Fallback & Optimization Chain
@@ -230,7 +230,7 @@ Groq (max_retries=0)
   ├── ✅ Success → Return result immediately
   ├── ❌ 429/Error → Instant fail (no SDK retry wait) & Class-Level Global Failover
   │    └── NVIDIA
-  │         ├── ✅ Success → Return result (passes through clean_json_lines parser)
+  │         ├── ✅ Success (Fast-only model: meta/llama-3.1-8b-instruct) → Return result (passes through clean_json_lines parser)
   │         └── ❌ Error
   │              └── Deterministic Fallback (SequenceMatcher / Heuristic / Weighted Formula)
   └── 🔄 Fusion Cache → Skips LLM entirely for cached similarity comparisons
@@ -239,9 +239,12 @@ Groq (max_retries=0)
 * **⚡ Core Performance Optimizations:**
   * **Persistent Fusion Cache**: Similarity evaluations between `0.55` and `0.70` are cached in `backend/data/fusion_cache.json`. Values outside this range skip the LLM. This saves **600+ redundant duplicate check requests**, reducing fusion to **0ms** on repeated runs.
   * **Deterministic Fallback Bypassing**: Quality agent directly calculates structural completeness using local algorithms. This saves **30+ reasoning calls**, dropping stage runtime to **<20ms**.
+  * **Prioritization LLM Filtering**: Filters and forwards only high-priority critical tasks to the LLM. Minor/standard tasks use deterministic fallbacks, saving ~80% of tokens and keeping requests well below Groq TPM limits.
+  * **Fast-Model NVIDIA Fallback**: Enabled NVIDIA NIM as a fallback provider behind Groq, strictly using the fast model (`meta/llama-3.1-8b-instruct`) to prevent the high latency and timeout delays of reasoning models.
   * **Class-Level Global Failover**: Promoted `failed_providers` in `LLMClient` to a class variable. Once a rate limit (429) hits Groq, it is globally bypassed instantly across all subsequent API client instances in the same process, directing requests directly to NVIDIA.
   * **Robust JSON Delimiter Repair**: Added a `clean_json_lines` parser to `LLMClient.parse_json` that repairs unescaped quotes inside JSON values on the fly, preventing syntax crashes.
   * **FastAPI BackgroundTasks**: Pipeline orchestrator now runs in `BackgroundTasks` threads. The POST endpoint returns a success status immediately, and the frontend polls the status dynamically, preventing server timeouts.
+  * **Database Startup Persistence**: Disabled automatic deletion of database tables on server startup. Hot-reloads and server restarts no longer wipe out existing master tasks, quality reports, or workflow runs. This lets dashboard pipeline metrics (Run Count, Environment, System Accuracy) accumulate and persist correctly. Developers can toggle startup clearing using `CLEAR_DB_ON_STARTUP=1` in `backend/.env`.
   * **Raw Ingestion Defect Injection**: P1 defect injections from chat append tasks directly to the raw JSON database files (`incidents.json`), making them persistent and clean through the standard ingestion pipeline.
 
 ### Agent Details
@@ -671,13 +674,20 @@ Without it, uvicorn's `watchfiles` detects every SQLite write and log append as 
 
 - ✅ **7 Data Sources** — Jira, GitHub, Slack, Email, Calendar, Meetings, Incidents
 - ✅ **6 Specialized Agents** — Autonomous pipeline with deterministic fallbacks for every agent
-- ✅ **Dual LLM Provider** — Groq primary (max_retries=0 for fast failover), NVIDIA fallback
+- ✅ **Dual LLM Provider** — Groq primary (max_retries=0 for fast failover), NVIDIA fast fallback
 - ✅ **Persistent Fusion Cache** — Stores duplicate checks in `fusion_cache.json` to reduce fusion to **0ms** on repeated runs
 - ✅ **Deterministic Bypasses** — Bypasses LLM calls for the Quality agent to execute it locally in **<20ms**
 - ✅ **FastAPI BackgroundTasks** — Asynchronous non-blocking pipeline execution with real-time UI polling
 - ✅ **Robust JSON Delimiter Repair** — `clean_json_lines` parser dynamically repairs unescaped quotes in JSON string outputs
 - ✅ **Stale Pipeline & Startup Cleanup** — Automatically cleans up zombie "running" pipelines on server startup or after timeouts
+- ✅ **Database Startup Persistence** — Keeps tasks and run counts persistent across restarts, allowing pipeline metrics to accumulate correctly
 - ✅ **Raw Data Defect Injection** — Appends manual defect injections directly to raw source JSON files for clean persistence and 0 IntegrityErrors
+- ✅ **Modern Viewport-Based App Layout** — Uses a clean fixed-height grid (`h-screen overflow-hidden`) with a scrollable main viewport, locking the navigation sidebar and header firmly in place
+- ✅ **Selected Task Card Highlighting** — Selected task cards light up with a glowing violet border and background tint for instant context
+- ✅ **Readable Title Wrapping** — Wrap titles up to two lines (`line-clamp-2`) preventing unreadable truncation
+- ✅ **Dynamic Responsive Grid Columns** — Adjusts the task list column sizes dynamically when the telemetry detail panel is active
+- ✅ **Custom Dark Scrollbars** — Replaces browser default scrollbars with thin, dark-themed gradient scrollbars that blend into the mesh UI
+- ✅ **Rich Markdown & GFM in Chat** — Renders markdown formatting, lists, code, and structured tables beautifully in the Copilot chat
 - ✅ **Hidden Task Recovery** — Email/Slack/Meeting action item extraction
 - ✅ **Semantic Deduplication** — Cross-source duplicate detection
 - ✅ **Explainable Prioritization** — 7-factor scoring with rationale
