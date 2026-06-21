@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User, MessageSquare, Bell, CheckCircle2, Circle, Clock } from 'lucide-react';
 import { sendChatMessage, getApiErrorMessage, getPlan, getPlansList, getTasks, updateTaskStatus } from '../services/api';
 import EmptyState from '../components/common/EmptyState';
+import LoadingSpinner from '../components/common/LoadingSpinner';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
