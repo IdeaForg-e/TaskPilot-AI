@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Send, Bot, User, MessageSquare, Terminal } from 'lucide-react';
 import { sendChatMessage, getApiErrorMessage } from '../services/api';
 import EmptyState from '../components/common/EmptyState';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([]);
@@ -93,10 +95,18 @@ export default function ChatPage() {
                       className={`max-w-[70%] rounded-2xl p-4 text-xs font-medium leading-relaxed shadow-sm ${
                         isUser
                           ? 'bg-gradient-to-tr from-violet-600 to-indigo-600 text-white border border-violet-500/10'
-                          : 'bg-slate-900/60 border border-slate-850/80 text-slate-205 backdrop-blur-sm'
+                          : 'bg-slate-900/60 border border-slate-850/80 text-slate-200 backdrop-blur-sm'
                       }`}
                     >
-                      {m.content}
+                      {isUser ? (
+                        m.content
+                      ) : (
+                        <div className="markdown-container">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {m.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );

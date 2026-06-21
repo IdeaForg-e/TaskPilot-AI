@@ -75,6 +75,15 @@ export default function PipelineStatus({ latestRun }) {
           {badgeText}
         </span>
       </div>
+      
+      {status === 'running' && currentAgent && (
+        <div className="mb-4 rounded-xl bg-violet-500/10 border border-violet-500/20 p-3 flex items-center gap-2.5 animate-pulse-glow">
+          <Loader2 className="h-4 w-4 text-violet-400 animate-spin shrink-0" />
+          <p className="text-xs text-violet-300 font-semibold">
+            Currently running: <span className="text-white capitalize">{currentAgent.replace('_', ' ')} Agent</span>. Please wait for this stage to complete.
+          </p>
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {STAGES.map((stage) => {

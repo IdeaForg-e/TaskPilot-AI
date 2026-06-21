@@ -1,10 +1,41 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Menu, Play, Loader2, CheckCircle2, XCircle, Activity, AlertTriangle } from 'lucide-react';
-import { getApiErrorMessage, runPipeline } from '../../services/api';
+import { getApiErrorMessage, runPipeline, getLatestPipelineRun } from '../../services/api';
 
 export default function Header({ onMenuClick }) {
   const [status, setStatus] = useState('idle'); // idle | loading | success | warning | error
   const [notice, setNotice] = useState(null);
+  const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+
+  useEffect(() => {
+    const checkPipelineStatus = async () => {
+      try {
+        const res = await getLatestPipelineRun();
+        const runInfo = res.data?.latest_run || null;
+        if (runInfo) {
+          const rawStatus = runInfo.status || 'idle';
+          const startedAtStr = runInfo.started_at;
+          const startedAt = startedAtStr ? new Date(startedAtStr.endsWith('Z') ? startedAtStr : startedAtStr + 'Z') : null;
+          const now = new Date();
+          const isStale = rawStatus === 'running' && startedAt && (now - startedAt > 2 * 60 * 1000);
+          
+          if (isStale) {
+            setIsPipelineRunning(false);
+          } else {
+            setIsPipelineRunning(rawStatus === 'running');
+          }
+        } else {
+          setIsPipelineRunning(false);
+        }
+      } catch (err) {
+        console.error("Failed to fetch latest pipeline status in Header", err);
+      }
+    };
+
+    checkPipelineStatus();
+    const interval = setInterval(checkPipelineStatus, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleRunPipeline = async () => {
     setStatus('loading');
@@ -82,10 +113,10 @@ export default function Header({ onMenuClick }) {
         )}
         <button
           onClick={handleRunPipeline}
-          disabled={status === 'loading'}
+          disabled={status === 'loading' || isPipelineRunning}
           className="btn-gradient relative overflow-hidden inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 transition-all cursor-pointer"
         >
-          {status === 'loading' ? (
+          {status === 'loading' || isPipelineRunning ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Orchestrating...</span>
