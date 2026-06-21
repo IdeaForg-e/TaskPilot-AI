@@ -86,9 +86,12 @@ async def startup():
     setup_logging()
     init_db()
     
-    # Only clear database tables on server startup if explicitly requested.
+    # Always clear database tables on server startup in local development to return to a clean initial state.
+    # Protect production deployments from data loss on automatic server restarts.
     import os
-    if os.getenv("CLEAR_DB_ON_STARTUP") == "true":
+    is_production = os.getenv("RENDER") == "true" or os.getenv("ENV") == "production" or os.getenv("PRODUCTION") == "true"
+    
+    if not is_production:
         try:
             from app.database import SessionLocal
             from app.models.daily_plan import DailyPlan, TimeSlot
