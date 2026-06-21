@@ -15,6 +15,7 @@ export default function Tasks() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [assigneeFilter, setAssigneeFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
 
   const loadTasks = async () => {
     setLoading(true);
@@ -45,6 +46,10 @@ export default function Tasks() {
     () => ['all', ...new Set(tasks.map((t) => t.assignee).filter(Boolean))],
     [tasks]
   );
+  const sources = useMemo(
+    () => ['all', ...new Set(tasks.flatMap((t) => t.source_platforms || []).filter(Boolean))],
+    [tasks]
+  );
 
   const filteredTasks = useMemo(
     () =>
@@ -53,9 +58,11 @@ export default function Tasks() {
         if (typeFilter !== 'all' && t.type !== typeFilter && t.source !== typeFilter)
           return false;
         if (assigneeFilter !== 'all' && t.assignee !== assigneeFilter) return false;
+        if (sourceFilter !== 'all' && !(t.source_platforms || []).includes(sourceFilter))
+          return false;
         return true;
       }),
-    [tasks, statusFilter, typeFilter, assigneeFilter]
+    [tasks, statusFilter, typeFilter, assigneeFilter, sourceFilter]
   );
 
   const handleSelectTask = (task) => {
@@ -119,6 +126,18 @@ export default function Tasks() {
           {assignees.map((a) => (
             <option key={a} value={a}>
               {a === 'all' ? 'All Assignees' : a}
+            </option>
+          ))}
+        </select>
+        
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+          className={selectClass}
+        >
+          {sources.map((src) => (
+            <option key={src} value={src}>
+              {src === 'all' ? 'All Platforms / Sources' : src.toUpperCase()}
             </option>
           ))}
         </select>
