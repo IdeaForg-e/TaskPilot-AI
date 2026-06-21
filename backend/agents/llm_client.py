@@ -37,6 +37,14 @@ class LLMClient:
                     else settings.GROQ_MODEL_FAST,
                 }
             )
+        if settings.NVIDIA_API_KEY:
+            providers.append(
+                {
+                    "name": "nvidia",
+                    "api_key": settings.NVIDIA_API_KEY,
+                    "model": settings.NVIDIA_MODEL_FAST,  # Always use the fast model for fallback
+                }
+            )
         return providers
 
     def complete_json(self, prompt: str, fallback: Any, temperature: float = 0.1) -> Any:
@@ -51,7 +59,7 @@ class LLMClient:
         if not self.providers:
             self._add_diagnostic(
                 "warning",
-                "No LLM API keys are configured. Add GROQ_API_KEY in backend/.env.",
+                "No LLM API keys are configured. Add GROQ_API_KEY or NVIDIA_API_KEY in backend/.env.",
             )
             logger.debug("No LLM providers configured; using deterministic fallback")
             return fallback
@@ -62,6 +70,9 @@ class LLMClient:
             try:
                 if provider["name"] == "groq":
                     content = self._complete_groq(provider, prompt, temperature)
+                    return parse_json(content)
+                elif provider["name"] == "nvidia":
+                    content = self._complete_nvidia(provider, prompt, temperature)
                     return parse_json(content)
             except Exception as exc:
                 message = f"LLM provider {provider['name']} failed: {self._safe_error(exc)}"
@@ -83,7 +94,7 @@ class LLMClient:
         if not self.providers:
             self._add_diagnostic(
                 "warning",
-                "No LLM API keys are configured. Add GROQ_API_KEY in backend/.env.",
+                "No LLM API keys are configured. Add GROQ_API_KEY or NVIDIA_API_KEY in backend/.env.",
             )
             logger.warning("No LLM providers configured for text completion")
             return "No LLM provider is configured for this environment."
@@ -94,6 +105,9 @@ class LLMClient:
             try:
                 if provider["name"] == "groq":
                     content = self._complete_groq(provider, prompt, temperature)
+                    return content
+                elif provider["name"] == "nvidia":
+                    content = self._complete_nvidia(provider, prompt, temperature)
                     return content
             except Exception as exc:
                 message = f"LLM provider {provider['name']} text completion failed: {self._safe_error(exc)}"
@@ -118,6 +132,28 @@ class LLMClient:
             max_tokens=self.max_tokens,
         )
         return response.choices[0].message.content
+
+    def _complete_nvidia(self, provider: dict, prompt: str, temperature: float) -> str:
+        headers = {
+            "Authorization": f"Bearer {provider['api_key']}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "model": provider["model"],
+            "messages": [
+                {"role": "system", "content": self._system_prompt()},
+                {"role": "user", "content": prompt},
+            ],
+            "temperature": temperature,
+            "max_tokens": self.max_tokens,
+        }
+        url = settings.NVIDIA_BASE_URL.rstrip("/") + "/chat/completions"
+        
+        with httpx.Client(timeout=self.timeout) as client:
+            response = client.post(url, headers=headers, json=payload)
+            response.raise_for_status()
+            res_data = response.json()
+            return res_data["choices"][0]["message"]["content"]
 
     def _system_prompt(self) -> str:
         if self.reasoning:
