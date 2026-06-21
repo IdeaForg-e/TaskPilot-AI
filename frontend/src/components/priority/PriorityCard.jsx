@@ -87,6 +87,15 @@ export default function PriorityCard({ task, rank }) {
         <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-2xl">
           {explanation}
         </p>
+        {task.priority_reason && task.priority_reason.length > 0 && (
+          <div className="mt-2.5 flex flex-wrap gap-1.5">
+            {task.priority_reason.map((reason, idx) => (
+              <span key={idx} className="inline-flex items-center rounded-lg bg-amber-500/5 border border-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400/95 tracking-wide shadow-sm">
+                ⚡ {reason}
+              </span>
+            ))}
+          </div>
+        )}
         <div className="mt-3 flex flex-wrap gap-1.5">
           {breakdown.map(([label, value, Icon]) => (
             value !== undefined && value !== null ? (
