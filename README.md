@@ -629,9 +629,12 @@ npm run dev
 Without it, uvicorn's `watchfiles` detects every SQLite write and log append as a file change — causing the server to restart every ~0.4 seconds during pipeline execution. This kills in-flight LLM calls and leaves zombie `"running"` pipeline records in the database. The `start.bat` launcher already includes these excludes automatically.
 
 ### Access
-- **Frontend:** http://localhost:5173
-- **Backend API:** http://localhost:8000
-- **API Docs:** http://localhost:8000/docs
+- **Frontend (Local):** http://localhost:5173
+- **Backend API (Local):** http://localhost:8000
+- **API Docs (Local):** http://localhost:8000/docs
+- **Deployed Backend (Render):** https://taskpilot-ai-4.onrender.com
+- **Deployed API Docs (Render):** https://taskpilot-ai-4.onrender.com/docs
+
 
 ---
 
