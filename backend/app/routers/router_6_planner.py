@@ -25,6 +25,8 @@ async def generate_plan(request: DailyPlanRequest, db: Session = Depends(get_db)
             message=f"Daily plan generation failed: {exc}",
         )
 
+from app.models.daily_plan import DailyPlan
+
 @router.get("/daily-plan/{date}", response_model=APIResponse)
 async def get_plan(date: str, db: Session = Depends(get_db)):
     try:
@@ -33,4 +35,14 @@ async def get_plan(date: str, db: Session = Depends(get_db)):
         return APIResponse(success=True, data=result, message="OK")
     except Exception as exc:
         logger.error(f"Plan fetch failed: {exc}")
+        return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
+
+@router.get("/daily-plans", response_model=APIResponse)
+async def list_plans(db: Session = Depends(get_db)):
+    try:
+        plans = db.query(DailyPlan).all()
+        dates = [p.plan_date for p in plans]
+        return APIResponse(success=True, data=dates, message="OK")
+    except Exception as exc:
+        logger.error(f"Plans list failed: {exc}")
         return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))

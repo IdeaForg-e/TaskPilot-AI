@@ -64,9 +64,7 @@ class PlanningService:
     def get_plan(self, date):
         plan = self.db.query(DailyPlan).filter(DailyPlan.plan_date == date).first()
         if not plan:
-            plan = self.db.query(DailyPlan).order_by(DailyPlan.plan_date.desc()).first()
-        if not plan:
-            return {"message": "No plan found for this date", "time_slots": []}
+            return {"message": f"No plan found for date {date}", "time_slots": [], "plan_date": date, "not_found": True}
         return self._plan_out(plan)
 
     def _meetings_for(self, date, user_id):

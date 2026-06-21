@@ -135,6 +135,27 @@ class PrioritizationAgent:
             * work_type_multiplier,
             1,
         )
+        reasons = []
+        if severity >= 8.0:
+            reasons.append(f"high urgency/severity ({severity}/10)")
+        if production >= 8.0:
+            reasons.append(f"high production environment impact risk ({production}/10)")
+        if customer >= 8.0:
+            reasons.append(f"high customer/user experience impact ({customer}/10)")
+        if blocker >= 8.0:
+            reasons.append(f"identified as a blocker or critical bottleneck ({blocker}/10)")
+        if task.get("deadline"):
+            reasons.append(f"approaching deadline of {task.get('deadline')} ({deadline}/10)")
+        if is_reporting_work and task.get("task_type") == "request":
+            reasons.append("demoted due to administrative/reporting task classification")
+        if title_quality_multiplier < 1.0:
+            reasons.append("demoted due to vague title formatting details")
+        
+        if not reasons:
+            reasons.append(f"standard backlog prioritization weightings (severity: {severity}, quality: {quality_factor})")
+        
+        explanation = f"Prioritized at {overall}/10 based on: " + ", ".join(reasons) + "."
+
         return {
             "overall_score": overall,
             "severity_score": severity,
@@ -145,7 +166,7 @@ class PrioritizationAgent:
             "blocker_score": blocker,
             "business_impact_score": business,
             "quality_factor_score": quality_factor,
-            "explanation": "Ranked by urgency, customer/production impact, blockers, deadline, and task quality.",
+            "explanation": explanation,
         }
 
     def _is_vague_title(self, title: str) -> bool:

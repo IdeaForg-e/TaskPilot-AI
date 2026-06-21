@@ -114,6 +114,8 @@ export const getTaskDetail = (id) =>
   unwrap(API.get(`/tasks/${id}`)).then((data) =>
     response(data?.task ? { ...data.task, quality: data.quality, priority: data.priority, context_links: data.context_links } : data)
   );
+export const getPlansList = () => unwrap(API.get('/daily-plans')).then(response);
+export const updateTaskStatus = (id, status) => unwrap(API.post(`/tasks/${id}/status`, { status })).then(response);
 export const sendChatMessage = (message) => unwrap(API.post('/chat', { message })).then(response);
 
 export default API;

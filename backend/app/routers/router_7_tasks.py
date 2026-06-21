@@ -126,3 +126,18 @@ def _agent_summary(db: Session, task_id: str, source_count: int | None) -> str:
     if hidden:
         return f"Extraction agent found this as hidden work from {source_text}."
     return f"Extraction agent normalized this explicit task from {source_text}."
+
+@router.post("/tasks/{task_id}/status", response_model=APIResponse)
+def update_task_status(task_id: str, payload: dict, db: Session = Depends(get_db)):
+    try:
+        task = db.query(MasterTask).filter(MasterTask.id == task_id).first()
+        if not task:
+            return APIResponse(success=False, message="Task not found")
+        new_status = payload.get("status", "done")
+        task.status = new_status
+        db.commit()
+        logger.info(f"Updated status of task {task_id} to {new_status}")
+        return APIResponse(success=True, data={"task_id": task_id, "status": new_status}, message=f"Task status updated to {new_status}")
+    except Exception as exc:
+        logger.error(f"Task status update failed: {exc}")
+        return APIResponse(success=False, message=str(exc))

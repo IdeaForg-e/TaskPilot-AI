@@ -23,7 +23,6 @@ class LLMClient:
         self.timeout = 90 if reasoning else 30
         self.max_tokens = 4096 if reasoning else 3000
         self.providers = self._build_providers()
-        self.failed_providers = set()
 
     def _build_providers(self):
         providers = []
