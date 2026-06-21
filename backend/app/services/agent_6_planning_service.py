@@ -3,22 +3,22 @@ import logging
 import os
 import uuid
 from datetime import datetime, timedelta
-
+ 
 from agents.agent_6_planning_agent import PlanningAgent
 from app.config import settings
 from app.models.daily_plan import DailyPlan, TimeSlot
 from app.models.priority_score import PriorityScore
 from app.models.task import MasterTask
-
+ 
 WORKING_HOURS_PER_DAY = 8.0
 logger = logging.getLogger("taskpilot.planning_service")
-
-
+ 
+ 
 class PlanningService:
     def __init__(self, db):
         self.db = db
         self.agent = PlanningAgent()
-
+ 
     def generate_plan(self, user_id, date, buffer_hours=1.0):
         logger.info(f"Generating daily plan for user={user_id} date={date} with buffer_hours={buffer_hours}")
         old_plan_ids = [
@@ -34,13 +34,13 @@ class PlanningService:
         meetings = self._meetings_for(date, user_id)
         logger.info(f"Retrieved {len(meetings)} meeting(s) for user={user_id} date={date}")
         available = max(0, 8.0 - self._meeting_hours(meetings) - buffer_hours)
-        ranked = self._ranked_tasks()
+        ranked = self._ranked_tasks(exclude_date=date)
         logger.info(f"Retrieved {len(ranked)} ranked task(s) for daily planning availability={available}h")
         
         logger.info("Executing daily planner agent...")
         result = self.agent.generate_plan(date, available, meetings, ranked, buffer_hours)
         logger.info("Daily planner agent finished plan generation")
-
+ 
         plan = DailyPlan(
             id=str(uuid.uuid4()),
             user_id=user_id,
@@ -54,7 +54,7 @@ class PlanningService:
         )
         self.db.add(plan)
         self.db.flush()
-
+ 
         time_slots = result.get("time_slots", [])
         logger.info(f"Saving {len(time_slots)} time slot(s) for plan_date={date}")
         for slot in time_slots:
@@ -70,11 +70,11 @@ class PlanningService:
                     title=slot.get("title", ""),
                 )
             )
-
+ 
         self.db.commit()
         logger.info(f"Daily plan committed successfully for date={date}")
         return self._plan_out(plan)
-
+ 
     def get_plan(self, date):
         logger.info(f"Querying daily plan for date={date}")
         plan = self.db.query(DailyPlan).filter(DailyPlan.plan_date == date).first()
@@ -82,7 +82,7 @@ class PlanningService:
             logger.info(f"No plan found in database for date={date}")
             return {"message": f"No plan found for date {date}", "time_slots": [], "plan_date": date, "not_found": True}
         return self._plan_out(plan)
-
+ 
     # ------------------------------------------------------------------ #
     # Module 2 — Calendar API
     # ------------------------------------------------------------------ #
@@ -90,7 +90,7 @@ class PlanningService:
         """Group all tasks with a deadline by date (YYYY-MM-DD) -> [task summary]."""
         tasks = self.db.query(MasterTask).filter(MasterTask.deadline.isnot(None)).all()
         priorities = self._priority_map()
-
+ 
         calendar: dict[str, list] = {}
         for task in tasks:
             date_key = self._normalize_date(task.deadline)
@@ -103,11 +103,11 @@ class PlanningService:
                 "deadline": task.deadline,
                 "status": task.status,
             })
-
+ 
         for date_key in calendar:
             calendar[date_key].sort(key=lambda t: t["priority"] or 0, reverse=True)
         return calendar
-
+ 
     # ------------------------------------------------------------------ #
     # Module 2 — Day Details API (FIXED)
     # ------------------------------------------------------------------ #
@@ -126,7 +126,7 @@ class PlanningService:
             ]
             day_tasks.sort(key=lambda t: t["priority"] or 0, reverse=True)
             return day_tasks
-
+ 
         # Query the dynamic timeslots assigned to this specific plan ID
         slots = self.db.query(TimeSlot).filter(TimeSlot.daily_plan_id == plan.id, TimeSlot.slot_type == "task").all()
         day_tasks = [
@@ -135,7 +135,7 @@ class PlanningService:
         ]
         day_tasks.sort(key=lambda t: t["priority"] or 0, reverse=True)
         return day_tasks
-
+ 
     # ------------------------------------------------------------------ #
     # Module 2 — Scheduling Logic
     # ------------------------------------------------------------------ #
@@ -146,19 +146,19 @@ class PlanningService:
             .all()
         )
         priorities = self._priority_map()
-
+ 
         def sort_key(task):
             deadline = self._normalize_date(task.deadline) or "9999-12-31"
             priority = priorities.get(task.id, 0.0)
             return (deadline, -priority)
-
+ 
         tasks.sort(key=sort_key)
-
+ 
         schedule: dict[str, list] = {}
         day_load: dict[str, float] = {}
         today = datetime.utcnow().strftime("%Y-%m-%d")
         run_start = max(start_date, today)
-
+ 
         for task in tasks:
             hours_remaining = task.estimated_hours or 1.0
             deadline = self._normalize_date(task.deadline) or run_start
@@ -166,7 +166,7 @@ class PlanningService:
             deadline_date = datetime.strptime(deadline, "%Y-%m-%d")
             if deadline_date < cursor_date:
                 deadline_date = cursor_date
-
+ 
             while hours_remaining > 0 and cursor_date <= deadline_date:
                 day_key = cursor_date.strftime("%Y-%m-%d")
                 used = day_load.get(day_key, 0.0)
@@ -181,7 +181,7 @@ class PlanningService:
                     day_load[day_key] = used + allocated
                     hours_remaining = round(hours_remaining - allocated, 2)
                 cursor_date += timedelta(days=1)
-
+ 
             if hours_remaining > 0:
                 schedule.setdefault(deadline, []).append({
                     "task_id": task.id,
@@ -189,9 +189,9 @@ class PlanningService:
                     "hours": hours_remaining,
                     "overflow": True,
                 })
-
+ 
         return schedule
-
+ 
     # ------------------------------------------------------------------ #
     # Shared helpers
     # ------------------------------------------------------------------ #
@@ -200,12 +200,12 @@ class PlanningService:
             p.master_task_id: p.overall_score
             for p in self.db.query(PriorityScore).all()
         }
-
+ 
     def _normalize_date(self, value) -> str | None:
         if not value:
             return None
         return value[:10]
-
+ 
     def _meetings_for(self, date, user_id):
         path = os.path.join(settings.DATA_DIR, "calendar.json")
         if not os.path.exists(path):
@@ -221,7 +221,7 @@ class PlanningService:
             for event in events
             if event.get("date") == date and user_id in event.get("attendees", [])
         ]
-
+ 
     def _meeting_hours(self, meetings):
         total = 0
         for meeting in meetings:
@@ -229,9 +229,34 @@ class PlanningService:
             end = datetime.strptime(meeting["end_time"], "%H:%M")
             total += (end - start).seconds / 3600
         return total
-
-    def _ranked_tasks(self):
-        tasks = {task.id: task for task in self.db.query(MasterTask).all()}
+ 
+    def _locked_task_ids(self, exclude_date):
+        """Task IDs already committed to a TASK slot in some other date's plan.
+ 
+        Overflowed tasks hold no slot anywhere, so they stay eligible and
+        carry forward to the next day automatically — no extra bookkeeping
+        needed for that case.
+        """
+        rows = (
+            self.db.query(TimeSlot.master_task_id)
+            .join(DailyPlan, TimeSlot.daily_plan_id == DailyPlan.id)
+            .filter(
+                DailyPlan.plan_date != exclude_date,
+                TimeSlot.slot_type == "task",
+                TimeSlot.master_task_id.isnot(None),
+            )
+            .distinct()
+            .all()
+        )
+        return {row[0] for row in rows}
+ 
+    def _ranked_tasks(self, exclude_date=None):
+        locked = self._locked_task_ids(exclude_date) if exclude_date else set()
+        tasks = {
+            task.id: task
+            for task in self.db.query(MasterTask).filter(MasterTask.status != "done").all()
+            if task.id not in locked
+        }
         scores = self.db.query(PriorityScore).order_by(PriorityScore.rank).all()
         return [
             {
@@ -243,10 +268,10 @@ class PlanningService:
             for score in scores
             if score.master_task_id in tasks
         ]
-
+ 
     def _plan_out(self, plan):
         slots = self.db.query(TimeSlot).filter(TimeSlot.daily_plan_id == plan.id).all()
-        ranked_tasks = self._ranked_tasks()
+        ranked_tasks = self._ranked_tasks(exclude_date=plan.plan_date)
         time_slots = [
             {
                 "start_time": slot.start_time,
@@ -262,7 +287,7 @@ class PlanningService:
         
         # Sort slots chronologically to ensure timeline reads properly
         time_slots.sort(key=lambda x: x.get("start_time", ""))
-
+ 
         # FIX: Filter High Priority Agenda Focus based specifically on what's scheduled today
         scheduled_tasks = []
         scheduled_ids = set()
@@ -281,7 +306,7 @@ class PlanningService:
         # Sort scheduled items by internal priority rank to populate Agenda Focus items #1, #2, #3
         scheduled_tasks.sort(key=lambda x: x["rank"])
         top_tasks = scheduled_tasks[:3]
-
+ 
         remaining_tasks = [
             {
                 "id": task["task_id"],
@@ -292,7 +317,7 @@ class PlanningService:
             for task in ranked_tasks
             if task["task_id"] not in scheduled_ids
         ][:12]
-
+ 
         return {
             "id": plan.id,
             "plan_date": plan.plan_date,
@@ -308,13 +333,13 @@ class PlanningService:
             "recommendations": plan.recommendations or [],
             "overflow_tasks": plan.overflow_tasks or [],
         }
-
+ 
     def _slot_reason(self, slot, ranked_tasks):
         if slot.slot_type == "meeting":
             return "Calendar signal: fixed meeting, so the planner protects this time from task work."
         if slot.slot_type == "buffer":
             return "Capacity signal: reserved buffer for interrupts, incidents, and follow-ups."
-
+ 
         ranked = next((task for task in ranked_tasks if task["task_id"] == slot.master_task_id), None)
         if ranked:
             return (
