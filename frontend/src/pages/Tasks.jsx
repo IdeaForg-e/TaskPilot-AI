@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getTasks } from '../services/api';
+import { getTasks, getApiErrorMessage } from '../services/api';
 import TaskList from '../components/tasks/TaskList';
 import TaskDetail from '../components/tasks/TaskDetail';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
+import { Filter } from 'lucide-react';
 
 export default function Tasks() {
   const [tasks, setTasks] = useState([]);
@@ -22,7 +23,7 @@ export default function Tasks() {
       const res = await getTasks();
       setTasks(res.data || []);
     } catch (err) {
-      setError(err.message || 'Failed to load tasks.');
+      setError(getApiErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -57,17 +58,35 @@ export default function Tasks() {
     [tasks, statusFilter, typeFilter, assigneeFilter]
   );
 
-  if (loading) return <LoadingSpinner label="Loading tasks..." />;
+  const handleSelectTask = (task) => {
+    setSelectedTask(task);
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  if (loading) return <LoadingSpinner label="Acquiring system task indexes..." />;
   if (error) return <ErrorMessage message={error} onRetry={loadTasks} />;
 
   const selectClass =
-    'rounded-lg border border-slate-800 bg-slate-900 px-3 py-1.5 text-sm text-slate-200 focus:border-indigo-600 focus:outline-none';
+    'glass-select px-4 py-2.5 text-xs font-semibold text-slate-350 rounded-xl cursor-pointer min-w-[150px]';
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-semibold text-slate-100">Tasks</h1>
+    <div className="space-y-6 animate-fade-in-up">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold tracking-tight text-white">Tasks Directory</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Filter, browse, and analyze parsed workspace tasks</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 border border-slate-850 px-3 py-1 text-xs font-bold text-slate-300 self-start sm:self-auto">
+          {filteredTasks.length} {filteredTasks.length === 1 ? 'Task' : 'Tasks'} Listed
+        </span>
+      </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3.5 bg-slate-900/30 border border-slate-900 p-3 rounded-2xl">
+        <div className="flex items-center gap-2 text-slate-500 mr-2 pl-1">
+          <Filter className="h-3.5 w-3.5" />
+          <span className="text-[10px] font-bold uppercase tracking-wider">Filters</span>
+        </div>
+        
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
@@ -75,10 +94,11 @@ export default function Tasks() {
         >
           {statuses.map((s) => (
             <option key={s} value={s}>
-              {s === 'all' ? 'All statuses' : s}
+              {s === 'all' ? 'All Statuses' : s}
             </option>
           ))}
         </select>
+        
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
@@ -86,10 +106,11 @@ export default function Tasks() {
         >
           {types.map((t) => (
             <option key={t} value={t}>
-              {t === 'all' ? 'All types / sources' : t}
+              {t === 'all' ? 'All Streams / Types' : t}
             </option>
           ))}
         </select>
+        
         <select
           value={assigneeFilter}
           onChange={(e) => setAssigneeFilter(e.target.value)}
@@ -97,17 +118,24 @@ export default function Tasks() {
         >
           {assignees.map((a) => (
             <option key={a} value={a}>
-              {a === 'all' ? 'All assignees' : a}
+              {a === 'all' ? 'All Assignees' : a}
             </option>
           ))}
         </select>
       </div>
-
-      <TaskList tasks={filteredTasks} onSelectTask={setSelectedTask} />
-
-      {selectedTask && (
-        <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />
-      )}
+      <div className="flex flex-col lg:flex-row gap-6 items-start relative">
+        <div className="flex-1 min-w-0">
+          <TaskList 
+            tasks={filteredTasks} 
+            onSelectTask={handleSelectTask} 
+            selectedTaskId={selectedTask?.id} 
+            isDetailOpen={!!selectedTask}
+          />
+        </div>
+        {selectedTask && (
+          <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
+        )}
+      </div>
     </div>
   );
 }

@@ -1,32 +1,60 @@
-import { Users, ListChecks } from 'lucide-react';
+import { Users, ListChecks, HelpCircle, Clock, Coffee } from 'lucide-react';
 
 export default function TimeSlot({ slot }) {
-  const isMeeting =
-    (slot.type || '').toLowerCase() === 'meeting' ||
-    (slot.type || '').toLowerCase() === 'buffer';
+  const typeLower = (slot.slot_type || slot.type || '').toLowerCase();
+  
+  const isMeeting = typeLower === 'meeting';
+  const isBuffer = typeLower === 'buffer';
+  const isTask = typeLower === 'task' || typeLower === 'focus' || typeLower === 'work';
+
+  const typeStyles = isMeeting
+    ? 'border-l-amber-500 bg-amber-950/5'
+    : isBuffer
+    ? 'border-l-emerald-500 bg-emerald-950/5'
+    : isTask
+    ? 'border-l-violet-500 bg-violet-950/5'
+    : 'border-l-slate-700 bg-slate-900/30';
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-xl border p-3 shadow-sm ${
-        isMeeting
-          ? 'border-amber-900/60 bg-amber-950/10'
-          : 'border-slate-800 bg-slate-900'
-      }`}
+      className={`glass-card glass-card-hover flex items-start gap-4 p-4 shadow-md border-l-4 ${typeStyles}`}
     >
-      <span className="mt-0.5 w-20 shrink-0 text-xs font-medium text-slate-400">
-        {slot.start_time || slot.time || '—'}
+      <span className="flex items-center gap-1 text-[11px] font-bold text-slate-400 w-24 shrink-0 bg-slate-950/40 px-2.5 py-1 rounded-lg border border-slate-900/60">
+        <Clock className="h-3 w-3 text-slate-500" />
+        <span>{slot.start_time || slot.time || '—'}</span>
       </span>
-      <span className="mt-0.5 shrink-0">
+      
+      <span className="mt-1 shrink-0">
         {isMeeting ? (
-          <Users className="h-4 w-4 text-amber-400" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20">
+            <Users className="h-4 w-4 text-amber-400" />
+          </div>
+        ) : isBuffer ? (
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <Coffee className="h-4 w-4 text-emerald-400" />
+          </div>
         ) : (
-          <ListChecks className="h-4 w-4 text-indigo-400" />
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
+            <ListChecks className="h-4 w-4 text-violet-400" />
+          </div>
         )}
       </span>
+      
       <div className="min-w-0 flex-1">
-        <p className="text-sm text-slate-100">{slot.title || slot.label || 'Untitled block'}</p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-sm font-bold text-slate-100 leading-snug">{slot.title || slot.label || 'Untitled Block'}</p>
+          {slot.end_time && (
+            <span className="text-[10px] font-medium text-slate-500">until {slot.end_time}</span>
+          )}
+        </div>
         {slot.description && (
-          <p className="mt-0.5 text-xs text-slate-400">{slot.description}</p>
+          <p className="mt-1 text-xs text-slate-455 leading-relaxed">{slot.description}</p>
+        )}
+        {slot.agent_reason && (
+          <p className="mt-2 inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-1 text-[10px] font-semibold text-slate-500">
+            <HelpCircle className="h-3 w-3 text-cyan-400" />
+            {slot.agent_reason}
+          </p>
         )}
       </div>
     </div>

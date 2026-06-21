@@ -10,15 +10,30 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 8,
-    "labels": ["authentication", "security", "api-gateway"],
-    "dependencies": ["jira-002"],
+    "labels": [
+      "authentication",
+      "security",
+      "api-gateway"
+    ],
+    "dependencies": [
+      "jira-002"
+    ],
     "blockers": [],
     "due_date": "2026-06-20",
     "created_at": "2026-06-12T09:00:00Z",
     "updated_at": "2026-06-17T14:30:00Z",
     "description": "As a developer, I want to implement OAuth 2.0 authentication so that external partners can securely access our APIs.\n\nAcceptance Criteria:\n- Support for authorization code flow\n- JWT token validation\n- Token refresh mechanism\n- Rate limiting per client\n- Comprehensive logging\n\nTechnical Notes:\n- Use existing auth service patterns\n- Integrate with Keycloak\n- Update API documentation\n- Add unit and integration tests",
-    "acceptance_criteria": ["Authorization code flow implemented", "JWT token validation working", "Token refresh mechanism in place", "Rate limiting configured", "Logging implemented"],
-    "linked_prs": ["gh-001", "gh-002"],
+    "acceptance_criteria": [
+      "Authorization code flow implemented",
+      "JWT token validation working",
+      "Token refresh mechanism in place",
+      "Rate limiting configured",
+      "Logging implemented"
+    ],
+    "linked_prs": [
+      "gh-001",
+      "gh-002"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -33,15 +48,26 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["api", "user-management", "backend"],
+    "labels": [
+      "api",
+      "user-management",
+      "backend"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-15",
     "created_at": "2026-06-10T10:00:00Z",
     "updated_at": "2026-06-15T16:45:00Z",
     "description": "Implement CRUD endpoints for user management.\n\nAcceptance Criteria:\n- POST /users - create user\n- GET /users/{id} - get user details\n- PUT /users/{id} - update user\n- DELETE /users/{id} - delete user\n- List endpoint with pagination\n- Proper error handling\n- Input validation",
-    "acceptance_criteria": ["All CRUD endpoints implemented", "Pagination working", "Error handling complete", "Input validation added"],
-    "linked_prs": ["gh-003"],
+    "acceptance_criteria": [
+      "All CRUD endpoints implemented",
+      "Pagination working",
+      "Error handling complete",
+      "Input validation added"
+    ],
+    "linked_prs": [
+      "gh-003"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -56,7 +82,12 @@
     "reporter": "user-014",
     "team": "Backend",
     "story_points": 3,
-    "labels": ["bug", "login", "mobile", "critical"],
+    "labels": [
+      "bug",
+      "login",
+      "mobile",
+      "critical"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-16",
@@ -65,7 +96,9 @@
     "description": "Login broken.",
     "acceptance_criteria": [],
     "linked_prs": [],
-    "linked_incidents": ["inc-001"],
+    "linked_incidents": [
+      "inc-001"
+    ],
     "overdue": true
   },
   {
@@ -79,16 +112,35 @@
     "reporter": "user-016",
     "team": "Backend",
     "story_points": 13,
-    "labels": ["payment", "razorpay", "integration", "critical"],
-    "dependencies": ["jira-005"],
-    "blockers": ["Payment gateway credentials not received from vendor"],
+    "labels": [
+      "payment",
+      "razorpay",
+      "integration",
+      "critical"
+    ],
+    "dependencies": [
+      "jira-005"
+    ],
+    "blockers": [
+      "Payment gateway credentials not received from vendor"
+    ],
     "due_date": "2026-06-18",
     "created_at": "2026-06-12T11:00:00Z",
     "updated_at": "2026-06-17T10:00:00Z",
     "description": "Integrate Razorpay payment gateway for subscription payments.\n\nAcceptance Criteria:\n- Payment flow from checkout to confirmation\n- Webhook handling for payment events\n- Refund processing\n- Failed payment retry logic\n- Payment history and receipts\n- PCI DSS compliance\n\nTechnical Requirements:\n- Use Razorpay SDK\n- Store payment metadata securely\n- Implement idempotency keys\n- Add comprehensive logging",
-    "acceptance_criteria": ["Payment flow complete", "Webhooks implemented", "Refund processing working", "Retry logic added", "PCI compliance verified"],
-    "linked_prs": ["gh-004"],
-    "linked_incidents": ["inc-002"],
+    "acceptance_criteria": [
+      "Payment flow complete",
+      "Webhooks implemented",
+      "Refund processing working",
+      "Retry logic added",
+      "PCI compliance verified"
+    ],
+    "linked_prs": [
+      "gh-004"
+    ],
+    "linked_incidents": [
+      "inc-002"
+    ],
     "overdue": false
   },
   {
@@ -102,15 +154,25 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["database", "payment", "schema"],
+    "labels": [
+      "database",
+      "payment",
+      "schema"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-14",
     "created_at": "2026-06-10T14:00:00Z",
     "updated_at": "2026-06-14T12:00:00Z",
     "description": "Create database schema for payment transactions including tables for payments, refunds, and payment methods.",
-    "acceptance_criteria": ["Schema designed", "Migrations created", "Indexes added"],
-    "linked_prs": ["gh-005"],
+    "acceptance_criteria": [
+      "Schema designed",
+      "Migrations created",
+      "Indexes added"
+    ],
+    "linked_prs": [
+      "gh-005"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -125,7 +187,11 @@
     "reporter": "user-018",
     "team": "Frontend",
     "story_points": 2,
-    "labels": ["bug", "search", "frontend"],
+    "labels": [
+      "bug",
+      "search",
+      "frontend"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-17",
@@ -148,14 +214,23 @@
     "reporter": "user-002",
     "team": "Backend",
     "story_points": 8,
-    "labels": ["refactoring", "authentication", "technical-debt"],
+    "labels": [
+      "refactoring",
+      "authentication",
+      "technical-debt"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-30",
     "created_at": "2026-06-10T16:00:00Z",
     "updated_at": "2026-06-10T16:00:00Z",
     "description": "Current authentication middleware has accumulated technical debt. Need to refactor for better performance and maintainability.\n\nIssues:\n- Tight coupling with request handlers\n- No proper error handling\n- Hardcoded configuration\n- Poor test coverage\n\nRefactoring Goals:\n- Extract authentication logic to separate service\n- Implement proper error handling\n- Use dependency injection\n- Add comprehensive tests",
-    "acceptance_criteria": ["Authentication service extracted", "Error handling improved", "Dependency injection implemented", "Test coverage > 90%"],
+    "acceptance_criteria": [
+      "Authentication service extracted",
+      "Error handling improved",
+      "Dependency injection implemented",
+      "Test coverage > 90%"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -171,15 +246,31 @@
     "reporter": "user-016",
     "team": "Frontend",
     "story_points": 8,
-    "labels": ["dashboard", "analytics", "admin", "frontend"],
-    "dependencies": ["jira-009"],
+    "labels": [
+      "dashboard",
+      "analytics",
+      "admin",
+      "frontend"
+    ],
+    "dependencies": [
+      "jira-009"
+    ],
     "blockers": [],
     "due_date": "2026-06-22",
     "created_at": "2026-06-13T10:00:00Z",
     "updated_at": "2026-06-17T15:00:00Z",
     "description": "Create analytics dashboard for admin panel showing key metrics.\n\nAcceptance Criteria:\n- User signups over time\n- Active users chart\n- Revenue metrics\n- Feature usage statistics\n- Custom date range filtering\n- Export to CSV functionality\n\nDesign Requirements:\n- Responsive layout\n- Consistent with existing design system\n- Loading states\n- Error handling",
-    "acceptance_criteria": ["Signups chart implemented", "Active users chart working", "Revenue metrics displayed", "Feature usage stats shown", "Date filtering working", "CSV export functional"],
-    "linked_prs": ["gh-006"],
+    "acceptance_criteria": [
+      "Signups chart implemented",
+      "Active users chart working",
+      "Revenue metrics displayed",
+      "Feature usage stats shown",
+      "Date filtering working",
+      "CSV export functional"
+    ],
+    "linked_prs": [
+      "gh-006"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -194,15 +285,28 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["api", "dashboard", "analytics", "backend"],
+    "labels": [
+      "api",
+      "dashboard",
+      "analytics",
+      "backend"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-18",
     "created_at": "2026-06-13T11:00:00Z",
     "updated_at": "2026-06-16T14:00:00Z",
     "description": "Create backend API endpoints to support dashboard analytics.\n\nEndpoints:\n- GET /api/v1/analytics/signups\n- GET /api/v1/analytics/active-users\n- GET /api/v1/analytics/revenue\n- GET /api/v1/analytics/feature-usage\n\nAll endpoints should support:\n- Date range filtering\n- Pagination\n- Caching\n- Rate limiting",
-    "acceptance_criteria": ["All endpoints implemented", "Date filtering working", "Pagination added", "Caching configured", "Rate limiting applied"],
-    "linked_prs": ["gh-007"],
+    "acceptance_criteria": [
+      "All endpoints implemented",
+      "Date filtering working",
+      "Pagination added",
+      "Caching configured",
+      "Rate limiting applied"
+    ],
+    "linked_prs": [
+      "gh-007"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -217,16 +321,30 @@
     "reporter": "user-013",
     "team": "Platform",
     "story_points": 5,
-    "labels": ["production", "database", "investigation", "urgent"],
+    "labels": [
+      "production",
+      "database",
+      "investigation",
+      "urgent"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-17",
     "created_at": "2026-06-15T02:00:00Z",
     "updated_at": "2026-06-16T18:00:00Z",
     "description": "Production database connections are leaking, causing performance degradation and occasional timeouts.\n\nSymptoms:\n- Increasing connection count over time\n- Connection pool exhaustion\n- Slow query responses\n- Intermittent 503 errors\n\nInvestigation Steps:\n- Review connection pool configuration\n- Check for unclosed connections in code\n- Analyze database logs\n- Monitor connection metrics\n- Identify top consumers",
-    "acceptance_criteria": ["Root cause identified", "Fix implemented", "Monitoring in place", "Documentation updated"],
-    "linked_prs": ["gh-008"],
-    "linked_incidents": ["inc-003"],
+    "acceptance_criteria": [
+      "Root cause identified",
+      "Fix implemented",
+      "Monitoring in place",
+      "Documentation updated"
+    ],
+    "linked_prs": [
+      "gh-008"
+    ],
+    "linked_incidents": [
+      "inc-003"
+    ],
     "overdue": false
   },
   {
@@ -240,7 +358,9 @@
     "reporter": "user-018",
     "team": "Frontend",
     "story_points": 1,
-    "labels": ["bug"],
+    "labels": [
+      "bug"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": null,
@@ -263,14 +383,24 @@
     "reporter": "user-013",
     "team": "Frontend",
     "story_points": 3,
-    "labels": ["dependencies", "nodejs", "technical-debt", "security"],
+    "labels": [
+      "dependencies",
+      "nodejs",
+      "technical-debt",
+      "security"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-25",
     "created_at": "2026-06-12T16:00:00Z",
     "updated_at": "2026-06-12T16:00:00Z",
     "description": "Upgrade Node.js and frontend dependencies to latest stable versions.\n\nDependencies to upgrade:\n- React: 18.2.0 → 18.3.1\n- TypeScript: 5.0.4 → 5.4.2\n- Next.js: 13.4.19 → 14.1.0\n- Various npm packages with security vulnerabilities\n\nSteps:\n- Update package.json\n- Run npm audit fix\n- Test all functionality\n- Update lock file",
-    "acceptance_criteria": ["All dependencies upgraded", "Security vulnerabilities resolved", "Tests passing", "Build successful"],
+    "acceptance_criteria": [
+      "All dependencies upgraded",
+      "Security vulnerabilities resolved",
+      "Tests passing",
+      "Build successful"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -286,15 +416,28 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 2,
-    "labels": ["documentation", "api", "authentication"],
-    "dependencies": ["jira-001"],
+    "labels": [
+      "documentation",
+      "api",
+      "authentication"
+    ],
+    "dependencies": [
+      "jira-001"
+    ],
     "blockers": [],
     "due_date": "2026-06-18",
     "created_at": "2026-06-14T10:00:00Z",
     "updated_at": "2026-06-16T11:00:00Z",
     "description": "Create comprehensive documentation for API authentication workflow.\n\nDocumentation to include:\n- Authentication flows overview\n- OAuth 2.0 implementation details\n- Token types and usage\n- Error codes and messages\n- Code examples in multiple languages\n- Best practices\n- Troubleshooting guide",
-    "acceptance_criteria": ["Documentation complete", "Code examples added", "Reviewed by team", "Published to docs site"],
-    "linked_prs": ["gh-009"],
+    "acceptance_criteria": [
+      "Documentation complete",
+      "Code examples added",
+      "Reviewed by team",
+      "Published to docs site"
+    ],
+    "linked_prs": [
+      "gh-009"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -309,16 +452,28 @@
     "reporter": "user-016",
     "team": "Platform",
     "story_points": 5,
-    "labels": ["email", "notifications", "service"],
+    "labels": [
+      "email",
+      "notifications",
+      "service"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-25",
     "created_at": "2026-06-13T09:00:00Z",
     "updated_at": "2026-06-13T09:00:00Z",
     "description": "Create a centralized email notification service for sending transactional and marketing emails.\n\nFeatures:\n- Template management\n- Queue-based sending\n- Retry logic for failures\n- Unsubscribe handling\n- Delivery tracking\n- Rate limiting per recipient",
-    "acceptance_criteria": ["Service implemented", "Templates configurable", "Queue system working", "Retry logic in place", "Tracking functional"],
+    "acceptance_criteria": [
+      "Service implemented",
+      "Templates configurable",
+      "Queue system working",
+      "Retry logic in place",
+      "Tracking functional"
+    ],
     "linked_prs": [],
-    "linked_incidents": ["inc-004"],
+    "linked_incidents": [
+      "inc-004"
+    ],
     "overdue": false
   },
   {
@@ -332,16 +487,30 @@
     "reporter": "user-013",
     "team": "Platform",
     "story_points": 8,
-    "labels": ["production", "memory-leak", "image-processing", "blocked"],
+    "labels": [
+      "production",
+      "memory-leak",
+      "image-processing",
+      "blocked"
+    ],
     "dependencies": [],
-    "blockers": ["Waiting for production access from DevOps"],
+    "blockers": [
+      "Waiting for production access from DevOps"
+    ],
     "due_date": "2026-06-18",
     "created_at": "2026-06-14T03:00:00Z",
     "updated_at": "2026-06-16T09:00:00Z",
     "description": "Image processing service has a memory leak causing OOM kills in production.\n\nSymptoms:\n- Memory usage grows continuously\n- Service crashes after ~24 hours\n- OOM killer logs show image processing workers\n\nInvestigation needed:\n- Profile memory usage\n- Identify leaking objects\n- Check for circular references\n- Review image processing libraries\n- Test with different image formats",
-    "acceptance_criteria": ["Root cause identified", "Fix implemented and tested", "Memory usage stable", "No crashes in staging"],
+    "acceptance_criteria": [
+      "Root cause identified",
+      "Fix implemented and tested",
+      "Memory usage stable",
+      "No crashes in staging"
+    ],
     "linked_prs": [],
-    "linked_incidents": ["inc-005"],
+    "linked_incidents": [
+      "inc-005"
+    ],
     "overdue": false
   },
   {
@@ -355,14 +524,23 @@
     "reporter": "user-001",
     "team": "DevOps",
     "story_points": 3,
-    "labels": ["security", "ssl", "certificates", "urgent"],
+    "labels": [
+      "security",
+      "ssl",
+      "certificates",
+      "urgent"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-17",
     "created_at": "2026-06-16T08:00:00Z",
     "updated_at": "2026-06-16T08:00:00Z",
     "description": "SSL/TLS certificates for production domains are expiring on June 20, 2026. Need to renew and deploy before expiration.\n\nDomains affected:\n- api.anilpradhan.com\n- app.anilpradhan.com\n- auth.anilpradhan.com\n- admin.anilpradhan.com\n\nSteps:\n- Generate new CSR\n- Submit to CA\n- Validate domain ownership\n- Download certificates\n- Deploy to all environments\n- Verify with SSL labs",
-    "acceptance_criteria": ["Certificates renewed", "Deployed to all environments", "Verification complete"],
+    "acceptance_criteria": [
+      "Certificates renewed",
+      "Deployed to all environments",
+      "Verification complete"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -378,15 +556,27 @@
     "reporter": "user-017",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["authentication", "password-reset", "email"],
+    "labels": [
+      "authentication",
+      "password-reset",
+      "email"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-18",
     "created_at": "2026-06-13T14:00:00Z",
     "updated_at": "2026-06-16T16:00:00Z",
     "description": "Implement secure password reset flow for users.\n\nFlow:\n1. User requests password reset\n2. System generates unique token\n3. Email sent with reset link\n4. User clicks link and sets new password\n5. Token expires after 1 hour or single use\n\nSecurity Requirements:\n- Rate limiting on reset requests\n- Token cannot be guessed\n- Old tokens invalidated on password change\n- Password strength validation\n- Logging without sensitive data",
-    "acceptance_criteria": ["Reset flow implemented", "Email templates created", "Rate limiting applied", "Security requirements met", "Tests passing"],
-    "linked_prs": ["gh-010"],
+    "acceptance_criteria": [
+      "Reset flow implemented",
+      "Email templates created",
+      "Rate limiting applied",
+      "Security requirements met",
+      "Tests passing"
+    ],
+    "linked_prs": [
+      "gh-010"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -401,14 +591,21 @@
     "reporter": "user-001",
     "team": "Backend",
     "story_points": 3,
-    "labels": ["documentation", "onboarding"],
+    "labels": [
+      "documentation",
+      "onboarding"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-07-01",
     "created_at": "2026-06-12T17:00:00Z",
     "updated_at": "2026-06-12T17:00:00Z",
     "description": "Create comprehensive onboarding documentation to help new engineers ramp up quickly.\n\nSections to include:\n- Development environment setup\n- Codebase structure overview\n- Coding standards and best practices\n- Deployment process\n- Monitoring and alerting\n- Troubleshooting guide\n- Team contact information",
-    "acceptance_criteria": ["Documentation complete", "Reviewed by team leads", "Published to wiki"],
+    "acceptance_criteria": [
+      "Documentation complete",
+      "Reviewed by team leads",
+      "Published to wiki"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -424,14 +621,24 @@
     "reporter": "user-006",
     "team": "Frontend",
     "story_points": 8,
-    "labels": ["refactoring", "state-management", "redux"],
+    "labels": [
+      "refactoring",
+      "state-management",
+      "redux"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-07-10",
     "created_at": "2026-06-10T15:00:00Z",
     "updated_at": "2026-06-10T15:00:00Z",
     "description": "Current Redux implementation has become unwieldy with too many actions and complex reducers. Need to refactor to use Redux Toolkit and normalize state structure.\n\nGoals:\n- Migrate to Redux Toolkit\n- Normalize state shape\n- Use createSlice for reducers\n- Implement RTK Query for API calls\n- Reduce boilerplate code\n- Improve type safety",
-    "acceptance_criteria": ["Redux Toolkit migration complete", "State normalized", "RTK Query implemented", "Type safety improved", "Tests passing"],
+    "acceptance_criteria": [
+      "Redux Toolkit migration complete",
+      "State normalized",
+      "RTK Query implemented",
+      "Type safety improved",
+      "Tests passing"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -447,16 +654,30 @@
     "reporter": "user-013",
     "team": "Platform",
     "story_points": 5,
-    "labels": ["production", "kubernetes", "deployment", "investigation"],
+    "labels": [
+      "production",
+      "kubernetes",
+      "deployment",
+      "investigation"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-18",
     "created_at": "2026-06-15T04:00:00Z",
     "updated_at": "2026-06-17T09:00:00Z",
     "description": "Kubernetes deployments are failing intermittently in production.\n\nSymptoms:\n- Deployments hang at 'ContainerCreating' state\n- Some pods never start\n- No clear error messages in logs\n- Issue seems related to image pulls\n\nInvestigation Steps:\n- Check Kubernetes events\n- Review deployment logs\n- Verify image registry connectivity\n- Check resource quotas\n- Test with different node pools",
-    "acceptance_criteria": ["Root cause identified", "Fix implemented", "Deployments working reliably", "Monitoring added"],
-    "linked_prs": ["gh-011"],
-    "linked_incidents": ["inc-006"],
+    "acceptance_criteria": [
+      "Root cause identified",
+      "Fix implemented",
+      "Deployments working reliably",
+      "Monitoring added"
+    ],
+    "linked_prs": [
+      "gh-011"
+    ],
+    "linked_incidents": [
+      "inc-006"
+    ],
     "overdue": false
   },
   {
@@ -470,15 +691,28 @@
     "reporter": "user-018",
     "team": "Frontend",
     "story_points": 5,
-    "labels": ["ui", "dark-mode", "frontend", "ux"],
+    "labels": [
+      "ui",
+      "dark-mode",
+      "frontend",
+      "ux"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-22",
     "created_at": "2026-06-14T11:00:00Z",
     "updated_at": "2026-06-17T10:00:00Z",
     "description": "Implement dark mode theme for the web application.\n\nRequirements:\n- Toggle switch in user preferences\n- Persist preference in localStorage\n- Respect OS-level dark mode preference\n- Smooth transitions between modes\n- All components support dark mode\n- Accessibility compliance (WCAG 2.1 AA)\n\nDesign Specs:\n- Use CSS custom properties for colors\n- Dark background: #1a1a1a\n- Dark text: #e0e0e0\n- Accent colors adjusted for dark mode\n- Icons and images should adapt",
-    "acceptance_criteria": ["Toggle implemented", "Preference persisted", "OS preference respected", "All components styled", "Accessibility verified"],
-    "linked_prs": ["gh-012"],
+    "acceptance_criteria": [
+      "Toggle implemented",
+      "Preference persisted",
+      "OS preference respected",
+      "All components styled",
+      "Accessibility verified"
+    ],
+    "linked_prs": [
+      "gh-012"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -493,16 +727,29 @@
     "reporter": "user-014",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["performance", "api", "latency", "production"],
+    "labels": [
+      "performance",
+      "api",
+      "latency",
+      "production"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-18",
     "created_at": "2026-06-15T10:00:00Z",
     "updated_at": "2026-06-17T11:00:00Z",
     "description": "API response times have degraded significantly in production, with P95 latency increasing from 200ms to 1.2s.\n\nAffected Endpoints:\n- POST /api/v1/payments\n- GET /api/v1/users\n- GET /api/v1/orders\n\nSymptoms:\n- Slow response times\n- Increased error rates\n- Customer complaints\n- High CPU usage on API servers\n\nInvestigation:\n- Profile slow endpoints\n- Check database query performance\n- Review recent deployments\n- Analyze traffic patterns",
-    "acceptance_criteria": ["Root cause identified", "Performance restored", "Monitoring alerts configured"],
-    "linked_prs": ["gh-013"],
-    "linked_incidents": ["inc-007"],
+    "acceptance_criteria": [
+      "Root cause identified",
+      "Performance restored",
+      "Monitoring alerts configured"
+    ],
+    "linked_prs": [
+      "gh-013"
+    ],
+    "linked_incidents": [
+      "inc-007"
+    ],
     "overdue": false
   },
   {
@@ -516,14 +763,23 @@
     "reporter": "user-017",
     "team": "Frontend",
     "story_points": 2,
-    "labels": ["documentation", "api", "v2"],
+    "labels": [
+      "documentation",
+      "api",
+      "v2"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-30",
     "created_at": "2026-06-16T12:00:00Z",
     "updated_at": "2026-06-16T12:00:00Z",
     "description": "Update API documentation to include new v2 endpoints released last month.\n\nEndpoints to document:\n- POST /api/v2/users\n- GET /api/v2/users/{id}\n- PUT /api/v2/users/{id}\n- GET /api/v2/products\n- POST /api/v2/orders\n\nDocumentation should include:\n- Request/response schemas\n- Example requests\n- Error codes\n- Rate limits\n- Authentication requirements",
-    "acceptance_criteria": ["All v2 endpoints documented", "Examples added", "Reviewed by backend team", "Published to docs site"],
+    "acceptance_criteria": [
+      "All v2 endpoints documented",
+      "Examples added",
+      "Reviewed by backend team",
+      "Published to docs site"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -539,14 +795,25 @@
     "reporter": "user-002",
     "team": "Backend",
     "story_points": 5,
-    "labels": ["caching", "performance", "redis", "product-catalog"],
+    "labels": [
+      "caching",
+      "performance",
+      "redis",
+      "product-catalog"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-28",
     "created_at": "2026-06-16T13:00:00Z",
     "updated_at": "2026-06-16T13:00:00Z",
     "description": "Product catalog queries are causing high database load. Implement Redis caching layer to reduce load and improve response times.\n\nRequirements:\n- Cache product listings with TTL\n- Cache individual product details\n- Cache category hierarchies\n- Invalidate cache on product updates\n- Handle cache stampedes\n- Monitor cache hit/miss ratios\n\nImplementation:\n- Use existing Redis cluster\n- Implement cache-aside pattern\n- Add circuit breakers\n- Log cache operations for debugging",
-    "acceptance_criteria": ["Caching implemented", "TTL configured", "Cache invalidation working", "Monitoring in place", "Performance improved"],
+    "acceptance_criteria": [
+      "Caching implemented",
+      "TTL configured",
+      "Cache invalidation working",
+      "Monitoring in place",
+      "Performance improved"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -562,15 +829,27 @@
     "reporter": "user-013",
     "team": "Backend",
     "story_points": 3,
-    "labels": ["security", "xss", "vulnerability", "critical"],
+    "labels": [
+      "security",
+      "xss",
+      "vulnerability",
+      "critical"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-17",
     "created_at": "2026-06-16T09:00:00Z",
     "updated_at": "2026-06-16T15:00:00Z",
     "description": "Security scan identified XSS vulnerability in user profile page where user-generated content is rendered without proper escaping.\n\nVulnerability Details:\n- Location: /profile/{id} endpoint\n- Parameter: bio field\n- Impact: Arbitrary JavaScript execution\n- Severity: High\n- CVSS Score: 7.5\n\nFix Required:\n- Sanitize user input before rendering\n- Implement Content Security Policy\n- Add output encoding\n- Validate input on save\n\nTesting:\n- Verify fix with security team\n- Run automated security scans\n- Manual penetration testing",
-    "acceptance_criteria": ["Vulnerability patched", "CSP implemented", "Security scan clean", "Penetration test passed"],
-    "linked_prs": ["gh-014"],
+    "acceptance_criteria": [
+      "Vulnerability patched",
+      "CSP implemented",
+      "Security scan clean",
+      "Penetration test passed"
+    ],
+    "linked_prs": [
+      "gh-014"
+    ],
     "linked_incidents": [],
     "overdue": false
   },
@@ -585,14 +864,27 @@
     "reporter": "user-016",
     "team": "Frontend",
     "story_points": 8,
-    "labels": ["websockets", "realtime", "notifications", "frontend"],
-    "dependencies": ["jira-027"],
+    "labels": [
+      "websockets",
+      "realtime",
+      "notifications",
+      "frontend"
+    ],
+    "dependencies": [
+      "jira-027"
+    ],
     "blockers": [],
     "due_date": "2026-07-05",
     "created_at": "2026-06-16T14:00:00Z",
     "updated_at": "2026-06-16T14:00:00Z",
     "description": "Implement WebSocket-based real-time notifications for users.\n\nFeatures:\n- Real-time updates for new messages\n- Live notifications for mentions\n- Real-time collaboration indicators\n- Connection state management\n- Automatic reconnection\n- Notification history\n\nTechnical Requirements:\n- Use Socket.IO or native WebSockets\n- Handle connection drops gracefully\n- Implement message queuing for offline users\n- Scale to 10,000+ concurrent connections\n- Authentication over WebSocket\n- Rate limiting per connection",
-    "acceptance_criteria": ["WebSocket connection established", "Real-time updates working", "Reconnection logic implemented", "Scalability tested", "Authentication working"],
+    "acceptance_criteria": [
+      "WebSocket connection established",
+      "Real-time updates working",
+      "Reconnection logic implemented",
+      "Scalability tested",
+      "Authentication working"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -608,14 +900,25 @@
     "reporter": "user-010",
     "team": "Platform",
     "story_points": 5,
-    "labels": ["websockets", "server", "notifications", "backend"],
+    "labels": [
+      "websockets",
+      "server",
+      "notifications",
+      "backend"
+    ],
     "dependencies": [],
     "blockers": [],
     "due_date": "2026-06-28",
     "created_at": "2026-06-16T15:00:00Z",
     "updated_at": "2026-06-16T15:00:00Z",
     "description": "Create backend WebSocket server to handle real-time notification delivery.\n\nRequirements:\n- WebSocket server using Node.js or Go\n- Message routing and broadcasting\n- Connection management\n- Authentication and authorization\n- Message persistence for offline users\n- Horizontal scaling support\n- Monitoring and metrics\n\nArchitecture:\n- Use Redis for pub/sub\n- Stateless connection handling\n- Room-based message routing\n- Connection heartbeat mechanism",
-    "acceptance_criteria": ["WebSocket server running", "Message routing working", "Authentication implemented", "Scalability verified", "Monitoring in place"],
+    "acceptance_criteria": [
+      "WebSocket server running",
+      "Message routing working",
+      "Authentication implemented",
+      "Scalability verified",
+      "Monitoring in place"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
@@ -631,16 +934,38 @@
     "reporter": "user-013",
     "team": "Frontend",
     "story_points": 2,
-    "labels": ["security", "dependencies", "blocked"],
+    "labels": [
+      "security",
+      "dependencies",
+      "blocked"
+    ],
     "dependencies": [],
-    "blockers": ["Waiting for security team approval"],
+    "blockers": [
+      "Waiting for security team approval"
+    ],
     "due_date": "2026-06-19",
     "created_at": "2026-06-16T16:00:00Z",
     "updated_at": "2026-06-17T08:00:00Z",
     "description": "Third-party library 'lodash' has critical security vulnerabilities that need to be patched.\n\nVulnerabilities:\n- CVE-2024-21888: Prototype pollution (High severity)\n- CVE-2023-4879: Regular expression denial of service (Medium severity)\n\nCurrent Version: 4.17.21\nPatched Version: 4.17.22\n\nImpact:\n- Affects all frontend applications\n- Potential for remote code execution\n- Data exfiltration risk\n\nSteps:\n- Update lodash to 4.17.22\n- Test all functionality\n- Run security scans\n- Deploy to production",
-    "acceptance_criteria": ["Library updated", "Tests passing", "Security scan clean", "Deployed to production"],
+    "acceptance_criteria": [
+      "Library updated",
+      "Tests passing",
+      "Security scan clean",
+      "Deployed to production"
+    ],
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
+  },
+  {
+    "id": "jira-5748",
+    "key": "PROJ-5748",
+    "title": "frontend is crashed and showing white screen on login",
+    "description": "inject a new P1 Jira ticket: frontend is crashed and showing white screen on login",
+    "type": "Bug",
+    "status": "To Do",
+    "priority": "High",
+    "created_at": "2026-06-21T08:49:00.059569Z",
+    "updated_at": "2026-06-21T08:49:00.059597Z"
   }
 ]

@@ -1,22 +1,115 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: '/api/v1' });
+const API = axios.create({
+  baseURL: import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api/v1`
+    : 'https://taskpilot-ai-4.onrender.com/api/v1'
+});
 
-export const runPipeline = () => API.post('/orchestrate/run');
-export const getPipelineStatus = (id) => API.get(`/orchestrate/status/${id}`);
-export const ingestData = (sources) => API.post('/ingest', { sources });
+/**
+ * Extract LLM diagnostics/warnings from any response shape.
+ * Returns the first warning or null.
+ */
+export const extractLLMWarning = (data) => {
+  // Direct on data
+  if (data?.llm_diagnostics) {
+    const warning = data.llm_diagnostics.find((item) => item.level === 'warning');
+    if (warning) return warning.message;
+  }
+  // Nested inside data object
+  if (data?.data?.llm_diagnostics) {
+    const warning = data.data.llm_diagnostics.find((item) => item.level === 'warning');
+    if (warning) return warning.message;
+  }
+  return null;
+};
+
+export const getApiErrorMessage = (err) => {
+  const payload = err?.response?.data;
+  
+  // Check for LLM config warnings in the response payload first
+  if (payload?.data?.llm_diagnostics) {
+    const warning = payload.data.llm_diagnostics.find((item) => item.level === 'warning');
+    if (warning) return warning.message;
+  }
+  if (payload?.llm_diagnostics) {
+    const warning = payload.llm_diagnostics.find((item) => item.level === 'warning');
+    if (warning) return warning.message;
+  }
+  
+  if (payload?.message) return payload.message;
+  if (payload?.detail) {
+    return Array.isArray(payload.detail)
+      ? payload.detail.map((item) => item.msg || item.message || String(item)).join(', ')
+      : String(payload.detail);
+  }
+  
+  // Network-level error classification
+  if (err?.code === 'ECONNABORTED') return 'Backend request timed out. Please try again.';
+  if (err?.message === 'Network Error') {
+    return 'Cannot reach backend API. Please check that the backend server is running.';
+  }
+  if (err?.response?.status === 401) return 'API authentication failed. Check your API keys.';
+  if (err?.response?.status === 404) return 'Requested resource not found on server.';
+  if (err?.response?.status === 500) {
+    const msg = payload?.data?.error || '';
+    if (msg.toLowerCase().includes('api key')) return 'LLM API key is missing or invalid. Add GROQ_API_KEY or NVIDIA_API_KEY in backend/.env';
+    if (msg.toLowerCase().includes('timeout')) return 'LLM provider timed out. Check your network or API key validity.';
+    if (msg.toLowerCase().includes('econnrefused') || msg.toLowerCase().includes('connection')) return 'Cannot connect to LLM provider. Check your network connection.';
+    if (msg.toLowerCase().includes('database') || msg.toLowerCase().includes('sqlite')) return 'Database error. The database may be locked or corrupted.';
+    return 'Backend server error. Check logs for details.';
+  }
+  
+  return err?.message || 'Unexpected API error occurred.';
+};
+
+const unwrap = (promise) =>
+  promise.then((res) => {
+    const body = res.data;
+    if (body?.success === false) {
+      const errorMsg = body?.message || body?.data?.error || 'Backend request failed.';
+      const error = new Error(errorMsg);
+      // Attach llm_diagnostics to the error so callers can inspect them
+      error.llm_diagnostics = body?.data?.llm_diagnostics || body?.llm_diagnostics || [];
+      throw error;
+    }
+    // Attach llm_diagnostics to the resolved value when present
+    const result = body?.data ?? body;
+    if (body?.data?.llm_diagnostics) {
+      result._llm_diagnostics = body.data.llm_diagnostics;
+    }
+    return result;
+  });
+const response = (data) => ({ data });
+
+export const runPipeline = () =>
+  unwrap(API.post('/orchestrate/run')).then((data) => {
+    if (data?.status === 'failed') {
+      const err = new Error(data.error || `Pipeline failed at ${data.failed_agent || 'unknown stage'}.`);
+      err.llm_diagnostics = data._llm_diagnostics || data.llm_diagnostics || [];
+      throw err;
+    }
+    return response(data);
+  });
+export const getPipelineStatus = (id) =>
+  unwrap(API.get(`/orchestrate/status/${id}`)).then(response);
+export const getLatestPipelineRun = () => unwrap(API.get('/orchestrate/latest')).then(response);
+export const ingestData = (sources) => unwrap(API.post('/ingest', { sources })).then(response);
 export const extractTasks = () =>
-  API.post('/extract', { include_hidden: true, min_confidence: 0.5 });
-export const fuseTasks = () => API.post('/fuse');
-export const evaluateQuality = () => API.post('/quality/evaluate');
-export const getQualityReports = () => API.get('/quality/reports');
-export const prioritizeTasks = () => API.post('/prioritize');
-export const getRankedTasks = () => API.get('/tasks/ranked');
-export const generatePlan = (data) => API.post('/daily-plan', data);
-export const getPlan = (date) => API.get(`/daily-plan/${date}`);
-export const getTasks = () => API.get('/tasks');
-export const getTaskDetail = (id) => API.get(`/tasks/${id}`);
-export const sendChatMessage = (message, context) =>
-  API.post('/chat', { message, context });
+  unwrap(API.post('/extract', { include_hidden: true, min_confidence: 0.5 })).then(response);
+export const fuseTasks = () => unwrap(API.post('/fuse')).then(response);
+export const evaluateQuality = () => unwrap(API.post('/quality/evaluate')).then(response);
+export const getQualityReports = () => unwrap(API.get('/quality/reports')).then(response);
+export const prioritizeTasks = () => unwrap(API.post('/prioritize')).then(response);
+export const getRankedTasks = () => unwrap(API.get('/tasks/ranked')).then(response);
+export const generatePlan = (data) => unwrap(API.post('/daily-plan', data)).then(response);
+export const getPlan = (date) => unwrap(API.get(`/daily-plan/${date}`)).then(response);
+export const getTasks = () =>
+  unwrap(API.get('/tasks')).then((data) => response(Array.isArray(data) ? data : data?.tasks || []));
+export const getTaskDetail = (id) =>
+  unwrap(API.get(`/tasks/${id}`)).then((data) =>
+    response(data?.task ? { ...data.task, quality: data.quality, priority: data.priority, context_links: data.context_links } : data)
+  );
+export const sendChatMessage = (message) => unwrap(API.post('/chat', { message })).then(response);
 
 export default API;
