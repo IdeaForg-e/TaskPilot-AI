@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: taskpilot-backend
+    env: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: APP_ENV
+        value: Production
+      - key: GROQ_API_KEY
+        sync: false
+      - key: NVIDIA_API_KEY
+        sync: false
