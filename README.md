@@ -29,7 +29,7 @@
 - [System Architecture](#-system-architecture)
 - [Multi-Agent Pipeline](#-multi-agent-pipeline-deep-dive)
 - [Frontend Dashboard](#-frontend-dashboard)
-- [Tech Stack](#-tech-stack)
+- [Tech Stack & Tools](#-tech-stack--tools)
 - [Getting Started](#-getting-started)
 - [Live Demo & Deployment](#-live-demo)
 - [Demo Walkthrough](#-demo-walkthrough)
@@ -85,33 +85,188 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 
 TaskPilot AI employs a **cooperative multi-agent architecture** where 6 specialized AI agents work in a sequential pipeline, orchestrated by a central controller. Each agent has a single responsibility, communicates through a shared SQLite database, and uses LLM-powered reasoning for complex decisions.
 
+### High-Level System Flow
+
+```mermaid
+flowchart TB
+    subgraph DS["📂 Data Sources"]
+        direction LR
+        J["📋 Jira"] 
+        GH["🐙 GitHub"]
+        SL["💬 Slack"]
+        EM["📧 Email"]
+        CA["📅 Calendar"]
+        MT["🗒 Meetings"]
+        IN["🚨 Incidents"]
+    end
+
+    subgraph ORCH["🎯 Agent 0 — Orchestrator"]
+        direction LR
+        OC["Pipeline Controller\nWorkflow State · Error Recovery\nStale Run Detection · LLM Diagnostics"]
+    end
+
+    subgraph PIPELINE["⚡ Multi-Agent Processing Pipeline"]
+        direction LR
+        A1["🔄 Agent 1\nIngestion\n7 Sources → SourceEvents"] 
+        A2["🔍 Agent 2\nExtraction\nLLM NLP · Hidden Tasks"]
+        A3["🔗 Agent 3\nFusion\nDedup · Correlation"]
+        A4["✅ Agent 4\nQuality\n7-Dim Scoring"]
+        A5["📊 Agent 5\nPrioritization\n8-Factor Ranking"]
+        A6["📅 Agent 6\nPlanning\nCalendar-Aware Schedule"]
+        
+        A1 --> A2 --> A3 --> A4 --> A5 --> A6
+    end
+
+    subgraph CHAT["💬 Agent 7 — Conversational Interface"]
+        C1["Natural Language Queries\nContext-Aware Responses\nP1 Injection → Full Pipeline Re-run"]
+    end
+
+    subgraph DB["🗄️ Shared Database Layer"]
+        SQL[("SQLite\nSourceEvents · MasterTasks\nPriorityScores · DailyPlans")]
+    end
+
+    subgraph FE["📊 React Dashboard"]
+        direction LR
+        P1["🏠 Dashboard"]
+        P2["📋 Tasks"]
+        P3["✅ Quality"]
+        P4["🏆 Priority"]
+        P5["📅 Planner"]
+        P6["💬 Chat"]
+    end
+
+    DS --> ORCH
+    ORCH --> PIPELINE
+    PIPELINE <--> DB
+    CHAT <--> DB
+    DB <--> FE
+    CHAT --> ORCH
+
+    style DS fill:#0d1b2a,stroke:#00b4d8,stroke-width:2px,color:#e0e0e0
+    style ORCH fill:#1b0a2e,stroke:#7b2ff7,stroke-width:2px,color:#e0e0e0
+    style PIPELINE fill:#0a192f,stroke:#64ffda,stroke-width:2px,color:#e0e0e0
+    style CHAT fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#e0e0e0
+    style DB fill:#16213e,stroke:#fca311,stroke-width:2px,color:#e0e0e0
+    style FE fill:#0d1b2a,stroke:#00b4d8,stroke-width:2px,color:#e0e0e0
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        🎯 ORCHESTRATOR (Agent 0)                     │
-│            Manages pipeline execution, error recovery,               │
-│            workflow state tracking, and stale-run detection           │
-├──────────────────────────────────────────────────────────────────────┤
-│                                                                      │
-│  ┌──────────┐  ┌───────────┐  ┌────────┐  ┌─────────┐  ┌─────────┐ │
-│  │  INGEST  │→ │  EXTRACT  │→ │  FUSE  │→ │ QUALITY │→ │PRIORITY │ │
-│  │ Agent 1  │  │  Agent 2  │  │ Agent 3│  │ Agent 4 │  │ Agent 5 │ │
-│  │ 7 sources│  │ LLM NLP   │  │ Dedup  │  │ Scoring │  │ 8-Factor│ │
-│  └──────────┘  └───────────┘  └────────┘  └─────────┘  └─────────┘ │
-│                                                           ↓         │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │              📅 DAILY PLANNING Agent (Agent 6)                 │  │
-│  │   Calendar-aware scheduling · Overflow detection · Blocking   │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                                                                      │
-│  ┌────────────────────────────────────────────────────────────────┐  │
-│  │              💬 CONVERSATIONAL CHAT (Agent 7)                  │  │
-│  │     NLQ → Context Retrieval → LLM Response + P1 Injection     │  │
-│  └────────────────────────────────────────────────────────────────┘  │
-│                                                                      │
-├──────────────────────────────────────────────────────────────────────┤
-│                    📊 REACT DASHBOARD (Frontend)                     │
-│   Dashboard · Tasks · Quality · Priority · Planner · Chat          │
-└──────────────────────────────────────────────────────────────────────┘
+
+### Data Flow & Agent Communication
+
+```mermaid
+flowchart LR
+    subgraph INPUT["Raw Data"]
+        RAW["7 JSON Files\n~80+ raw events"]
+    end
+
+    subgraph STAGE1["Stage 1"]
+        ING["Ingestion Agent\nNormalize to SourceEvent schema"]
+    end
+
+    subgraph STAGE2["Stage 2"]
+        EXT["Extraction Agent\nExplicit + Hidden tasks\nThreadPoolExecutor x4"]
+    end
+
+    subgraph STAGE3["Stage 3"]
+        FUS["Fusion Agent\nSemantic dedup via LLM\nDynamic confidence thresholds"]
+    end
+
+    subgraph STAGE4["Stage 4"]
+        QUA["Quality Agent\n7-dimension scoring\nActionability classification"]
+    end
+
+    subgraph STAGE5["Stage 5"]
+        PRI["Priority Agent\n8-factor weighted model\nHybrid LLM + algorithmic"]
+    end
+
+    subgraph STAGE6["Stage 6"]
+        PLN["Planning Agent\nCalendar-aware scheduling\nOverflow & blocking detection"]
+    end
+
+    subgraph OUTPUT["Outputs"]
+        OUT["Daily Plan\nRanked Leaderboard\nExplainable Insights"]
+    end
+
+    RAW -->|"80+ events"| ING -->|"SourceEvents"| EXT -->|"TaskCandidates"| FUS -->|"MasterTasks"| QUA -->|"QualityReports"| PRI -->|"PriorityScores"| PLN -->|"TimeSlots"| OUT
+
+    style INPUT fill:#1a1a2e,stroke:#e94560,color:#fff
+    style STAGE1 fill:#16213e,stroke:#0f3460,color:#fff
+    style STAGE2 fill:#16213e,stroke:#0f3460,color:#fff
+    style STAGE3 fill:#16213e,stroke:#0f3460,color:#fff
+    style STAGE4 fill:#16213e,stroke:#0f3460,color:#fff
+    style STAGE5 fill:#16213e,stroke:#0f3460,color:#fff
+    style STAGE6 fill:#16213e,stroke:#0f3460,color:#fff
+    style OUTPUT fill:#1a1a2e,stroke:#64ffda,color:#fff
+```
+
+### Database Entity Relationship
+
+```mermaid
+erDiagram
+    SourceEvent ||--o{ TaskCandidate : "extracted_from"
+    TaskCandidate }o--|| MasterTask : "fused_into"
+    MasterTask ||--o{ TaskContextLink : "has_links"
+    TaskContextLink }o--|| SourceEvent : "traces_to"
+    MasterTask ||--o| QualityReport : "evaluated_by"
+    MasterTask ||--o| PriorityScore : "scored_by"
+    MasterTask ||--o{ TimeSlot : "scheduled_in"
+    DailyPlan ||--o{ TimeSlot : "contains"
+    WorkflowRun ||--|| DailyPlan : "generates"
+
+    SourceEvent {
+        string id PK
+        string source
+        string source_id
+        string event_type
+        string title
+        text content
+        string author
+        datetime timestamp
+        json metadata_json
+    }
+
+    MasterTask {
+        string id PK
+        string title
+        text description
+        string task_type
+        string status
+        string assignee
+        string deadline
+        string urgency
+        int source_count
+    }
+
+    PriorityScore {
+        string id PK
+        string master_task_id FK
+        float overall_score
+        float severity_score
+        float deadline_score
+        float production_impact_score
+        float customer_impact_score
+        float blocker_score
+        int rank
+        text explanation
+    }
+
+    DailyPlan {
+        string id PK
+        string user_id
+        string plan_date
+        float available_hours
+        float planned_hours
+        string load_status
+    }
+
+    TimeSlot {
+        string id PK
+        string daily_plan_id FK
+        string master_task_id FK
+        string start_time
+        string end_time
+        string slot_type
+        string title
+    }
 ```
 
 ---
@@ -250,45 +405,146 @@ The React dashboard provides **6 purpose-built views** with a premium dark glass
 
 ---
 
-## 🛠 Tech Stack
+## 🛠 Tech Stack & Tools
 
-### Backend
-| Technology | Purpose |
-|:---|:---|
-| **FastAPI** | High-performance async REST API framework |
-| **SQLAlchemy** | ORM for SQLite database with declarative models |
-| **SQLite** | Lightweight, zero-config relational database |
-| **Groq SDK** | Primary LLM provider (Llama 3.1 8B / 3.3 70B) |
-| **NVIDIA NIM** | Fallback LLM provider with automatic failover |
-| **httpx** | Async HTTP client for NVIDIA API calls |
-| **Pydantic** | Request/response validation and serialization |
-| **python-dotenv** | Environment configuration management |
+### Core Technologies
 
-### Frontend
-| Technology | Purpose |
-|:---|:---|
-| **React 18** | Component-based UI framework |
-| **Vite** | Lightning-fast dev server and bundler |
-| **Tailwind CSS v4** | Utility-first CSS with dark mode design system |
-| **React Router v6** | Client-side routing (6 pages) |
-| **Axios** | HTTP client with error normalization layer |
-| **Lucide React** | Premium icon library (consistent visual language) |
-| **react-markdown** | Chat response rendering with GFM support |
+<table>
+<tr>
+<td align="center" width="33%">
 
-### Infrastructure
-| Technology | Purpose |
-|:---|:---|
-| **Vercel** | Frontend hosting with automatic deployments |
-| **Render** | Backend hosting with `render.yaml` Blueprint |
-| **GitHub** | Source control, CI/CD trigger on push |
+**🐍 Backend**
 
-### LLM Models
-| Model | Use Case | Provider |
-|:---|:---|:---|
-| `llama-3.1-8b-instant` | Fast extraction, fusion, quality checks | Groq |
-| `llama-3.3-70b-versatile` | Complex reasoning, prioritization, planning | Groq |
-| `meta/llama-3.1-8b-instruct` | Fast fallback | NVIDIA NIM |
-| `meta/llama-3.3-70b-instruct` | Reasoning fallback | NVIDIA NIM |
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.111+-009688?style=flat-square&logo=fastapi&logoColor=white)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0+-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-3-003B57?style=flat-square&logo=sqlite&logoColor=white)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.7+-E92063?style=flat-square&logo=pydantic&logoColor=white)
+
+</td>
+<td align="center" width="33%">
+
+**⚛️ Frontend**
+
+![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-5.2-646CFF?style=flat-square&logo=vite&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-v4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![React Router](https://img.shields.io/badge/React_Router-v6-CA4245?style=flat-square&logo=reactrouter&logoColor=white)
+![Axios](https://img.shields.io/badge/Axios-1.7-5A29E4?style=flat-square&logo=axios&logoColor=white)
+
+</td>
+<td align="center" width="33%">
+
+**🤖 AI / LLM**
+
+![Groq](https://img.shields.io/badge/Groq-LPU_Cloud-F55036?style=flat-square&logo=groq&logoColor=white)
+![Meta Llama](https://img.shields.io/badge/Llama_3.3-70B-0467DF?style=flat-square&logo=meta&logoColor=white)
+![NVIDIA](https://img.shields.io/badge/NVIDIA_NIM-Fallback-76B900?style=flat-square&logo=nvidia&logoColor=white)
+![httpx](https://img.shields.io/badge/httpx-0.27+-2D3748?style=flat-square)
+
+</td>
+</tr>
+<tr>
+<td align="center" width="33%">
+
+**☁️ Infrastructure**
+
+![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?style=flat-square&logo=vercel&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Backend-46E3B7?style=flat-square&logo=render&logoColor=white)
+![GitHub](https://img.shields.io/badge/GitHub-CI/CD-181717?style=flat-square&logo=github&logoColor=white)
+
+</td>
+<td align="center" width="33%">
+
+**🧰 Dev Tools**
+
+![Uvicorn](https://img.shields.io/badge/Uvicorn-ASGI_Server-2D9CDB?style=flat-square)
+![dotenv](https://img.shields.io/badge/.env-Config-ECD53F?style=flat-square&logo=dotenv&logoColor=black)
+![Lucide](https://img.shields.io/badge/Lucide-Icon_Library-F56040?style=flat-square)
+
+</td>
+<td align="center" width="33%">
+
+**📦 Libraries**
+
+![react-markdown](https://img.shields.io/badge/react--markdown-GFM-000000?style=flat-square&logo=markdown&logoColor=white)
+![remark-gfm](https://img.shields.io/badge/remark--gfm-Tables-000000?style=flat-square)
+![python-dotenv](https://img.shields.io/badge/python--dotenv-Env-ECD53F?style=flat-square)
+
+</td>
+</tr>
+</table>
+
+### Tech Stack Architecture
+
+```mermaid
+flowchart TB
+    subgraph CLIENT["🌐 Client Layer"]
+        direction LR
+        REACT["⚛️ React 18"]
+        VITE["⚡ Vite 5"]
+        TW["🎨 Tailwind CSS v4"]
+        RR["🔀 React Router v6"]
+        AX["📡 Axios"]
+        LU["✨ Lucide Icons"]
+        RM["📝 react-markdown"]
+    end
+
+    subgraph HOSTING["☁️ Hosting & CI/CD"]
+        direction LR
+        VER["▲ Vercel\nFrontend CDN"]
+        REN["🟢 Render\nBackend Docker"]
+        GIT["🐙 GitHub\nSource + Auto-deploy"]
+    end
+
+    subgraph API["⚡ API Layer"]
+        direction LR
+        FA["🚀 FastAPI"]
+        UV["🦄 Uvicorn ASGI"]
+        PY["🔷 Pydantic v2"]
+        CORS["🔓 CORS Middleware"]
+    end
+
+    subgraph AGENTS["🤖 Agent Layer"]
+        direction LR
+        LLM["🧠 LLM Client\nMulti-provider failover"]
+        GROQ["⚡ Groq Cloud\nLlama 3.1 8B / 3.3 70B"]
+        NV["🟢 NVIDIA NIM\nFallback Provider"]
+        TP["🧵 ThreadPoolExecutor\nParallel LLM calls"]
+    end
+
+    subgraph DATA["🗄️ Data Layer"]
+        direction LR
+        SA["🏗️ SQLAlchemy 2.0"]
+        DB[("📀 SQLite")]
+        JSON["📂 JSON Data Files\n7 source files"]
+        ENV["🔐 python-dotenv\nEnv Configuration"]
+    end
+
+    CLIENT --> HOSTING
+    HOSTING --> API
+    API --> AGENTS
+    AGENTS --> DATA
+    LLM --> GROQ
+    LLM --> NV
+
+    style CLIENT fill:#1e1e2e,stroke:#89b4fa,stroke-width:2px,color:#cdd6f4
+    style HOSTING fill:#1e1e2e,stroke:#a6e3a1,stroke-width:2px,color:#cdd6f4
+    style API fill:#1e1e2e,stroke:#f9e2af,stroke-width:2px,color:#cdd6f4
+    style AGENTS fill:#1e1e2e,stroke:#cba6f7,stroke-width:2px,color:#cdd6f4
+    style DATA fill:#1e1e2e,stroke:#f38ba8,stroke-width:2px,color:#cdd6f4
+```
+
+### LLM Models & Providers
+
+| Provider | Model | Parameters | Use Case | Latency |
+|:---|:---|:---:|:---|:---:|
+| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `llama-3.1-8b-instant` | 8B | Fast extraction, fusion, quality scoring | ~200ms |
+| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `llama-3.3-70b-versatile` | 70B | Complex reasoning, prioritization, planning | ~2s |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-Fallback-76B900?style=flat-square) | `meta/llama-3.1-8b-instruct` | 8B | Fast fallback when Groq is unavailable | ~500ms |
+| ![NVIDIA](https://img.shields.io/badge/NVIDIA-Fallback-76B900?style=flat-square) | `meta/llama-3.3-70b-instruct` | 70B | Reasoning fallback | ~3s |
+
+> **Failover Strategy:** The `LLMClient` automatically tries Groq first, then falls back to NVIDIA NIM. If both fail, deterministic local fallback algorithms produce results without any LLM — ensuring the pipeline **never breaks** even without API keys.
 
 ---
 
