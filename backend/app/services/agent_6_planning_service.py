@@ -1,13 +1,15 @@
 import json
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from agents.agent_6_planning_agent import PlanningAgent
 from app.config import settings
 from app.models.daily_plan import DailyPlan, TimeSlot
 from app.models.priority_score import PriorityScore
 from app.models.task import MasterTask
+
+WORKING_HOURS_PER_DAY = 8.0
 
 
 class PlanningService:
@@ -66,6 +68,129 @@ class PlanningService:
         if not plan:
             return {"message": f"No plan found for date {date}", "time_slots": [], "plan_date": date, "not_found": True}
         return self._plan_out(plan)
+
+    # ------------------------------------------------------------------ #
+    # Module 2 — Calendar API
+    # ------------------------------------------------------------------ #
+    def get_calendar(self) -> dict:
+        """Group all tasks with a deadline by date (YYYY-MM-DD) -> [task summary]."""
+        tasks = self.db.query(MasterTask).filter(MasterTask.deadline.isnot(None)).all()
+        priorities = self._priority_map()
+
+        calendar: dict[str, list] = {}
+        for task in tasks:
+            date_key = self._normalize_date(task.deadline)
+            if not date_key:
+                continue
+            calendar.setdefault(date_key, []).append({
+                "id": task.id,
+                "title": task.title,
+                "priority": priorities.get(task.id),
+                "deadline": task.deadline,
+                "status": task.status,
+            })
+
+        for date_key in calendar:
+            calendar[date_key].sort(key=lambda t: t["priority"] or 0, reverse=True)
+        return calendar
+
+    # ------------------------------------------------------------------ #
+    # Module 2 — Day Details API
+    # ------------------------------------------------------------------ #
+    def get_day_details(self, date: str) -> list:
+        """Tasks due on a specific date, sorted by priority descending."""
+        tasks = self.db.query(MasterTask).all()
+        priorities = self._priority_map()
+
+        day_tasks = [
+            {"title": t.title, "priority": priorities.get(t.id, 0.0)}
+            for t in tasks
+            if self._normalize_date(t.deadline) == date
+        ]
+        day_tasks.sort(key=lambda t: t["priority"] or 0, reverse=True)
+        return day_tasks
+
+    # ------------------------------------------------------------------ #
+    # Module 2 — Scheduling Logic
+    # ------------------------------------------------------------------ #
+    def schedule_unplanned_tasks(self, start_date: str, working_hours_per_day: float = WORKING_HOURS_PER_DAY) -> dict:
+        """
+        Greedy day-by-day scheduler. Distributes each task's estimated_hours
+        across days between start_date and its deadline, respecting daily
+        capacity and load already allocated to earlier tasks in this run.
+        Higher-priority tasks and tighter deadlines are scheduled first.
+
+        Returns: {date: [{task_id, title, hours, overflow?}]}
+
+        Extension points: per-day capacity overrides, weekend/holiday
+        exclusion, per-assignee calendars — all can be added without
+        changing the call signature.
+        """
+        tasks = (
+            self.db.query(MasterTask)
+            .filter(MasterTask.status != "done")
+            .all()
+        )
+        priorities = self._priority_map()
+
+        def sort_key(task):
+            deadline = self._normalize_date(task.deadline) or "9999-12-31"
+            priority = priorities.get(task.id, 0.0)
+            return (deadline, -priority)
+
+        tasks.sort(key=sort_key)
+
+        schedule: dict[str, list] = {}
+        day_load: dict[str, float] = {}
+        today = datetime.utcnow().strftime("%Y-%m-%d")
+        run_start = max(start_date, today)
+
+        for task in tasks:
+            hours_remaining = task.estimated_hours or 1.0
+            deadline = self._normalize_date(task.deadline) or run_start
+            cursor_date = datetime.strptime(run_start, "%Y-%m-%d")
+            deadline_date = datetime.strptime(deadline, "%Y-%m-%d")
+            if deadline_date < cursor_date:
+                deadline_date = cursor_date  # overdue tasks get scheduled today, flagged via overflow if no room
+
+            while hours_remaining > 0 and cursor_date <= deadline_date:
+                day_key = cursor_date.strftime("%Y-%m-%d")
+                used = day_load.get(day_key, 0.0)
+                available = working_hours_per_day - used
+                if available > 0:
+                    allocated = round(min(available, hours_remaining), 2)
+                    schedule.setdefault(day_key, []).append({
+                        "task_id": task.id,
+                        "title": task.title,
+                        "hours": allocated,
+                    })
+                    day_load[day_key] = used + allocated
+                    hours_remaining = round(hours_remaining - allocated, 2)
+                cursor_date += timedelta(days=1)
+
+            if hours_remaining > 0:
+                schedule.setdefault(deadline, []).append({
+                    "task_id": task.id,
+                    "title": task.title,
+                    "hours": hours_remaining,
+                    "overflow": True,
+                })
+
+        return schedule
+
+    # ------------------------------------------------------------------ #
+    # Shared helpers
+    # ------------------------------------------------------------------ #
+    def _priority_map(self) -> dict[str, float]:
+        return {
+            p.master_task_id: p.overall_score
+            for p in self.db.query(PriorityScore).all()
+        }
+
+    def _normalize_date(self, value) -> str | None:
+        if not value:
+            return None
+        return value[:10]  # handles both "YYYY-MM-DD" and full ISO datetime strings
 
     def _meetings_for(self, date, user_id):
         path = os.path.join(settings.DATA_DIR, "calendar.json")
