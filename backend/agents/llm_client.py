@@ -21,7 +21,7 @@ class LLMClient:
     def __init__(self, reasoning: bool = False):
         self.reasoning = reasoning
         self.timeout = 90 if reasoning else 30
-        self.max_tokens = 4096 if reasoning else 3000
+        self.max_tokens = 2048 if reasoning else 1500
         self.providers = self._build_providers()
 
     def _build_providers(self):
@@ -41,7 +41,9 @@ class LLMClient:
                 {
                     "name": "nvidia",
                     "api_key": settings.NVIDIA_API_KEY,
-                    "model": settings.NVIDIA_MODEL_FAST,  # Always use the fast model for fallback
+                    "model": settings.NVIDIA_MODEL_REASONING
+                    if self.reasoning
+                    else settings.NVIDIA_MODEL_FAST,
                 }
             )
         return providers
