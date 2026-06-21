@@ -58,6 +58,11 @@ export default function Tasks() {
     [tasks, statusFilter, typeFilter, assigneeFilter]
   );
 
+  const handleSelectTask = (task) => {
+    setSelectedTask(task);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   if (loading) return <LoadingSpinner label="Acquiring system task indexes..." />;
   if (error) return <ErrorMessage message={error} onRetry={loadTasks} />;
 
@@ -120,7 +125,7 @@ export default function Tasks() {
       </div>
       <div className="flex flex-col lg:flex-row gap-6 items-start relative">
         <div className="flex-1 min-w-0">
-          <TaskList tasks={filteredTasks} onSelectTask={setSelectedTask} />
+          <TaskList tasks={filteredTasks} onSelectTask={handleSelectTask} />
         </div>
         {selectedTask && (
           <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />

@@ -34,8 +34,8 @@ export default function TaskDetail({ task, onClose }) {
   const priority = data.priority;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-sm animate-fade-in-up lg:static lg:z-0 lg:bg-transparent lg:backdrop-blur-none lg:w-96 lg:shrink-0 lg:animate-none">
-      <div className="h-full w-full max-w-md overflow-y-auto border-l border-slate-800 bg-slate-950/90 backdrop-blur-xl p-6 shadow-2xl flex flex-col justify-between animate-slide-in-right lg:h-auto lg:w-full lg:max-w-none lg:border lg:border-slate-800/80 lg:bg-slate-900/40 lg:backdrop-blur-md lg:rounded-2xl lg:p-5 lg:shadow-xl lg:sticky lg:top-24 lg:overflow-y-hidden lg:animate-none">
+    <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-sm animate-fade-in-up lg:static lg:z-0 lg:bg-transparent lg:backdrop-blur-none lg:w-96 lg:shrink-0 lg:self-stretch lg:animate-none">
+      <div className="h-full w-full max-w-md overflow-y-auto border-l border-slate-800 bg-slate-950/90 backdrop-blur-xl p-6 shadow-2xl flex flex-col justify-between animate-slide-in-right lg:h-auto lg:w-full lg:max-w-none lg:border lg:border-slate-800/80 lg:bg-slate-900/40 lg:backdrop-blur-md lg:rounded-2xl lg:p-5 lg:shadow-xl lg:sticky lg:top-24 lg:overflow-y-auto lg:max-h-[calc(100vh-8rem)] lg:animate-none">
         <div>
           {/* Header */}
           <div className="mb-6 flex items-center justify-between border-b border-slate-900 pb-4">

@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose }) {
         />
       )}
       <aside
-        className={`fixed z-50 inset-y-0 left-0 w-64 transform border-r border-slate-800 bg-slate-950/80 backdrop-blur-xl p-4 transition-all duration-300 ease-out md:static md:translate-x-0 ${
+        className={`fixed z-50 inset-y-0 left-0 w-64 transform border-r border-slate-800 bg-slate-950/80 backdrop-blur-xl p-4 transition-all duration-300 ease-out md:sticky md:top-0 md:h-screen md:overflow-y-auto md:translate-x-0 ${
           open ? 'translate-x-0' : '-translate-x-full'
         } flex flex-col justify-between`}
       >
