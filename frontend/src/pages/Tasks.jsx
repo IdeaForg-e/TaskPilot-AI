@@ -125,7 +125,12 @@ export default function Tasks() {
       </div>
       <div className="flex flex-col lg:flex-row gap-6 items-start relative">
         <div className="flex-1 min-w-0">
-          <TaskList tasks={filteredTasks} onSelectTask={handleSelectTask} />
+          <TaskList 
+            tasks={filteredTasks} 
+            onSelectTask={handleSelectTask} 
+            selectedTaskId={selectedTask?.id} 
+            isDetailOpen={!!selectedTask}
+          />
         </div>
         {selectedTask && (
           <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />

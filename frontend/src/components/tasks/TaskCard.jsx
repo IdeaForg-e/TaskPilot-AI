@@ -8,7 +8,7 @@ const STATUS_STYLES = {
   todo: 'border-slate-800 bg-slate-900/40 text-slate-400',
 };
 
-export default function TaskCard({ task, onClick }) {
+export default function TaskCard({ task, onClick, selected }) {
   const statusKey = (task.status || 'todo').toLowerCase().replace(/\s+/g, '_');
   const statusClass = STATUS_STYLES[statusKey] || STATUS_STYLES.todo;
   const platforms = task.source_platforms || (task.source ? [task.source] : []);
@@ -16,13 +16,17 @@ export default function TaskCard({ task, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="glass-card glass-card-hover w-full p-5 text-left shadow-md group relative overflow-hidden transition-all duration-300"
+      className={`glass-card w-full p-5 text-left shadow-md group relative overflow-hidden transition-all duration-300 ${
+        selected
+          ? 'border-violet-500/50 bg-violet-950/20 shadow-[0_0_15px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20'
+          : 'glass-card-hover border-slate-900/60'
+      }`}
     >
       {/* Background highlight on card hover */}
       <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-500/5 blur-xl group-hover:bg-indigo-500/10 transition-colors" />
 
       <div className="mb-3 flex items-start justify-between gap-3">
-        <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors line-clamp-1">
+        <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors line-clamp-2">
           {task.title || `Task #${task.id}`}
         </h4>
         <span
