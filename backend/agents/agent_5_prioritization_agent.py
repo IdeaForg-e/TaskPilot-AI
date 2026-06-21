@@ -4,29 +4,73 @@ import json
 import logging
 
 
+# Extensible factor registry for dynamic priority_reason generation.
+# Add a tuple to extend with a new scoring factor — no other code changes needed.
+# (score_key, threshold, label_fn)
+FACTOR_RULES = [
+    ("severity_score", 8.0, lambda v: f"High severity ({v}/10)"),
+    ("production_impact_score", 8.0, lambda v: f"Critical production impact ({v}/10)"),
+    ("customer_impact_score", 8.0, lambda v: f"High customer impact ({v}/10)"),
+    ("blocker_score", 8.0, lambda v: f"Contains blockers ({v}/10)"),
+    ("deadline_score", 8.0, lambda v: f"Deadline urgency ({v}/10)"),
+    ("dependency_score", 7.0, lambda v: f"High dependency/complexity ({v}/10)"),
+    ("business_impact_score", 8.0, lambda v: f"High business impact ({v}/10)"),
+]
+
+
+def build_priority_reasons(scores: dict, task: dict) -> list[str]:
+    """
+    Build a human-readable priority_reason list purely from numeric scoring
+    inputs and task metadata. Never hardcoded per-task text — works
+    identically whether scores came from the LLM or the local fallback.
+    """
+    reasons: list[str] = []
+
+    if task.get("task_type") in ("incident", "security"):
+        reasons.append(f"Classified as {task.get('task_type')} (elevated priority)")
+
+    for key, threshold, label_fn in FACTOR_RULES:
+        value = scores.get(key)
+        if value is not None and value >= threshold:
+            reasons.append(label_fn(round(value, 1)))
+
+    source_count = task.get("source_count") or 1
+    if source_count > 1:
+        reasons.append(f"Reported by {source_count} merged signals")
+
+    if task.get("deadline"):
+        reasons.append(f"Deadline: {task.get('deadline')}")
+
+    if not reasons:
+        reasons.append("Standard backlog priority; no critical signals detected")
+
+    return reasons
+
+
 class PrioritizationAgent:
     def __init__(self):
         self.llm = LLMClient(reasoning=False)
 
     def score_batch(self, tasks: list[dict], quality_scores: dict) -> dict[str, dict]:
         logger = logging.getLogger("taskpilot.prioritization_agent")
-        
+        task_by_id = {t.get("id"): t for t in tasks}
+
         # 1. Pre-calculate all fallbacks and filter critical tasks
         fallbacks = {}
         critical_tasks = []
         results = {}
-        
+
         for task in tasks:
             t_id = task.get("id")
             q_score = quality_scores.get(t_id, 50.0)
             fb = self._fallback(task, q_score)
             fallbacks[t_id] = fb
-            
+
             if self._is_critical(task, fb):
                 critical_tasks.append(task)
             else:
                 results[t_id] = fb
-                
+
         if not critical_tasks:
             logger.info("No critical tasks found for LLM scoring. Using local fallbacks for all tasks.")
             return results
@@ -39,14 +83,14 @@ class PrioritizationAgent:
             batch = critical_tasks[i:i + batch_size]
             batch_tasks_data = []
             batch_fallbacks = {}
-            
+
             for t in batch:
                 t_id = t.get("id")
                 q_score = quality_scores.get(t_id, 50.0)
                 batch_tasks_data.append({
                     "id": t_id,
                     "title": t.get("title", ""),
-                    "description": (t.get("description") or "")[:150], # truncate aggressively to save input tokens
+                    "description": (t.get("description") or "")[:150],  # truncate aggressively to save input tokens
                     "urgency": t.get("urgency", "") or "normal",
                     "deadline": t.get("deadline", "") or "none",
                     "source_count": t.get("source_count") or 1,
@@ -54,13 +98,13 @@ class PrioritizationAgent:
                     "quality_score": q_score
                 })
                 batch_fallbacks[t_id] = fallbacks[t_id]
-                
+
             tasks_json = json.dumps(batch_tasks_data, indent=2)
             prompt = BATCH_PRIORITY_PROMPT.format(tasks_json=tasks_json)
-            
+
             # Wrap the fallback structure matching the BATCH prompt response schema
             wrapped_fallback = {"scores": batch_fallbacks}
-            
+
             logger.info(f"Prioritization Agent sending batch of {len(batch)} tasks to LLM...")
             try:
                 llm_response = self.llm.complete_json(prompt, fallback=wrapped_fallback, temperature=0.1)
@@ -69,7 +113,11 @@ class PrioritizationAgent:
                     for t in batch:
                         t_id = t.get("id")
                         if t_id in scores_dict and isinstance(scores_dict[t_id], dict) and "overall_score" in scores_dict[t_id]:
-                            results[t_id] = scores_dict[t_id]
+                            result = scores_dict[t_id]
+                            # priority_reason is always regenerated locally from the actual
+                            # numeric scores so it can never drift from the data or be hallucinated.
+                            result["priority_reason"] = build_priority_reasons(result, task_by_id[t_id])
+                            results[t_id] = result
                         else:
                             # If a specific task is missing in the LLM dictionary, use its fallback
                             logger.warning(f"Task ID {t_id} missing or invalid in LLM response scores. Using local fallback.")
@@ -123,40 +171,20 @@ class PrioritizationAgent:
         work_type_multiplier = 0.72 if is_reporting_work and task.get("task_type") == "request" else 1.0
         overall = round(
             (
-            severity * 0.25
-            + production * 0.2
-            + customer * 0.18
-            + deadline * 0.12
-            + blocker * 0.1
-            + business * 0.1
-            + quality_factor * 0.05
+                severity * 0.25
+                + production * 0.2
+                + customer * 0.18
+                + deadline * 0.12
+                + blocker * 0.1
+                + business * 0.1
+                + quality_factor * 0.05
             )
             * title_quality_multiplier
             * work_type_multiplier,
             1,
         )
-        reasons = []
-        if severity >= 8.0:
-            reasons.append(f"high urgency/severity ({severity}/10)")
-        if production >= 8.0:
-            reasons.append(f"high production environment impact risk ({production}/10)")
-        if customer >= 8.0:
-            reasons.append(f"high customer/user experience impact ({customer}/10)")
-        if blocker >= 8.0:
-            reasons.append(f"identified as a blocker or critical bottleneck ({blocker}/10)")
-        if task.get("deadline"):
-            reasons.append(f"approaching deadline of {task.get('deadline')} ({deadline}/10)")
-        if is_reporting_work and task.get("task_type") == "request":
-            reasons.append("demoted due to administrative/reporting task classification")
-        if title_quality_multiplier < 1.0:
-            reasons.append("demoted due to vague title formatting details")
-        
-        if not reasons:
-            reasons.append(f"standard backlog prioritization weightings (severity: {severity}, quality: {quality_factor})")
-        
-        explanation = f"Prioritized at {overall}/10 based on: " + ", ".join(reasons) + "."
 
-        return {
+        scores = {
             "overall_score": overall,
             "severity_score": severity,
             "deadline_score": deadline,
@@ -166,8 +194,17 @@ class PrioritizationAgent:
             "blocker_score": blocker,
             "business_impact_score": business,
             "quality_factor_score": quality_factor,
-            "explanation": explanation,
         }
+
+        reasons = build_priority_reasons(scores, task)
+        if title_quality_multiplier < 1.0:
+            reasons.append("Demoted: vague title formatting")
+        if is_reporting_work and task.get("task_type") == "request":
+            reasons.append("Demoted: administrative/reporting task classification")
+
+        scores["explanation"] = f"Prioritized at {overall}/10 based on: " + ", ".join(reasons) + "."
+        scores["priority_reason"] = reasons
+        return scores
 
     def _is_vague_title(self, title: str) -> bool:
         normalized = title.strip().lower()
@@ -191,4 +228,3 @@ class PrioritizationAgent:
             or task.get("task_type") in ("incident", "security")
             or any(w in text for w in ("p0", "p1", "critical", "outage", "blocker", "blocked", "credentials", "ssl", "500 error", "down"))
         )
-
