@@ -1022,6 +1022,7 @@ Without it, uvicorn's `watchfiles` detects every SQLite write and log append as 
 - **Frontend (Local):** http://localhost:5173
 - **Backend API (Local):** http://localhost:8000
 - **API Docs (Local):** http://localhost:8000/docs
+- **Deployed Frontend (Vercel):** https://taskpilot-ai-ideaforge.vercel.app/
 - **Deployed Backend (Render):** https://taskpilot-ai-4.onrender.com
 - **Deployed API Docs (Render):** https://taskpilot-ai-4.onrender.com/docs
 
