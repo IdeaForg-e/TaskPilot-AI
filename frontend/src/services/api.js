@@ -1,9 +1,13 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  const url = import.meta.env.VITE_API_URL || 'https://taskpilot-ai-4.onrender.com';
+  const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+  return `${cleanUrl}/api/v1`;
+};
+
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/api/v1`
-    : 'https://taskpilot-ai-4.onrender.com/api/v1'
+  baseURL: getBaseURL()
 });
 
 /**
