@@ -60,7 +60,7 @@ export default function Tasks() {
 
   const handleSelectTask = (task) => {
     setSelectedTask(task);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.querySelector('main')?.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   if (loading) return <LoadingSpinner label="Acquiring system task indexes..." />;
