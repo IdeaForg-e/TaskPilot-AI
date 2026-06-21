@@ -87,34 +87,7 @@ export default function PriorityCard({ task, rank }) {
         <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-2xl">
           {explanation}
         </p>
-        {task.priority_reason && task.priority_reason.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            {task.priority_reason.map((reason, idx) => (
-              <span key={idx} className="inline-flex items-center rounded-lg bg-amber-500/5 border border-amber-500/15 px-2.5 py-0.5 text-[10px] font-bold text-amber-400/95 tracking-wide shadow-sm">
-                ⚡ {reason}
-              </span>
-            ))}
-          </div>
-        )}
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {breakdown.map(([label, value, Icon]) => (
-            value !== undefined && value !== null ? (
-              <span key={label} className="inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-slate-400">
-                <Icon className="h-3 w-3 text-slate-500" />
-                {label}: {value}
-              </span>
-            ) : null
-          ))}
-          {(task.source_count || 0) > 1 && (
-            <span className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-1 text-[9px] font-bold uppercase tracking-wide text-cyan-300">
-              <GitMerge className="h-3 w-3" />
-              {task.source_count} Signals
-            </span>
-          )}
-        </div>
-        {task.agent_summary && (
-          <p className="mt-2 text-[10px] text-slate-500">{task.agent_summary}</p>
-        )}
+
       </div>
     </div>
   );

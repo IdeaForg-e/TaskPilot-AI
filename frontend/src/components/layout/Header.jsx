@@ -6,6 +6,7 @@ export default function Header({ onMenuClick }) {
   const [status, setStatus] = useState('idle'); // idle | loading | success | warning | error
   const [notice, setNotice] = useState(null);
   const [isPipelineRunning, setIsPipelineRunning] = useState(false);
+  const [prevRunStatus, setPrevRunStatus] = useState(null);
 
   useEffect(() => {
     const checkPipelineStatus = async () => {
@@ -19,13 +20,39 @@ export default function Header({ onMenuClick }) {
           const now = new Date();
           const isStale = rawStatus === 'running' && startedAt && (now - startedAt > 2 * 60 * 1000);
           
-          if (isStale) {
-            setIsPipelineRunning(false);
-          } else {
-            setIsPipelineRunning(rawStatus === 'running');
-          }
+          const finalStatus = isStale ? 'failed' : rawStatus;
+          const isRunning = finalStatus === 'running';
+          setIsPipelineRunning(isRunning);
+
+          setPrevRunStatus((prev) => {
+            // Detect transition from running to finished
+            if (prev === 'running' && finalStatus === 'completed') {
+              const diagnostics = res.data?.llm_diagnostics || [];
+              const warning = diagnostics.find((item) => item.level === 'warning');
+              if (warning) {
+                setStatus('warning');
+                setNotice(warning.message);
+              } else {
+                setStatus('success');
+                setNotice('Your whole pipeline execution was completed.');
+              }
+              setTimeout(() => {
+                setStatus('idle');
+                setNotice(null);
+              }, 10000);
+            } else if (prev === 'running' && finalStatus === 'failed') {
+              setStatus('error');
+              setNotice(isStale ? 'Pipeline run timed out.' : `Pipeline execution failed: ${runInfo.error || 'Unknown error'}`);
+              setTimeout(() => {
+                setStatus('idle');
+                setNotice(null);
+              }, 10000);
+            }
+            return finalStatus;
+          });
         } else {
           setIsPipelineRunning(false);
+          setPrevRunStatus('idle');
         }
       } catch (err) {
         console.error("Failed to fetch latest pipeline status in Header", err);
@@ -41,20 +68,12 @@ export default function Header({ onMenuClick }) {
     setStatus('loading');
     setNotice(null);
     try {
-      const res = await runPipeline();
-      const diagnostics = res.data?.llm_diagnostics || [];
-      const warning = diagnostics.find((item) => item.level === 'warning');
-      if (warning) {
-        setStatus('warning');
-        setNotice(warning.message);
-      } else {
-        setStatus('success');
-        setNotice('Pipeline completed successfully.');
-      }
+      await runPipeline();
+      setPrevRunStatus('running');
+      setIsPipelineRunning(true);
     } catch (err) {
       setStatus('error');
       setNotice(getApiErrorMessage(err));
-    } finally {
       setTimeout(() => {
         setStatus('idle');
         setNotice(null);

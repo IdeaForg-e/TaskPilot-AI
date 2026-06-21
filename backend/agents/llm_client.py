@@ -16,13 +16,13 @@ except Exception:  # pragma: no cover - fallback keeps the demo alive
 
 class LLMClient:
     diagnostics = []
-    failed_providers = set()
 
     def __init__(self, reasoning: bool = False):
         self.reasoning = reasoning
         self.timeout = 60 if reasoning else 30
         self.max_tokens = 3000 if reasoning else 1500
         self.providers = self._build_providers()
+        self.failed_providers = set()
 
     def _build_providers(self):
         providers = []
@@ -170,7 +170,6 @@ class LLMClient:
     @classmethod
     def reset_diagnostics(cls) -> None:
         cls.diagnostics = []
-        cls.failed_providers = set()
 
     @classmethod
     def get_diagnostics(cls) -> list[dict]:

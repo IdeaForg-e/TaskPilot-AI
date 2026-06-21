@@ -37,7 +37,7 @@ Return JSON matching this schema exactly:
   "blocker_score": 0.0,
   "business_impact_score": 0.0,
   "quality_factor_score": 0.0,
-  "explanation": "Brief reasoning explaining your scoring choices."
+  "explanation": "A natural 2-3 sentence paragraph explaining exactly why this task is prioritized at this score, highlighting customer impact, production risk, CVSS/security issues, or deadlines. Do not list scores or use bullet points."
 }}
 
 Return ONLY valid JSON. No markdown, no comments, no extra text."""
@@ -80,7 +80,7 @@ Return a JSON object containing a dictionary under the key "scores", where the k
       "blocker_score": 0.0,
       "business_impact_score": 0.0,
       "quality_factor_score": 0.0,
-      "explanation": "Brief reasoning explaining your scoring choices."
+      "explanation": "A natural 2-3 sentence paragraph explaining exactly why this task is prioritized at this score, highlighting customer impact, production risk, CVSS/security issues, or deadlines. Do not list scores or use bullet points."
     }},
     ...
   }}

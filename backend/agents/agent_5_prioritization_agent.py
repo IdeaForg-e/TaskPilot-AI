@@ -47,6 +47,59 @@ def build_priority_reasons(scores: dict, task: dict) -> list[str]:
     return reasons
 
 
+def build_explanation_paragraph(scores: dict, task: dict, overall: float, title_quality_multiplier: float, is_reporting_work: bool) -> str:
+    explanation_reasons = []
+    
+    if task.get("task_type") in ("incident", "security"):
+        explanation_reasons.append(f"being classified as a critical {task.get('task_type')} issue")
+        
+    for key, threshold, label_fn in FACTOR_RULES:
+        value = scores.get(key)
+        if value is not None and value >= threshold:
+            if key == "severity_score":
+                explanation_reasons.append(f"its elevated technical severity ({round(value, 1)}/10)")
+            elif key == "production_impact_score":
+                explanation_reasons.append("high risk of production outage or infrastructure impact")
+            elif key == "customer_impact_score":
+                explanation_reasons.append("direct customer-facing degradation and user complaints")
+            elif key == "blocker_score":
+                explanation_reasons.append("blocking critical team pipelines or engineering dependencies")
+            elif key == "deadline_score":
+                explanation_reasons.append("an urgent approaching deadline")
+            elif key == "dependency_score":
+                explanation_reasons.append("high complexity and multiple system integration dependencies")
+            elif key == "business_impact_score":
+                explanation_reasons.append("significant business operations and service delivery impact")
+                
+    source_count = task.get("source_count") or 1
+    if source_count > 1:
+        explanation_reasons.append(f"combining {source_count} distinct event signals")
+        
+    demotions = []
+    if title_quality_multiplier < 1.0:
+        demotions.append("vague title formatting")
+    if is_reporting_work and task.get("task_type") == "request":
+        demotions.append("administrative/reporting task classification")
+        
+    if not explanation_reasons:
+        explanation_reasons.append("standard backlog processing checks")
+        
+    if len(explanation_reasons) > 1:
+        reasons_phrasing = ", ".join(explanation_reasons[:-1]) + f", and {explanation_reasons[-1]}"
+    else:
+        reasons_phrasing = explanation_reasons[0]
+        
+    paragraph = f"This task is prioritized with a score of {overall}/10 due to {reasons_phrasing}."
+    
+    if demotions:
+        demotion_phrasing = " and ".join(demotions)
+        paragraph += f" Note that the priority score was adjusted downward due to {demotion_phrasing}."
+    else:
+        paragraph += " Resolving this task promptly will mitigate operational risks and address critical bottlenecks."
+        
+    return paragraph
+
+
 class PrioritizationAgent:
     def __init__(self):
         self.llm = LLMClient(reasoning=False)
@@ -202,7 +255,7 @@ class PrioritizationAgent:
         if is_reporting_work and task.get("task_type") == "request":
             reasons.append("Demoted: administrative/reporting task classification")
 
-        scores["explanation"] = f"Prioritized at {overall}/10 based on: " + ", ".join(reasons) + "."
+        scores["explanation"] = build_explanation_paragraph(scores, task, overall, title_quality_multiplier, is_reporting_work)
         scores["priority_reason"] = reasons
         return scores
 
