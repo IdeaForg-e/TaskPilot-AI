@@ -1,39 +1,12 @@
 from agents.llm_client import LLMClient
-from agents.prompts.agent_5_prioritization_prompts import BATCH_PRIORITY_PROMPT, PRIORITY_PROMPT
+from agents.prompts.agent_5_prioritization_prompts import BATCH_PRIORITY_PROMPT
 import json
 import logging
 
 
 class PrioritizationAgent:
     def __init__(self):
-        self.reasoning_llm = LLMClient(reasoning=True)
         self.llm = LLMClient(reasoning=False)
-
-    def score(self, task: dict, quality_score: float = 50) -> dict:
-        fallback = self._fallback(task, quality_score)
-        
-        # Only call the LLM for critical/urgent issues, incidents, or high-priority tasks (score >= 6.5)
-        # This preserves LLM reasoning for important tasks while preventing Groq TPM rate limits.
-        is_critical = (
-            fallback.get("overall_score", 0) >= 6.5
-            or (task.get("urgency") or "").lower() == "critical"
-            or task.get("task_type") in ("incident", "security")
-        )
-        
-        if is_critical:
-            prompt = PRIORITY_PROMPT.format(
-                title=task.get("title", "") or "",
-                description=task.get("description", "") or "",
-                urgency=task.get("urgency", "") or "normal",
-                deadline=task.get("deadline", "") or "none",
-                source_count=task.get("source_count") or 1,
-                task_type=task.get("task_type", "task"),
-                quality_score=quality_score,
-            )
-            result = self.reasoning_llm.complete_json(prompt, fallback=fallback, temperature=0.1)
-            return result if isinstance(result, dict) else fallback
-            
-        return fallback
 
     def score_batch(self, tasks: list[dict], quality_scores: dict) -> dict[str, dict]:
         logger = logging.getLogger("taskpilot.prioritization_agent")

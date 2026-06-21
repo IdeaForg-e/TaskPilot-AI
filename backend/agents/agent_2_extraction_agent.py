@@ -1,8 +1,7 @@
-import json
 import re
 
 from agents.llm_client import LLMClient
-from agents.prompts.agent_2_extraction_prompts import EXPLICIT_TASK_PROMPT, HIDDEN_TASK_PROMPT
+from agents.prompts.agent_2_extraction_prompts import HIDDEN_TASK_PROMPT
 
 
 class ExtractionAgent:

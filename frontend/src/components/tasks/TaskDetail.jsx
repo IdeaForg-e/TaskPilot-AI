@@ -4,7 +4,7 @@ import { getTaskDetail, getApiErrorMessage } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorMessage from '../common/ErrorMessage';
 
-export default function TaskDetail({ task, onClose }) {
+export default function TaskDetail({ task, tasks = [], onClose }) {
   const [detail, setDetail] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -32,6 +32,9 @@ export default function TaskDetail({ task, onClose }) {
   const contextLinks = data.context_links || [];
   const quality = data.quality;
   const priority = data.priority;
+
+  // Compute workload for assignee (count active status tasks)
+  const assigneeTasksCount = data.assignee ? tasks.filter(t => t.assignee === data.assignee && t.status !== 'completed').length : 0;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-slate-950/40 backdrop-blur-sm animate-fade-in-up lg:static lg:z-0 lg:bg-transparent lg:backdrop-blur-none lg:w-96 lg:shrink-0 lg:self-stretch lg:animate-none">
@@ -121,7 +124,15 @@ export default function TaskDetail({ task, onClose }) {
                       <User className="h-3.5 w-3.5 text-slate-600" />
                       <span>Assignee</span>
                     </div>
-                    <dd className="mt-1 text-xs font-bold text-slate-200">{data.assignee || '—'}</dd>
+                    <dd className="mt-1 text-xs font-bold text-slate-200 flex items-center gap-1.5">
+                      <span>{data.assignee || '—'}</span>
+                      {assigneeTasksCount > 3 && (
+                        <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" title={`Overloaded Queue (${assigneeTasksCount} active tasks)`} />
+                      )}
+                    </dd>
+                    {assigneeTasksCount > 3 && (
+                      <span className="text-[8px] font-bold uppercase tracking-wider text-rose-400 mt-1 block">Overloaded ({assigneeTasksCount} tasks)</span>
+                    )}
                   </div>
                 </div>
 
@@ -135,26 +146,118 @@ export default function TaskDetail({ task, onClose }) {
                   </div>
                 )}
 
-                {(quality || priority) && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {quality && (
-                      <div className="rounded-xl bg-slate-900/35 border border-slate-900/50 p-3">
-                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                          <Shield className="h-3.5 w-3.5 text-emerald-400" />
-                          <span>Quality</span>
-                        </div>
-                        <dd className="mt-1 text-xs font-bold text-slate-200">{quality.overall_score}%</dd>
-                        <p className="mt-1 text-[10px] text-slate-500 capitalize">{quality.actionability}</p>
+                {priority && (
+                  <div className="rounded-xl bg-slate-900/30 border border-slate-850 p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-violet-400">
+                        <BarChart3 className="h-4 w-4" />
+                        <span>Priority Breakdown</span>
+                      </div>
+                      <span className="rounded-full bg-violet-950/40 border border-violet-800/30 px-2 py-0.5 text-[10px] font-bold text-violet-300">
+                        Rank #{priority.rank} (Score: {priority.overall_score})
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] text-slate-400">
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Severity Score:</span>
+                        <span className="font-bold text-slate-200">{priority.severity_score !== null ? priority.severity_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Deadline:</span>
+                        <span className="font-bold text-slate-200">{priority.deadline_score !== null ? priority.deadline_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Prod Impact:</span>
+                        <span className="font-bold text-slate-200">{priority.production_impact_score !== null ? priority.production_impact_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Cust Impact:</span>
+                        <span className="font-bold text-slate-200">{priority.customer_impact_score !== null ? priority.customer_impact_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Dependency:</span>
+                        <span className="font-bold text-slate-200">{priority.dependency_score !== null ? priority.dependency_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Blocker Score:</span>
+                        <span className="font-bold text-slate-200">{priority.blocker_score !== null ? priority.blocker_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Business Impact:</span>
+                        <span className="font-bold text-slate-200">{priority.business_impact_score !== null ? priority.business_impact_score : '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Quality Factor:</span>
+                        <span className="font-bold text-slate-200">{priority.quality_factor_score !== null ? priority.quality_factor_score : '—'}</span>
+                      </div>
+                    </div>
+                    
+                    <p className="text-[11px] leading-relaxed text-slate-400 bg-slate-950/20 p-2.5 rounded-lg border border-slate-900/50 mt-2">
+                      <span className="font-bold text-violet-400">Score Signal Reason: </span>
+                      {priority.explanation}
+                    </p>
+                  </div>
+                )}
+
+                {quality && (
+                  <div className="rounded-xl bg-slate-900/30 border border-slate-850 p-4 space-y-3">
+                    <div className="flex items-center justify-between border-b border-slate-850 pb-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-emerald-400">
+                        <Shield className="h-4 w-4" />
+                        <span>Quality Breakdown</span>
+                      </div>
+                      <span className="rounded-full bg-emerald-950/40 border border-emerald-800/30 px-2 py-0.5 text-[10px] font-bold text-emerald-300">
+                        {quality.overall_score}% ({quality.actionability})
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] text-slate-400 border-b border-slate-950 pb-3">
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Clear Title:</span>
+                        <span className="font-bold text-slate-200">{quality.clear_title_score !== null ? `${quality.clear_title_score}%` : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Severity Info:</span>
+                        <span className="font-bold text-slate-200">{quality.severity_score !== null ? `${quality.severity_score}%` : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Repro Steps:</span>
+                        <span className="font-bold text-slate-200">{quality.reproduction_steps_score !== null ? `${quality.reproduction_steps_score}%` : '—'}</span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-900/50 pb-1">
+                        <span>Logs / Traces:</span>
+                        <span className="font-bold text-slate-200">{quality.error_logs_score !== null ? `${quality.error_logs_score}%` : '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Environment:</span>
+                        <span className="font-bold text-slate-200">{quality.environment_score !== null ? `${quality.environment_score}%` : '—'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Expected Behavior:</span>
+                        <span className="font-bold text-slate-200">{quality.expected_behavior_score !== null ? `${quality.expected_behavior_score}%` : '—'}</span>
+                      </div>
+                    </div>
+
+                    {quality.missing_info && quality.missing_info.length > 0 && (
+                      <div className="space-y-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-rose-450 block">Missing Information Checklist</span>
+                        <ul className="list-disc pl-4 text-[10px] leading-relaxed text-slate-400">
+                          {quality.missing_info.map((item, i) => (
+                            <li key={i}>{item}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
-                    {priority && (
-                      <div className="rounded-xl bg-slate-900/35 border border-slate-900/50 p-3">
-                        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-slate-500">
-                          <BarChart3 className="h-3.5 w-3.5 text-violet-400" />
-                          <span>Priority</span>
-                        </div>
-                        <dd className="mt-1 text-xs font-bold text-slate-200">#{priority.rank} / {priority.overall_score}</dd>
-                        <p className="mt-1 text-[10px] text-slate-500">{priority.explanation}</p>
+
+                    {quality.clarification_questions && quality.clarification_questions.length > 0 && (
+                      <div className="space-y-1 bg-amber-500/5 border border-amber-550/20 p-2.5 rounded-lg">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-amber-300 block">Clarification Questions</span>
+                        <ul className="list-decimal pl-4 text-[10px] leading-relaxed text-slate-400">
+                          {quality.clarification_questions.map((question, i) => (
+                            <li key={i}>{question}</li>
+                          ))}
+                        </ul>
                       </div>
                     )}
                   </div>

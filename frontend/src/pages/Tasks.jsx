@@ -133,7 +133,7 @@ export default function Tasks() {
           />
         </div>
         {selectedTask && (
-          <TaskDetail task={selectedTask} onClose={() => setSelectedTask(null)} />
+          <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
         )}
       </div>
     </div>
