@@ -23,6 +23,8 @@ class MasterTaskOut(BaseModel):
     deadline: Optional[str] = None
     urgency: Optional[str] = None
     source_count: int = 1
+    estimated_hours: Optional[float] = None
+    sources: List[str] = []  # all contributing source systems, preserved across merges
 
 class ExtractRequest(BaseModel):
     include_hidden: bool = True
