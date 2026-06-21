@@ -47,7 +47,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
     
     # Provide user-friendly hints for common issues
     if "api key" in message.lower() or "api_key" in message.lower() or "unauthorized" in message.lower() or "401" in message:
-        hint = "LLM API key may be missing or invalid. Check GROQ_API_KEY / NVIDIA_API_KEY in backend/.env"
+        hint = "LLM API key may be missing or invalid. Check GROQ_API_KEY in backend/.env"
     elif "timeout" in message.lower() or "timed out" in message.lower():
         hint = "Backend request timed out. The LLM service may be unreachable."
     elif "connection" in message.lower() or "econnrefused" in message.lower():
@@ -125,8 +125,7 @@ async def health():
     # Check which API keys are configured
     config_status = {
         "groq_configured": bool(settings.GROQ_API_KEY),
-        "nvidia_configured": bool(settings.NVIDIA_API_KEY),
-        "llm_providers_available": bool(settings.GROQ_API_KEY or settings.NVIDIA_API_KEY),
+        "llm_providers_available": bool(settings.GROQ_API_KEY),
     }
     
     llm_diagnostics = LLMClient.get_diagnostics()

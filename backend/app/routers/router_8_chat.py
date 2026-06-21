@@ -185,9 +185,8 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
                 "I cannot generate intelligent responses because no LLM API keys are configured.\n\n"
                 "**To fix this:**\n"
                 "1. Open `backend/.env`\n"
-                "2. Add at least one of:\n"
+                "2. Add your key:\n"
                 "   - `GROQ_API_KEY=your_groq_key`\n"
-                "   - `NVIDIA_API_KEY=your_nvidia_key`\n"
                 "3. Restart the backend server\n\n"
                 "Until then, I can still inject P1 tasks and re-run the pipeline."
             )
