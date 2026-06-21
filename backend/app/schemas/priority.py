@@ -8,6 +8,7 @@ class PriorityScoreOut(BaseModel):
     overall_score: float
     rank: Optional[int] = None
     explanation: Optional[str] = None
+    priority_reason: Optional[List[str]] = None
     severity_score: Optional[float] = None
     deadline_score: Optional[float] = None
     production_impact_score: Optional[float] = None
