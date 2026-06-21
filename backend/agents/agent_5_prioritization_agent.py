@@ -38,18 +38,32 @@ class PrioritizationAgent:
     def score_batch(self, tasks: list[dict], quality_scores: dict) -> dict[str, dict]:
         logger = logging.getLogger("taskpilot.prioritization_agent")
         
-        # 1. Pre-calculate all fallbacks (so if LLM fails, we have an instant backup for everything)
+        # 1. Pre-calculate all fallbacks and filter critical tasks
         fallbacks = {}
+        critical_tasks = []
+        results = {}
+        
         for task in tasks:
             t_id = task.get("id")
             q_score = quality_scores.get(t_id, 50.0)
-            fallbacks[t_id] = self._fallback(task, q_score)
+            fb = self._fallback(task, q_score)
+            fallbacks[t_id] = fb
             
-        results = {}
-        # 2. Group into batches of 10 tasks
-        batch_size = 10
-        for i in range(0, len(tasks), batch_size):
-            batch = tasks[i:i + batch_size]
+            if self._is_critical(task, fb):
+                critical_tasks.append(task)
+            else:
+                results[t_id] = fb
+                
+        if not critical_tasks:
+            logger.info("No critical tasks found for LLM scoring. Using local fallbacks for all tasks.")
+            return results
+
+        logger.info(f"Prioritization Agent selected {len(critical_tasks)} / {len(tasks)} critical tasks for LLM scoring.")
+
+        # 2. Group critical tasks into batches of 8 tasks
+        batch_size = 8
+        for i in range(0, len(critical_tasks), batch_size):
+            batch = critical_tasks[i:i + batch_size]
             batch_tasks_data = []
             batch_fallbacks = {}
             
@@ -59,7 +73,7 @@ class PrioritizationAgent:
                 batch_tasks_data.append({
                     "id": t_id,
                     "title": t.get("title", ""),
-                    "description": (t.get("description") or "")[:400], # truncate to fit context
+                    "description": (t.get("description") or "")[:150], # truncate aggressively to save input tokens
                     "urgency": t.get("urgency", "") or "normal",
                     "deadline": t.get("deadline", "") or "none",
                     "source_count": t.get("source_count") or 1,
@@ -97,7 +111,6 @@ class PrioritizationAgent:
                 for t in batch:
                     t_id = t.get("id")
                     results[t_id] = fallbacks[t_id]
-                    
         return results
 
     def _fallback(self, task: dict, quality_score: float) -> dict:
@@ -174,3 +187,14 @@ class PrioritizationAgent:
             "ensure these are tracked",
         )
         return len(normalized) < 12 or normalized.startswith(vague_titles)
+
+    def _is_critical(self, task: dict, fallback: dict) -> bool:
+        title = task.get("title", "") or ""
+        text = f"{title} {task.get('description', '')}".lower()
+        return (
+            fallback.get("overall_score", 0) >= 8.0
+            or (task.get("urgency") or "").lower() == "critical"
+            or task.get("task_type") in ("incident", "security")
+            or any(w in text for w in ("p0", "p1", "critical", "outage", "blocker", "blocked", "credentials", "ssl", "500 error", "down"))
+        )
+

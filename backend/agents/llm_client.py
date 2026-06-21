@@ -21,7 +21,7 @@ class LLMClient:
     def __init__(self, reasoning: bool = False):
         self.reasoning = reasoning
         self.timeout = 90 if reasoning else 30
-        self.max_tokens = 4096 if reasoning else 2000
+        self.max_tokens = 4096 if reasoning else 1200
         self.providers = self._build_providers()
         self.failed_providers = set()
 
