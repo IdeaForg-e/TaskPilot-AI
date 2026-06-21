@@ -80,7 +80,7 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 ## 🏗 System Architecture
 
 <p align="center">
-  <img src="docs/images/architecture.png" alt="TaskPilot AI Architecture" width="100%" />
+  <img src="docs/images/architecture.jpg" alt="TaskPilot AI Architecture" width="100%" />
 </p>
 
 TaskPilot AI employs a **cooperative multi-agent architecture** where 6 specialized AI agents work in a sequential pipeline, orchestrated by a central controller. Each agent has a single responsibility, communicates through a shared SQLite database, and uses LLM-powered reasoning for complex decisions.
