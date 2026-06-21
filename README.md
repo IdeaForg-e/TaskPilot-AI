@@ -73,6 +73,7 @@ graph TB
             A4[Quality Agent]
             A5[Prioritization Agent]
             A6[Planning Agent]
+            A7[Chat Agent / Copilot]
         end
 
         subgraph "🧠 LLM Client"
@@ -102,34 +103,24 @@ graph TB
         NOTIF[Error Notifications<br/>LLM Warnings<br/>Toast System]
     end
 
-    JIRA --> A1
-    GITHUB --> A1
-    SLACK --> A1
-    EMAIL --> A1
-    CAL --> A1
-    MEET --> A1
-    INC --> A1
-    
+    %% Data Source Connections
+    JIRA & GITHUB & SLACK & EMAIL & CAL & MEET & INC --> A1
+    CAL --> A6  %% Calendar is read directly by Planning Agent for availability
+
+    %% Sequential Data Dependencies
     A1 --> A2
     A2 --> A3
     A3 --> A4
     A4 --> A5
     A5 --> A6
-    
-    A1 --> DB
-    A2 --> DB
-    A3 --> DB
-    A4 --> DB
-    A5 --> DB
-    A6 --> DB
-    
-    A1 -.-> LLM
-    A2 -.-> LLM
-    A3 -.-> LLM
-    A4 -.-> LLM
-    A5 -.-> LLM
-    A6 -.-> LLM
-    
+
+    %% Database Connections
+    A1 & A2 & A3 & A4 & A5 & A6 & A7 & ORCH --> DB
+
+    %% LLM Queries
+    A2 & A3 & A4 & A5 & A6 & A7 -.-> LLM
+
+    %% API to Backend Routing
     R0 --> ORCH
     R1 --> A1
     R2 --> A2
@@ -138,11 +129,20 @@ graph TB
     R5 --> A5
     R6 --> A6
     R7 --> DB
-    R8 --> ORCH
+    R8 --> A7
 
-    ORCH --> A1
-    A6 --> ORCH
+    %% Orchestrator Control Flow
+    ORCH --> |Executes Stage| A1
+    ORCH --> |Executes Stage| A2
+    ORCH --> |Executes Stage| A3
+    ORCH --> |Executes Stage| A4
+    ORCH --> |Executes Stage| A5
+    ORCH --> |Executes Stage| A6
 
+    %% Chat Agent Interaction
+    A7 --> |Injects P1 Task & Triggers Run| ORCH
+
+    %% Frontend to API Mapping
     R0 <--> UI
     R1 <--> UI
     R2 <--> UI
