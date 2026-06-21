@@ -112,3 +112,53 @@ curl http://localhost:8000/api/v1/tasks/ranked
 ```powershell
 curl http://localhost:8000/api/v1/daily-plan/2026-06-18
 ```
+
+---
+
+## 🛠️ 6. New Features & Workflow Verification
+
+This section lists verification commands and expected UI/API behaviors for the latest updates.
+
+### A. Database Reset on Server Startup
+* **Action**: Restart the FastAPI server (e.g. kill the terminal running uvicorn and run `.\start.bat` or save a backend file).
+* **Expected Behavior**: The `@app.on_event("startup")` event handler in `main.py` runs, unconditionally truncating all SQLite tables to return the database to a clean initial state.
+* **Verification Command**:
+```powershell
+# Run task count check to verify database is fully empty on start
+python -c "import sqlite3; conn=sqlite3.connect('backend/taskpilot.db'); cur=conn.cursor(); print('Workflow Runs:', cur.execute('SELECT COUNT(*) FROM workflow_runs').fetchone()[0]); print('Master Tasks:', cur.execute('SELECT COUNT(*) FROM master_tasks').fetchone()[0])"
+```
+* **Expected Output**:
+  ```text
+  Workflow Runs: 0
+  Master Tasks: 0
+  ```
+
+### B. Platform Origin Badges on Priority Leaderboard
+* **Action**: Open http://localhost:5173/priority (Priority Leaderboard).
+* **Expected Behavior**: Next to each task title, you will see colored, styled labels representing the source platforms the fused task originated from (e.g., `Jira`, `GitHub`, `Slack`, `Email`).
+* **Verification Endpoint**:
+```powershell
+curl http://localhost:8000/api/v1/tasks/ranked
+```
+* **Expected JSON Field**: Each task in the array will contain a `platforms` list (e.g. `"platforms": ["github", "jira"]`).
+
+### C. Limited Daily Rest Breaks (Max 2 Breaks)
+* **Action**: Open http://localhost:5173/planner (Daily Planner).
+* **Expected Behavior**: The Daily Schedule Timeline will display **exactly 2 rest breaks / buffers** (green timelines with coffee cup icons) across the whole day (one mid-morning and one mid-afternoon), instead of breaking after every single task block.
+* **Verification Command**:
+```powershell
+# Verify only 2 buffer slots are scheduled in the database
+python -c "import sqlite3; conn=sqlite3.connect('backend/taskpilot.db'); cur=conn.cursor(); print('Scheduled Breaks:', cur.execute('SELECT COUNT(*) FROM time_slots WHERE slot_type=\"buffer\"').fetchone()[0])"
+```
+* **Expected Output**:
+  ```text
+  Scheduled Breaks: 2
+  ```
+
+### D. Overloaded Developer Queue Warnings
+* **Action**: Open http://localhost:5173/tasks (Tasks Directory).
+* **Expected Behavior**: Select a task assigned to a developer with more than 3 active tasks (e.g., `user-002` or `user-005`). A warning banner with a glowing rose badge saying `"Queue Overloaded"` will appear in the Task Detail view.
+* **Verification Log Output**:
+  ```text
+  WARNING - Developer 'user-002' has an overloaded queue with 7 active tasks.
+  ```
