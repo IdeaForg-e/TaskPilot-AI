@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Dict
 
 class TimeSlotOut(BaseModel):
     start_time: str
@@ -27,3 +27,26 @@ class DailyPlanOut(BaseModel):
 
 class PlanResponse(BaseModel):
     plan: DailyPlanOut
+
+class CalendarTaskOut(BaseModel):
+    id: str
+    title: str
+    priority: Optional[float] = None
+    deadline: Optional[str] = None
+    status: Optional[str] = None
+
+class CalendarResponse(BaseModel):
+    calendar: Dict[str, List[CalendarTaskOut]]
+
+class DayTaskOut(BaseModel):
+    title: str
+    priority: Optional[float] = None
+
+class ScheduledBlockOut(BaseModel):
+    task_id: str
+    title: str
+    hours: float
+    overflow: Optional[bool] = False
+
+class ScheduleResponse(BaseModel):
+    schedule: Dict[str, List[ScheduledBlockOut]]
