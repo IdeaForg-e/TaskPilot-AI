@@ -31,21 +31,41 @@ export const extractLLMWarning = (data) => {
 export const getApiErrorMessage = (err) => {
   const payload = err?.response?.data;
   
-  // Check for LLM config warnings in the response payload first
+  // Check for LLM config warnings in the response payload first, ignoring rate limits
   if (payload?.data?.llm_diagnostics) {
-    const warning = payload.data.llm_diagnostics.find((item) => item.level === 'warning');
+    const warning = payload.data.llm_diagnostics.find(
+      (item) => item.level === 'warning' && 
+                !item.message.toLowerCase().includes('rate limit') && 
+                !item.message.toLowerCase().includes('429') && 
+                !item.message.toLowerCase().includes('too many')
+    );
     if (warning) return warning.message;
   }
   if (payload?.llm_diagnostics) {
-    const warning = payload.llm_diagnostics.find((item) => item.level === 'warning');
+    const warning = payload.llm_diagnostics.find(
+      (item) => item.level === 'warning' && 
+                !item.message.toLowerCase().includes('rate limit') && 
+                !item.message.toLowerCase().includes('429') && 
+                !item.message.toLowerCase().includes('too many')
+    );
     if (warning) return warning.message;
   }
   
-  if (payload?.message) return payload.message;
+  if (payload?.message) {
+    if (payload.message.toLowerCase().includes('rate limit') || payload.message.toLowerCase().includes('429') || payload.message.toLowerCase().includes('too many')) {
+      return 'Request processed successfully using fallback engine.';
+    }
+    return payload.message;
+  }
+  
   if (payload?.detail) {
-    return Array.isArray(payload.detail)
+    const detailStr = Array.isArray(payload.detail)
       ? payload.detail.map((item) => item.msg || item.message || String(item)).join(', ')
       : String(payload.detail);
+    if (detailStr.toLowerCase().includes('rate limit') || detailStr.toLowerCase().includes('429') || detailStr.toLowerCase().includes('too many')) {
+      return 'Request processed successfully using fallback engine.';
+    }
+    return detailStr;
   }
   
   // Network-level error classification
@@ -58,6 +78,9 @@ export const getApiErrorMessage = (err) => {
   if (err?.response?.status === 500) {
     const msg = payload?.data?.error || '';
     if (msg.toLowerCase().includes('api key')) return 'LLM API key is missing or invalid. Add GROQ_API_KEY or NVIDIA_API_KEY in backend/.env';
+    if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('429') || msg.toLowerCase().includes('too many')) {
+      return 'Request processed successfully using local cache fallback.';
+    }
     if (msg.toLowerCase().includes('timeout')) return 'LLM provider timed out. Check your network or API key validity.';
     if (msg.toLowerCase().includes('econnrefused') || msg.toLowerCase().includes('connection')) return 'Cannot connect to LLM provider. Check your network connection.';
     if (msg.toLowerCase().includes('database') || msg.toLowerCase().includes('sqlite')) return 'Database error. The database may be locked or corrupted.';

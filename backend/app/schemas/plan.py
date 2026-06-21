@@ -11,7 +11,7 @@ class TimeSlotOut(BaseModel):
 
 class DailyPlanRequest(BaseModel):
     user_id: str = "user-001"
-    date: str = "2026-06-18"
+    date: str = "2026-06-22"
     buffer_hours: float = 1.0
 
 class DailyPlanOut(BaseModel):

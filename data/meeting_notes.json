@@ -2,7 +2,7 @@
   {
     "id": "meet-001",
     "title": "Backend Team Standup",
-    "date": "2026-06-17",
+    "date": "2026-06-21",
     "start_time": "09:30",
     "end_time": "09:45",
     "attendees": ["user-001", "user-002", "user-003", "user-004", "user-005"],
@@ -20,25 +20,25 @@
       {
         "description": "Review and approve OAuth PR #212",
         "assignee": "user-002",
-        "due_date": "2026-06-17",
+        "due_date": "2026-06-21",
         "status": "pending"
       },
       {
         "description": "Escalate Razorpay credentials with vendor account manager",
         "assignee": "user-001",
-        "due_date": "2026-06-17",
+        "due_date": "2026-06-21",
         "status": "pending"
       },
       {
         "description": "Monitor API latency in staging for 24 hours before production deploy",
         "assignee": "user-002",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       },
       {
         "description": "Add rate limiting tests for OAuth endpoints",
         "assignee": "user-004",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       }
     ],
@@ -52,7 +52,7 @@
   {
     "id": "meet-002",
     "title": "Frontend Team Standup",
-    "date": "2026-06-17",
+    "date": "2026-06-21",
     "start_time": "09:45",
     "end_time": "10:00",
     "attendees": ["user-006", "user-007", "user-008", "user-009"],
@@ -70,31 +70,31 @@
       {
         "description": "Test dark mode CSS variables for iOS Safari compatibility",
         "assignee": "user-008",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       },
       {
         "description": "Review accessibility PR #181",
         "assignee": "user-006",
-        "due_date": "2026-06-17",
+        "due_date": "2026-06-21",
         "status": "pending"
       },
       {
         "description": "Create LoadingSkeleton component for analytics charts",
         "assignee": "user-008",
-        "due_date": "2026-06-19",
+        "due_date": "2026-06-23",
         "status": "pending"
       },
       {
         "description": "Export analytics dashboard as reusable component package",
         "assignee": "user-007",
-        "due_date": "2026-06-22",
+        "due_date": "2026-06-26",
         "status": "pending"
       },
       {
         "description": "Patch Dependabot security alerts in admin panel",
         "assignee": "user-009",
-        "due_date": "2026-06-19",
+        "due_date": "2026-06-23",
         "status": "pending"
       }
     ],
@@ -108,7 +108,7 @@
   {
     "id": "meet-003",
     "title": "Platform Team Standup",
-    "date": "2026-06-17",
+    "date": "2026-06-21",
     "start_time": "10:00",
     "end_time": "10:15",
     "attendees": ["user-010", "user-011", "user-012", "user-013"],
@@ -127,37 +127,37 @@
       {
         "description": "Grant Sneha production access for image-processing namespace",
         "assignee": "user-013",
-        "due_date": "2026-06-17",
+        "due_date": "2026-06-21",
         "status": "pending"
       },
       {
         "description": "Deploy DB connection leak fix to production after 24hr staging monitor",
         "assignee": "user-013",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       },
       {
         "description": "Renew and deploy SSL certificates for all production domains",
         "assignee": "user-013",
-        "due_date": "2026-06-19",
+        "due_date": "2026-06-23",
         "status": "pending"
       },
       {
         "description": "Investigate email bounce handling regression",
         "assignee": "user-012",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       },
       {
         "description": "Set up Kafka topics for email notification service",
         "assignee": "user-011",
-        "due_date": "2026-06-18",
+        "due_date": "2026-06-22",
         "status": "pending"
       },
       {
         "description": "Update Grafana dashboards with new Prometheus data source",
         "assignee": "user-011",
-        "due_date": "2026-06-19",
+        "due_date": "2026-06-23",
         "status": "pending"
       }
     ],
