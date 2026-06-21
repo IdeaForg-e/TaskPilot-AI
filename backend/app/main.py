@@ -86,32 +86,35 @@ async def startup():
     setup_logging()
     init_db()
     
-    # Clear all database tables on server startup to start in a completely clean initial state (0 tasks, 0 runs)
-    try:
-        from app.database import SessionLocal
-        from app.models.daily_plan import DailyPlan, TimeSlot
-        from app.models.priority_score import PriorityScore
-        from app.models.quality_report import QualityReport
-        from app.models.source_event import SourceEvent
-        from app.models.task import MasterTask, TaskCandidate, TaskContextLink
-        from app.models.workflow_run import WorkflowRun
-        
-        db = SessionLocal()
-        db.query(TimeSlot).delete()
-        db.query(DailyPlan).delete()
-        db.query(PriorityScore).delete()
-        db.query(QualityReport).delete()
-        db.query(TaskContextLink).delete()
-        db.query(MasterTask).delete()
-        db.query(TaskCandidate).delete()
-        db.query(SourceEvent).delete()
-        db.query(WorkflowRun).delete()
-        
-        db.commit()
-        db.close()
-        logging.getLogger("taskpilot.api").info("Successfully cleared all database tables on server startup for a clean initial state.")
-    except Exception as exc:
-        logging.getLogger("taskpilot.api").error(f"Failed to clear database tables on startup: {exc}")
+    # Database persistence is enabled by default to ensure pipeline runs and metrics persist across restarts.
+    # To force clear tables on server startup, set CLEAR_DB_ON_STARTUP=1 in your backend/.env.
+    import os
+    if os.getenv("CLEAR_DB_ON_STARTUP") == "1":
+        try:
+            from app.database import SessionLocal
+            from app.models.daily_plan import DailyPlan, TimeSlot
+            from app.models.priority_score import PriorityScore
+            from app.models.quality_report import QualityReport
+            from app.models.source_event import SourceEvent
+            from app.models.task import MasterTask, TaskCandidate, TaskContextLink
+            from app.models.workflow_run import WorkflowRun
+            
+            db = SessionLocal()
+            db.query(TimeSlot).delete()
+            db.query(DailyPlan).delete()
+            db.query(PriorityScore).delete()
+            db.query(QualityReport).delete()
+            db.query(TaskContextLink).delete()
+            db.query(MasterTask).delete()
+            db.query(TaskCandidate).delete()
+            db.query(SourceEvent).delete()
+            db.query(WorkflowRun).delete()
+            
+            db.commit()
+            db.close()
+            logging.getLogger("taskpilot.api").info("Successfully cleared all database tables on server startup for a clean initial state.")
+        except Exception as exc:
+            logging.getLogger("taskpilot.api").error(f"Failed to clear database tables on startup: {exc}")
 
 @app.get("/")
 async def root():
