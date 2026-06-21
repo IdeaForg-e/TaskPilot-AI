@@ -258,6 +258,34 @@ Groq (max_retries=0)
 
 ### Agent Details
 
+#### 0️⃣ Pipeline Orchestrator (Orchestrator Agent)
+- **Service implementation:** [agent_0_orchestrator_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_0_orchestrator_service.py)
+- **API Router endpoint:** [router_0_orchestrator.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/routers/router_0_orchestrator.py) (`POST /api/v1/orchestrate/run`, `GET /api/v1/orchestrate/status/{run_id}`, `GET /api/v1/orchestrate/latest`)
+- **Database Model:** [workflow_run.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/workflow_run.py) (`WorkflowRun` table)
+
+##### 🛠️ Core Responsibilities
+1. **Multi-Agent Coordination & Execution**: Manages the sequential flow of the entire engineering task pipeline: Ingestion -> Extraction -> Fusion -> Quality -> Prioritization -> Planning.
+2. **State Machine Management**: Tracks current executing agent, agent completion history, status (`running`, `completed`, `failed`), timestamps, and detailed error logs in the SQLite `WorkflowRun` table.
+3. **Stale Pipeline Interruption Detection**: Implements a safety timeout heuristic. If a pipeline is stuck in `running` state for more than 5 minutes (due to an unhandled crash or server restart), the Orchestrator marks it as `failed` with a descriptive error: `"Pipeline was interrupted (server restarted or process killed). Marked as stale."`
+4. **Dynamic System Performance Metrics**: Computes real-time system metrics, such as overall system accuracy (aggregated dynamically across all generated `QualityReport` records) and total pipeline executions.
+
+##### 📋 Schema Structure (`WorkflowRun` DB columns)
+| Field | Type | Description | Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique run tracking identifier | `3d3c9932-4d6d-4cc2...` |
+| **`status`** | String | Execution status | `"running"`, `"completed"`, `"failed"` |
+| **`current_agent`** | String | Active pipeline stage | `"extraction"`, `"fusion"`, `None` (if idle) |
+| **`agents_completed`**| JSON/Array | Ordered list of finished agent stages | `["ingestion", "extraction"]` |
+| **`error_log`** | Text | Stack trace or description of stage failure | `"planning failed: LLM rate limit"` |
+| **`started_at`** | DateTime | Pipeline execution start timestamp | `2026-06-21 14:00:00` |
+| **`completed_at`** | DateTime | Pipeline execution completion/failure timestamp | `2026-06-21 14:00:30` |
+
+##### ⚡ Performance & Optimization
+- **Asynchronous Execution Threading**: Launches pipeline execution in FastAPI `BackgroundTasks` threads, allowing the initiate POST request to return instantly (sub-50ms) while the agents run in the background. This prevents gateway timeouts on long LLM runs.
+- **Dynamic Stats Aggregation**: Caches and serves system accuracy directly from db state, enabling immediate render times of metrics card components on the UI dashboard.
+
+---
+
 #### 1️⃣ Ingestion Agent
 - **Service implementation:** [agent_1_ingestion_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_1_ingestion_service.py)
 - **API Router endpoint:** [router_1_ingest.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/routers/router_1_ingest.py) (`POST /api/v1/ingest`)
