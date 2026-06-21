@@ -109,17 +109,29 @@ class PlanningService:
         return calendar
 
     # ------------------------------------------------------------------ #
-    # Module 2 — Day Details API
+    # Module 2 — Day Details API (FIXED)
     # ------------------------------------------------------------------ #
     def get_day_details(self, date: str) -> list:
-        """Tasks due on a specific date, sorted by priority descending."""
-        tasks = self.db.query(MasterTask).all()
+        """Fetch real task items allocated within this day's active plan layout."""
+        plan = self.db.query(DailyPlan).filter(DailyPlan.plan_date == date).first()
         priorities = self._priority_map()
+        
+        if not plan:
+            # Fallback gracefully if plan does not exist yet for this timeline view
+            tasks = self.db.query(MasterTask).all()
+            day_tasks = [
+                {"title": t.title, "priority": priorities.get(t.id, 0.0)}
+                for t in tasks
+                if self._normalize_date(t.deadline) == date
+            ]
+            day_tasks.sort(key=lambda t: t["priority"] or 0, reverse=True)
+            return day_tasks
 
+        # Query the dynamic timeslots assigned to this specific plan ID
+        slots = self.db.query(TimeSlot).filter(TimeSlot.daily_plan_id == plan.id, TimeSlot.slot_type == "task").all()
         day_tasks = [
-            {"title": t.title, "priority": priorities.get(t.id, 0.0)}
-            for t in tasks
-            if self._normalize_date(t.deadline) == date
+            {"title": slot.title, "priority": priorities.get(slot.master_task_id, 0.0)}
+            for slot in slots
         ]
         day_tasks.sort(key=lambda t: t["priority"] or 0, reverse=True)
         return day_tasks
@@ -128,18 +140,6 @@ class PlanningService:
     # Module 2 — Scheduling Logic
     # ------------------------------------------------------------------ #
     def schedule_unplanned_tasks(self, start_date: str, working_hours_per_day: float = WORKING_HOURS_PER_DAY) -> dict:
-        """
-        Greedy day-by-day scheduler. Distributes each task's estimated_hours
-        across days between start_date and its deadline, respecting daily
-        capacity and load already allocated to earlier tasks in this run.
-        Higher-priority tasks and tighter deadlines are scheduled first.
-
-        Returns: {date: [{task_id, title, hours, overflow?}]}
-
-        Extension points: per-day capacity overrides, weekend/holiday
-        exclusion, per-assignee calendars — all can be added without
-        changing the call signature.
-        """
         tasks = (
             self.db.query(MasterTask)
             .filter(MasterTask.status != "done")
@@ -165,7 +165,7 @@ class PlanningService:
             cursor_date = datetime.strptime(run_start, "%Y-%m-%d")
             deadline_date = datetime.strptime(deadline, "%Y-%m-%d")
             if deadline_date < cursor_date:
-                deadline_date = cursor_date  # overdue tasks get scheduled today, flagged via overflow if no room
+                deadline_date = cursor_date
 
             while hours_remaining > 0 and cursor_date <= deadline_date:
                 day_key = cursor_date.strftime("%Y-%m-%d")
@@ -204,7 +204,7 @@ class PlanningService:
     def _normalize_date(self, value) -> str | None:
         if not value:
             return None
-        return value[:10]  # handles both "YYYY-MM-DD" and full ISO datetime strings
+        return value[:10]
 
     def _meetings_for(self, date, user_id):
         path = os.path.join(settings.DATA_DIR, "calendar.json")
@@ -259,16 +259,29 @@ class PlanningService:
             }
             for slot in slots
         ]
-        scheduled_ids = {slot["task_id"] for slot in time_slots if slot.get("task_id")}
-        top_tasks = [
-            {
-                "id": task["task_id"],
-                "title": task["title"],
-                "priority_score": task["score"],
-                "rank": task["rank"],
-            }
-            for task in ranked_tasks[:3]
-        ]
+        
+        # Sort slots chronologically to ensure timeline reads properly
+        time_slots.sort(key=lambda x: x.get("start_time", ""))
+
+        # FIX: Filter High Priority Agenda Focus based specifically on what's scheduled today
+        scheduled_tasks = []
+        scheduled_ids = set()
+        for slot in time_slots:
+            if slot.get("task_id") and slot["task_id"] not in scheduled_ids:
+                scheduled_ids.add(slot["task_id"])
+                ranked_item = next((t for t in ranked_tasks if t["task_id"] == slot["task_id"]), None)
+                if ranked_item:
+                    scheduled_tasks.append({
+                        "id": slot["task_id"],
+                        "title": slot["title"],
+                        "priority_score": ranked_item["score"],
+                        "rank": ranked_item["rank"]
+                    })
+        
+        # Sort scheduled items by internal priority rank to populate Agenda Focus items #1, #2, #3
+        scheduled_tasks.sort(key=lambda x: x["rank"])
+        top_tasks = scheduled_tasks[:3]
+
         remaining_tasks = [
             {
                 "id": task["task_id"],
@@ -279,6 +292,7 @@ class PlanningService:
             for task in ranked_tasks
             if task["task_id"] not in scheduled_ids
         ][:12]
+
         return {
             "id": plan.id,
             "plan_date": plan.plan_date,
