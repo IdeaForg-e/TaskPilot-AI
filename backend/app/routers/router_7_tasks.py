@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.common import APIResponse
@@ -14,10 +15,12 @@ from agents.llm_client import LLMClient
 router = APIRouter(prefix="/api/v1", tags=["tasks"])
 logger = logging.getLogger("taskpilot.api")
 
+
 @router.get("/tasks", response_model=APIResponse)
 async def get_tasks(
     status: str = Query(None),
     assignee: str = Query(None),
+    source: str = Query(None, description="Comma-separated source filter, e.g. source=jira,github"),
     db: Session = Depends(get_db)
 ):
     try:
@@ -27,22 +30,37 @@ async def get_tasks(
         if assignee:
             query = query.filter(MasterTask.assignee == assignee)
         tasks = query.all()
-        result = [
-            {
+
+        # Single bulk join instead of one query per task (N+1 fix).
+        source_map = _bulk_source_platforms(db)
+        context_counts = _bulk_context_counts(db)
+
+        requested_sources = None
+        if source:
+            requested_sources = {s.strip().lower() for s in source.split(",") if s.strip()}
+
+        result = []
+        for t in tasks:
+            platforms = source_map.get(t.id, [])
+            if requested_sources is not None:
+                if not requested_sources & {p.lower() for p in platforms}:
+                    continue
+            result.append({
                 "id": t.id, "title": t.title, "description": t.description,
                 "task_type": t.task_type, "type": t.task_type, "status": t.status, "assignee": t.assignee,
                 "deadline": t.deadline, "urgency": t.urgency, "source_count": t.source_count,
-                "is_hidden": _has_hidden_context(db, t.id),
-                "source_platforms": _source_platforms(db, t.id),
-                "context_count": _context_count(db, t.id),
-                "agent_summary": _agent_summary(db, t.id, t.source_count),
-            }
-            for t in tasks
-        ]
+                "estimated_hours": t.estimated_hours,
+                "is_hidden": any(p in ("slack", "email", "meeting") for p in platforms),
+                "sources": platforms,
+                "source_platforms": platforms,
+                "context_count": context_counts.get(t.id, 0),
+                "agent_summary": _agent_summary(t.source_count, platforms),
+            })
         return APIResponse(success=True, data={"total": len(result), "tasks": result}, message="OK")
     except Exception as exc:
         logger.error(f"Tasks fetch failed: {exc}")
         return APIResponse(success=False, data={"error": str(exc), "llm_diagnostics": LLMClient.get_diagnostics()}, message=str(exc))
+
 
 @router.get("/tasks/{task_id}", response_model=APIResponse)
 async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
@@ -50,11 +68,11 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
         task = db.query(MasterTask).filter(MasterTask.id == task_id).first()
         if not task:
             return APIResponse(success=False, message="Task not found")
-        
+
         quality = db.query(QualityReport).filter(QualityReport.master_task_id == task_id).first()
         priority = db.query(PriorityScore).filter(PriorityScore.master_task_id == task_id).first()
         links = db.query(TaskContextLink).filter(TaskContextLink.master_task_id == task_id).all()
-        
+
         context = []
         for link in links:
             event = db.query(SourceEvent).filter(SourceEvent.id == link.source_event_id).first()
@@ -64,16 +82,19 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
                     "content": event.content[:200] if event.content else None,
                     "link_type": link.link_type
                 })
-        
+
+        platforms = _source_platforms(db, task.id)
         result = {
             "task": {
                 "id": task.id, "title": task.title, "description": task.description,
                 "task_type": task.task_type, "type": task.task_type, "status": task.status, "assignee": task.assignee,
                 "deadline": task.deadline, "urgency": task.urgency, "source_count": task.source_count,
-                "is_hidden": _has_hidden_context(db, task.id),
-                "source_platforms": _source_platforms(db, task.id),
+                "estimated_hours": task.estimated_hours,
+                "is_hidden": any(p in ("slack", "email", "meeting") for p in platforms),
+                "sources": platforms,
+                "source_platforms": platforms,
                 "context_count": _context_count(db, task.id),
-                "agent_summary": _agent_summary(db, task.id, task.source_count),
+                "agent_summary": _agent_summary(task.source_count, platforms),
             },
             "quality": {
                 "overall_score": quality.overall_score,
@@ -84,7 +105,8 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
             "priority": {
                 "overall_score": priority.overall_score,
                 "rank": priority.rank,
-                "explanation": priority.explanation
+                "explanation": priority.explanation,
+                "priority_reason": priority.priority_reason or [],
             } if priority else None,
             "context_links": context
         }
@@ -94,13 +116,27 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
         return APIResponse(success=False, data={"error": str(exc), "llm_diagnostics": LLMClient.get_diagnostics()}, message=str(exc))
 
 
-def _has_hidden_context(db: Session, task_id: str) -> bool:
-    links = db.query(TaskContextLink).filter(TaskContextLink.master_task_id == task_id).all()
-    for link in links:
-        event = db.query(SourceEvent).filter(SourceEvent.id == link.source_event_id).first()
-        if event and event.source in ("slack", "email", "meeting"):
-            return True
-    return False
+def _bulk_source_platforms(db: Session) -> dict[str, list[str]]:
+    rows = (
+        db.query(TaskContextLink.master_task_id, SourceEvent.source)
+        .join(SourceEvent, SourceEvent.id == TaskContextLink.source_event_id)
+        .all()
+    )
+    mapping: dict[str, list[str]] = {}
+    for master_task_id, src in rows:
+        bucket = mapping.setdefault(master_task_id, [])
+        if src not in bucket:
+            bucket.append(src)
+    return mapping
+
+
+def _bulk_context_counts(db: Session) -> dict[str, int]:
+    rows = (
+        db.query(TaskContextLink.master_task_id, func.count(TaskContextLink.id))
+        .group_by(TaskContextLink.master_task_id)
+        .all()
+    )
+    return {tid: count for tid, count in rows}
 
 
 def _source_platforms(db: Session, task_id: str) -> list[str]:
@@ -117,15 +153,15 @@ def _context_count(db: Session, task_id: str) -> int:
     return db.query(TaskContextLink).filter(TaskContextLink.master_task_id == task_id).count()
 
 
-def _agent_summary(db: Session, task_id: str, source_count: int | None) -> str:
-    platforms = _source_platforms(db, task_id)
-    hidden = any(source in ("slack", "email", "meeting") for source in platforms)
+def _agent_summary(source_count: int | None, platforms: list[str]) -> str:
+    hidden = any(p in ("slack", "email", "meeting") for p in platforms)
     source_text = ", ".join(platforms) if platforms else "manual"
     if source_count and source_count > 1:
         return f"Fusion agent merged {source_count} related signals from {source_text}."
     if hidden:
         return f"Extraction agent found this as hidden work from {source_text}."
     return f"Extraction agent normalized this explicit task from {source_text}."
+
 
 @router.post("/tasks/{task_id}/status", response_model=APIResponse)
 def update_task_status(task_id: str, payload: dict, db: Session = Depends(get_db)):
