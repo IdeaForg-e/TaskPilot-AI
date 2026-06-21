@@ -312,41 +312,385 @@ graph TD
 
 
 #### 2️⃣ Extraction Agent
-- **File:** `backend/agents/agent_2_extraction_agent.py`
-- **Prompts:** `backend/agents/prompts/agent_2_extraction_prompts.py`
-- Two extraction modes:
-  - **Explicit** (Jira/GitHub/Incidents): Normalizes structured data via LLM
-  - **Hidden** (Slack/Email/Meetings): Recovers buried action items using keyword markers
-- Extracts: title, description, assignee, deadline, urgency, confidence
+- **Agent logic:** [agent_2_extraction_agent.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/agent_2_extraction_agent.py)
+- **Service implementation:** [agent_2_extraction_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_2_extraction_service.py)
+- **API Router endpoint:** [router_2_extract.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/routers/router_2_extract.py) (`POST /api/v1/extract`)
+- **Database Model:** [task.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/task.py) (`TaskCandidate` table)
+- **Core Model:** `llama-3.1-8b-instant`
+
+##### 🛠️ Core Responsibilities
+1. **Hidden Task Discovery**: Scans unstructured text streams (Slack messages, emails, meeting transcripts) to identify hidden tasks or actions using keyword/trigger patterns.
+2. **LLM Extraction**: Invokes `llama-3.1-8b-instant` to analyze text and structure it into task candidates containing: title, description, assignee, deadline, urgency level, and confidence.
+3. **Structured Bypassing**: Highly structured source feeds (Jira tickets, GitHub issues, incidents) bypass LLM extraction, running deterministic parsing rules directly to save tokens and prevent rate limit blocks.
+
+##### 📋 Normalized Schema Structure (`TaskCandidate` DB columns)
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique identifier for the task candidate | `a8d6e3c1-92fa-48b2...` |
+| **`title`** | String | Standardized task title or summary | `"Fix SSO login redirect loop"` |
+| **`description`** | Text | Fully extracted description or background details | `"SSO redirect loops back to /login on Chrome..."` |
+| **`source_event_id`** | String | Foreign key linking back to the origin `SourceEvent` | `c2a6b251-863a-4467...` |
+| **`task_type`** | String | Extracted task classification | `"bug"`, `"feature"`, `"review"`, `"incident"`, `"meeting_action"`, `"request"` |
+| **`is_hidden`** | Boolean | Flag indicating if task was extracted from unstructured context | `true` (for Slack/Email/Meeting), `false` (for Jira/GH/Incident) |
+| **`assignee`** | String | Extracted developer assignee name | `"Chaitanya"` |
+| **`deadline`** | String | Due date parsed from event | `"2026-06-25"` or `"none"` |
+| **`urgency`** | String | Urgency level of the task candidate | `"low"`, `"medium"`, `"high"`, `"critical"` |
+| **`confidence`** | Float | Extraction confidence score (0.0 to 1.0) | `0.85` |
+| **`extraction_run_id`**| String | Run identifier tracking pipeline executions | `"demo"` |
+| **`created_at`** | DateTime | Normalized ISO-8601 creation datetime | `2026-06-21 14:00:10` |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Relational Datastore (SQLite)"
+        EVENTS[(SourceEvents Table)]
+        CANDIDATES[(TaskCandidates Table)]
+    end
+
+    subgraph "Extraction Agent Container"
+        PARSER[Structured Source Parser<br/>(Jira / GitHub / Incidents)]
+        LLM_EXTRACTOR[LLM Extraction Agent<br/>(Slack / Emails / Meetings)]
+        REGEX_FALLBACK[Regex & Rule Fallback Engine]
+        
+        EVENTS --> |Read Events| PARSER & LLM_EXTRACTOR
+        LLM_EXTRACTOR --> |Failure / Rate Limit| REGEX_FALLBACK
+        PARSER & LLM_EXTRACTOR & REGEX_FALLBACK --> |SQL INSERT| CANDIDATES
+    end
+
+    subgraph "External LLM Providers"
+        GROQ[Groq API<br/>llama-3.1-8b-instant]
+        NIM[NVIDIA NIM API<br/>meta/llama-3.1-8b-instruct]
+        
+        LLM_EXTRACTOR -.-> |Primary Query| GROQ
+        LLM_EXTRACTOR -.-> |Fallback API| NIM
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **ThreadPool Concurrency**: Processes all unstructured streams in parallel using a `ThreadPoolExecutor` (max 4 threads), reducing processing times for multiple messages.
+* **Regex Fallbacks**: Every LLM call is wrapped in a `try/except` block. If Groq throws an error or hits a 429 rate limit, the service immediately falls back to a deterministic regex parser, avoiding pipeline failure.
+* **Structured Bypass Optimization**: Bypasses LLM reasoning for 100% of structured Jira, GitHub, and Incident sources, mapping fields directly and preserving 100% precision with 0 tokens.
+
+---
 
 #### 3️⃣ Fusion Agent
-- **File:** `backend/agents/agent_3_fusion_agent.py`
-- **Prompts:** `backend/agents/prompts/agent_3_fusion_prompts.py`
-- Semantic duplicate detection across sources with preserved context
-- Uses a **persistent JSON cache** to skip the LLM on repeated duplicate checks
-- Only queries the LLM for confidence scores in the narrow `[0.55, 0.70]` window
-- Creates `TaskContextLink` for traceability
+- **Agent logic:** [agent_3_fusion_agent.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/agent_3_fusion_agent.py)
+- **Service implementation:** [agent_3_fusion_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_3_fusion_service.py)
+- **Prompts:** [agent_3_fusion_prompts.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/prompts/agent_3_fusion_prompts.py)
+- **Database Models:** [task.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/task.py) (`MasterTask` & `TaskContextLink` tables)
+- **Core Model:** `llama-3.3-70b-versatile`
+
+##### 🛠️ Core Responsibilities
+1. **Cross-Source Deduplication**: Identifies task candidates that represent the same physical issue across different source channels (e.g. a Jira ticket and a Slack message discussing the same bug).
+2. **Metadata-Aware Comparison**: Evaluates platform context, assignee name, source platform, and deadline dates. If these attributes differ, the similarity threshold is dynamically raised by up to `+0.30` to prevent false-positive ticket merges.
+3. **Task Description Merging**: When merging duplicates, it concatenates the descriptions using the format `"Original: desc. Fused Signal details: desc"` to preserve diagnostic details (such as stack traces or user symptoms).
+
+##### 📋 Normalized Schema Structure (`MasterTask` & `TaskContextLink` DB columns)
+**MasterTask Table:**
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique identifier for the deduplicated master task | `7d2f9e4a-bc12-4c56...` |
+| **`title`** | String | Standardized merged task title | `"Resolve API Timeout on checkout endpoint"` |
+| **`description`** | Text | Concatenated description of all merged candidates | `"Original: Slow checkout page. Fused Signal details: log alert 504"` |
+| **`task_type`** | String | Overridden task type classification | `"incident"` or `"bug"` |
+| **`status`** | String | Workflow status of the task | `"open"`, `"in_progress"`, `"done"` |
+| **`assignee`** | String | Merged developer assignee name | `"Disha"` |
+| **`deadline`** | String | Earliest due date resolved | `"2026-06-22"` |
+| **`urgency`** | String | Highest urgency level from all merged candidates | `"critical"` |
+| **`source_count`** | Integer | Number of source signals merged into this task | `3` |
+| **`is_duplicate_of`**| String | Self-referencing link (unused / reserved) | `None` |
+| **`fusion_run_id`** | String | Run tracker tag | `"demo"` |
+| **`created_at`** | DateTime | Normalized ISO-8601 creation datetime | `2026-06-21 14:00:15` |
+
+**TaskContextLink Table:**
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique link identifier | `e3b2c1d4-89ab-4c32...` |
+| **`master_task_id`** | String | Foreign key pointing to `MasterTask.id` | `7d2f9e4a-bc12-4c56...` |
+| **`source_event_id`** | String | Foreign key pointing to `SourceEvent.id` | `c2a6b251-863a-4467...` |
+| **`link_type`** | String | Relationship classification | `"origin"` (sole source) or `"related"` (duplicate source) |
+| **`similarity_score`**| Float | Score representing confidence of overlap (0.0 to 1.0) | `0.92` (1.0 for single source origins) |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Relational Datastore (SQLite)"
+        CANDIDATES[(TaskCandidates Table)]
+        MASTER[(MasterTasks Table)]
+        LINKS[(TaskContextLinks Table)]
+    end
+
+    subgraph "Fusion Agent Container"
+        MATCHER[Local SequenceMatcher & Token Overlap]
+        LLM_MERGER[LLM Similarity Evaluator<br/>(llama-3.3-70b-versatile)]
+        CLUSTERER[Agglomerative Cluster Solver]
+        
+        CANDIDATES --> |Read Candidates| MATCHER
+        MATCHER --> |Uncertainty [0.55, 0.70]| LLM_MERGER
+        MATCHER & LLM_MERGER --> |Resolve Matches| CLUSTERER
+        CLUSTERER --> |Write Master Tasks & Links| MASTER & LINKS
+    end
+
+    subgraph "Persistent Cache (data/)"
+        CACHE[(fusion_cache.json)]
+        LLM_MERGER <--> |Read/Write Scores| CACHE
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **Persistent Fusion Cache**: Stores similarity scores in `backend/data/fusion_cache.json`. If a comparison is cached, the LLM is skipped entirely, reducing repeating fusion runtimes to **0ms**.
+* **Narrow LLM Window**: Local algorithms instantly approve high-confidence similarities ($\ge 0.70$) and reject low-confidence ones ($< 0.55$). The LLM is only called inside the narrow `[0.55, 0.70]` uncertainty window, cutting LLM calls from **600+ down to only 26** on the first run.
+* **Metadata Penalties**: Dynamically adjusts threshold based on mismatching assignee name (`+0.15`), differing deadline (`+0.10`), or source collision (`+0.05`), shielding the system against wrong groupings.
+
+---
 
 #### 4️⃣ Quality Agent
-- **File:** `backend/agents/agent_4_quality_agent.py`
-- Bypasses LLM reasoning calls for ultra-high speed execution (completed in under 20ms)
-- Scores tasks on 7 completeness dimensions: Clear Title, Reproduction Steps, Error Logs, Environment, Expected Behavior, Severity, Assignee
-- Classifies actionability: `actionable` / `needs_info` / `blocked`
+- **Agent logic:** [agent_4_quality_agent.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/agent_4_quality_agent.py)
+- **Service implementation:** [agent_4_quality_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_4_quality_service.py)
+- **Prompts:** [agent_4_quality_prompts.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/prompts/agent_4_quality_prompts.py)
+- **Database Model:** [quality_report.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/quality_report.py) (`QualityReport` table)
+- **Core Model:** Heuristic (standard) / `llama-3.1-8b-instant` (critical tasks)
+
+##### 🛠️ Core Responsibilities
+1. **Completeness Scoring**: Grades master tasks on 7 distinct criteria: Clear Title, Reproduction Steps, Error Logs, Environment details, Expected Behavior, Severity, and Assignee presence.
+2. **Actionability Classification**: Groups tasks into actionability states: `actionable` (ready to work), `needs_info` (missing crucial details), or `blocked` (has blocking dependencies).
+3. **Clarification Questions**: Generates targeted questions for tasks flagged with low quality scores to guide the developer on what information is missing.
+
+##### 📋 Normalized Schema Structure (`QualityReport` DB columns)
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique quality report identifier | `bc4f2e91-7d1a-42b8...` |
+| **`master_task_id`** | String | Foreign key pointing to `MasterTask.id` | `7d2f9e4a-bc12-4c56...` |
+| **`overall_score`** | Float | Unified quality score average (0 to 100) | `82.5` |
+| **`clear_title_score`**| Float | Score grading title details (0 to 100) | `90.0` |
+| **`reproduction_steps_score`**| Float | Score grading reproduction details (0 to 100) | `80.0` |
+| **`error_logs_score`** | Float | Score grading stack logs presence (0 to 100) | `30.0` |
+| **`environment_score`**| Float | Score grading OS/ENV details (0 to 100) | `80.0` |
+| **`expected_behavior_score`**| Float | Score grading criteria details (0 to 100) | `80.0` |
+| **`severity_score`** | Float | Score grading severity tags (0 to 100) | `90.0` |
+| **`assignee_score`** | Float | Score grading assignee presence (0 to 100) | `85.0` |
+| **`missing_info`** | JSON | List of missing attributes parsed from details | `["error logs"]` |
+| **`clarification_questions`**| JSON | Dynamic clarification prompts for user | `["Please provide error logs."] |
+| **`actionability`** | String | Actionability status flag | `"actionable"`, `"needs_info"`, `"blocked"` |
+| **`created_at`** | DateTime | Normalized ISO-8601 evaluation timestamp | `2026-06-21 14:00:20` |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Relational Datastore (SQLite)"
+        MASTER[(MasterTasks Table)]
+        REPORTS[(QualityReports Table)]
+    end
+
+    subgraph "Quality Agent Container"
+        HEURISTIC[Local Heuristic Engine<br/>(Sub-1ms Regex Parser)]
+        LLM_GRADER[LLM Completeness Grader<br/>(llama-3.1-8b-instant)]
+        
+        MASTER --> |Read Master Tasks| HEURISTIC
+        HEURISTIC --> |urgency == 'critical'| LLM_GRADER
+        HEURISTIC & LLM_GRADER --> |Generate Quality Report| REPORTS
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **Hybrid Execution**: Bypasses LLM calls for standard/high tasks by running a fast, local heuristic grading algorithm. The LLM is invoked only for tasks with `urgency == "critical"`.
+* **Parallel Quality Evaluator**: Runs quality checks concurrently using `ThreadPoolExecutor` (max 4 threads). This reduced the Quality stage duration from **57 seconds to 6 seconds** (a 90% speedup).
+* **Deterministic Fallback**: The local heuristic scores clear titles, reproduction details, stack trace keywords, environment names, expected behaviors, severity words, and assignee presence in sub-millisecond execution times.
+
+---
 
 #### 5️⃣ Prioritization Agent
-- **File:** `backend/agents/agent_5_prioritization_agent.py`
-- **Prompts:** `backend/agents/prompts/agent_5_prioritization_prompts.py`
-- Evaluates task priorities in batches of 10 using `llama-3.1-8b-instant` (or NVIDIA fallback) based on a 7-factor scoring system:
-  - Severity (25%), Production Impact (20%), Customer Impact (18%), Deadline (12%), Blocker (10%), Business Impact (10%), Quality Factor (5%)
-- Automatically falls back to the deterministic local scoring formula if LLM limits or errors occur.
+- **Agent logic:** [agent_5_prioritization_agent.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/agent_5_prioritization_agent.py)
+- **Service implementation:** [agent_5_prioritization_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_5_prioritization_service.py)
+- **Prompts:** [agent_5_prioritization_prompts.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/prompts/agent_5_prioritization_prompts.py)
+- **Database Model:** [priority_score.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/priority_score.py) (`PriorityScore` table)
+- **Core Model:** Heuristic (standard) / `llama-3.1-8b-instant` (critical tasks)
+
+##### 🛠️ Core Responsibilities
+1. **7-Factor Weighted Priority**: Evaluates priority score (0-10) using a strict weighted formula: Severity (25%), Production Impact (20%), Customer Impact (18%), Deadline (12%), Blocker Status (10%), Business Impact (10%), Quality Factor (5%).
+2. **Blocker Keyword Boost**: Scans task titles and descriptions for dependency keywords (e.g. `"blocks"`, `"dependent on"`). If found, the blocker score is locked to `10.0` and the overall priority score is boosted by `+2.0` (max `10.0`).
+3. **Developer Queue Overload Warnings**: Counts active tasks per developer. If an assignee has more than 3 active tasks, the agent logs a warning in the backend and displays a rose warning badge (`"Queue Overloaded"`) in the frontend.
+
+##### 📋 Normalized Schema Structure (`PriorityScore` DB columns)
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique priority score identifier | `cf5a4e32-8b9a-4c28...` |
+| **`master_task_id`** | String | Foreign key pointing to `MasterTask.id` | `7d2f9e4a-bc12-4c56...` |
+| **`overall_score`** | Float | Final weighted priority score (0.0 to 10.0) | `9.4` |
+| **`severity_score`** | Float | Evaluated urgency/severity weight (0.0 to 10.0) | `9.5` |
+| **`deadline_score`** | Float | Proximity to due date weight (0.0 to 10.0) | `8.0` |
+| **`production_impact_score`**| Float | Production risk weight (0.0 to 10.0) | `10.0` |
+| **`customer_impact_score`**| Float | Affected customers weight (0.0 to 10.0) | `9.0` |
+| **`dependency_score`**| Float | Upstream/downstream relations count (0.0 to 10.0)| `4.0` |
+| **`blocker_score`** | Float | Critical bottleneck score (0.0 to 10.0) | `10.0` |
+| **`business_impact_score`**| Float | Max of Customer and Production score (0.0 to 10.0) | `10.0` |
+| **`quality_factor_score`**| Float | Evaluated task quality score scaling (0.0 to 10.0) | `8.25` |
+| **`rank`** | Integer | Final leaderboard position of task (1-indexed) | `1` |
+| **`explanation`** | Text | Rationale explanation for score and rank | `"[Blocker Boost] Critical outage affecting ACME customers..."` |
+| **`created_at`** | DateTime | Normalized ISO-8601 prioritization timestamp | `2026-06-21 14:00:25` |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Relational Datastore (SQLite)"
+        MASTER[(MasterTasks Table)]
+        REPORTS[(QualityReports Table)]
+        PRIORITIES[(PriorityScores Table)]
+    end
+
+    subgraph "Prioritization Agent Container"
+        HEURISTIC[Local Weighted Scoring Engine]
+        CRITICAL_FILTER[Critical Task Qualifier]
+        LLM_PRIORITIZER[LLM Prioritization Batcher<br/>(llama-3.1-8b-instant)]
+        OVERLOAD_CHECKER[Developer Workload Analyzer]
+        BLOCKER_BOOSTER[Blocker Score Boost Engine]
+        
+        MASTER & REPORTS --> |Read Tasks & Quality| HEURISTIC
+        HEURISTIC --> CRITICAL_FILTER
+        CRITICAL_FILTER --> |Not Critical| PRIORITIES
+        CRITICAL_FILTER --> |Critical Tasks| LLM_PRIORITIZER
+        LLM_PRIORITIZER --> BLOCKER_BOOSTER
+        HEURISTIC --> OVERLOAD_CHECKER
+        BLOCKER_BOOSTER --> PRIORITIES
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **LLM Filtering & Batching**: Filters and sends only high-priority critical tasks to the LLM. Standard tasks bypass LLM calls and are graded locally. Tasks are processed in batches of 8, preventing DB locks and token exhaustion.
+* **Blocker Boost Logic**: Automatically applies a deterministic blocker boost (`+2.0` overall priority score) to any task containing blocking keywords, avoiding LLM reliance for dependency detection.
+
+---
 
 #### 6️⃣ Planning Agent
-- **File:** `backend/agents/agent_6_planning_agent.py`
-- **Prompts:** `backend/agents/prompts/agent_6_planning_prompts.py`
-- Meeting-aware time blocking (9:00–18:00) using double-quote escaped JSON structures
-- Greedy scheduling: critical tasks scheduled first, 60–120 min blocks
-- Overflow management with manager-friendly reasons
-- Load status: `healthy` / `moderate` / `overloaded`
+- **Agent logic:** [agent_6_planning_agent.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/agent_6_planning_agent.py)
+- **Service implementation:** [agent_6_planning_service.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/services/agent_6_planning_service.py)
+- **Prompts:** [agent_6_planning_prompts.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/agents/prompts/agent_6_planning_prompts.py)
+- **Database Models:** [daily_plan.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/models/daily_plan.py) (`DailyPlan` & `TimeSlot` tables)
+- **Core Model:** `llama-3.3-70b-versatile`
+
+##### 🛠️ Core Responsibilities
+1. **Meeting-Aware Timeline**: Generates a time-blocked daily calendar (9:00 - 18:00) protecting fixed meetings and scheduling ranked tasks into available gaps.
+2. **Daily Buffer Rest Breaks**: Schedules **exactly 2 rest breaks / buffers** (type `"buffer"`, title `"Rest Break / Buffer"`, duration 15-30 minutes) mid-morning and mid-afternoon to prevent developer fatigue while keeping the timeline clean.
+3. **Overflow Handling**: If task volume exceeds available hours, the planner delegates lower-ranked tasks to `overflow_tasks` with a manager-friendly explanation.
+
+##### 📋 Normalized Schema Structure (`DailyPlan` & `TimeSlot` DB columns)
+**DailyPlan Table:**
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique daily plan identifier | `ad4f2e91-7d1a-42b8...` |
+| **`user_id`** | String | Assignee developer identifier | `"user-001"` |
+| **`plan_date`** | String | Scheduled calendar date (YYYY-MM-DD) | `"2026-06-21"` |
+| **`available_hours`**| Float | Calculated developer focus hours | `5.0` (8h total minus meetings and buffers) |
+| **`planned_hours`** | Float | Total hours allocated to tasks | `4.5` |
+| **`buffer_hours`** | Float | Hours allocated for breaks & buffers | `1.0` |
+| **`load_status`** | String | Workload density classification | `"healthy"`, `"moderate"`, `"overloaded"` |
+| **`recommendations`** | JSON | List of smart planning recommendations | `["Take a break after the incident fix", "Review backlog items"]` |
+| **`overflow_tasks`** | JSON | Tasks that could not fit into the work hours | `[{"task_id": "...", "title": "Review sprint retrospective"}]` |
+| **`created_at`** | DateTime | Normalized ISO-8601 plan creation timestamp | `2026-06-21 14:00:30` |
+
+**TimeSlot Table:**
+| Field | Type | Description | Mapping Example |
+|---|---|---|---|
+| **`id`** | String (UUID) | Unique schedule time slot identifier | `de8f7a92-cf1b-43d2...` |
+| **`daily_plan_id`** | String | Foreign key pointing to `DailyPlan.id` | `ad4f2e91-7d1a-42b8...` |
+| **`master_task_id`** | String | Foreign key pointing to `MasterTask.id` (if task slot) | `7d2f9e4a-bc12-4c56...` |
+| **`start_time`** | String | Start of slot (HH:MM format) | `"10:30"` |
+| **`end_time`** | String | End of slot (HH:MM format) | `"12:00"` |
+| **`slot_type`** | String | Slot classification tag | `"task"`, `"meeting"`, `"buffer"`, `"break"` |
+| **`priority_level`** | String | Priority scale for highlighting | `"critical"`, `"high"`, `"normal"`, `"buffer"`, `"neutral"` |
+| **`title`** | String | Event name or task title | `"Fix SSO login redirect loop"` |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Calendar Store (data/)"
+        CAL[(calendar.json)]
+    end
+
+    subgraph "Relational Datastore (SQLite)"
+        MASTER[(MasterTasks Table)]
+        PRIORITIES[(PriorityScores Table)]
+        PLAN[(DailyPlans Table)]
+        SLOTS[(TimeSlots Table)]
+    end
+
+    subgraph "Planning Agent Container"
+        MEETING_AGG[Calendar Parser & Hour Calculator]
+        LLM_PLANNER[LLM Schedule Builder<br/>(llama-3.3-70b-versatile)]
+        GREEDY_FALLBACK[Deterministic Greedy Calendar Scheduler]
+        
+        CAL --> |Fetch Meetings| MEETING_AGG
+        MASTER & PRIORITIES --> |Fetch Ranked Tasks| LLM_PLANNER
+        MEETING_AGG --> |Input Available Gaps & Meetings| LLM_PLANNER
+        LLM_PLANNER --> |API Failures / Timeout| GREEDY_FALLBACK
+        LLM_PLANNER & GREEDY_FALLBACK --> |Write Plan & Schedule| PLAN & SLOTS
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **Robust JSON Delimiter Repair**: Employs `json.dumps(..., ensure_ascii=False)` to print clean JSON arrays for the LLM prompt. In case of unescaped quotes inside LLM text fields, a local `clean_json_lines` parser automatically repairs syntax errors on the fly.
+* **Deterministic Greedy Scheduler**: If LLM API limits are reached, the agent falls back to a deterministic greedy scheduler, ensuring a valid calendar plan is always generated.
+* **Meeting Protection**: Automatically parses calendar data to compute available hours, blocking out fixed times and preventing overlapping assignments.
+
+---
+
+#### 💬 7️⃣ Conversational Copilot (Chat Agent)
+- **API Router endpoint:** [router_8_chat.py](file:///c:/Users/ANIL/Desktop/TaskPilot-AI/backend/app/routers/router_8_chat.py) (`POST /api/v1/chat`)
+- **Core Model:** `llama-3.3-70b-versatile`
+
+##### 🛠️ Core Responsibilities
+1. **Context-Aware Workspace Queries**: Fetches tasks, priorities, checklists, and planning schedules from the SQLite database to answer natural language questions (e.g. *"What is my top priority today?"*).
+2. **Structured Response Renders**: Formats copilot responses with clean headers, bullet points, and markdown tables.
+3. **Autonomous Task Injection**: If a user request contains triggers like `"inject"`, `"add task"`, or `"p1"`, the copilot:
+   - Extracts task details (title, description, source).
+   - Appends it directly to raw JSON database files (`incidents.json`, `jira_data.json` etc.).
+   - Triggers the orchestrator pipeline autonomously.
+   - Queries and returns the newly prioritized task's score and leaderboard rank.
+
+##### 📋 Normalized Schema / Data Structure (Copilot Context Mapping)
+The Chat Agent does not write directly to its own table, but queries SQL tables to assemble a real-time context payload. It parses:
+| Context Source | Table / File | Data Fed to LLM Context |
+|---|---|---|
+| **Task Status** | `MasterTask` table | ID, title, status, assignee, task type |
+| **Task Ranks** | `PriorityScore` table | Leaderboard Rank, Overall Score, Priority Rationale |
+| **Developer Plan**| `DailyPlan` table | Schedule Date, Current Load Status, Buffer Allocation |
+| **Defect Injection**| `SOURCE_FILES` mapping | Appends raw items directly into JSON logs inside `data/` directory |
+
+##### 📦 Container Flow Diagram
+```mermaid
+graph TD
+    subgraph "Relational Datastore (SQLite)"
+        DB[(MasterTasks, PriorityScores,<br/>DailyPlans, QualityReports)]
+    end
+
+    subgraph "Source Data Store (data/)"
+        RAW_JSON[(incidents.json, github_data.json,<br/>jira_data.json, etc.)]
+    end
+
+    subgraph "Conversational Copilot Container"
+        ROUTER[Chat API Endpoint router_8_chat.py]
+        INTENT[Intent Classifier & Trigger Parser]
+        INJECTOR[Raw Event Injector]
+        CONTEXT[Context Compiler & Prompt Assembler]
+        
+        ROUTER --> INTENT
+        INTENT --> |"inject" / "add task" / "p1"| INJECTOR
+        INJECTOR --> |Append JSON Event| RAW_JSON
+        INJECTOR --> |Trigger Pipeline Re-Run| ORCHESTRATOR[Orchestrator Pipeline]
+        INTENT --> |General Questions| CONTEXT
+        DB --> |Fetch Current Database State| CONTEXT
+    end
+
+    subgraph "External LLM Providers"
+        LLM[Groq / NVIDIA NIM LLM Client]
+        CONTEXT -.-> |Send Prompts| LLM
+        ROUTER -.-> |Extraction Queries| LLM
+    end
+```
+
+##### ⚡ Performance & Optimization
+* **Raw Ingestion Defect Injection**: P1 defect injections from chat append tasks directly to the raw JSON database files (`incidents.json`), making them persistent and clean through the standard ingestion pipeline. This avoids database lock collisions and database integrity errors, and automatically forces a full pipeline run to keep the dashboard state synchronized.
+* **Centralized Diagnostic Warnings**: Attaches LLM config alerts directly to chat output messages if keys are missing from `.env`, informing the user instead of throwing generic errors.
 
 ---
 
