@@ -1,13 +1,17 @@
-import { Users, ListChecks, HelpCircle, Clock } from 'lucide-react';
+import { Users, ListChecks, HelpCircle, Clock, Coffee } from 'lucide-react';
 
 export default function TimeSlot({ slot }) {
   const typeLower = (slot.slot_type || slot.type || '').toLowerCase();
-  const isMeeting = typeLower === 'meeting' || typeLower === 'buffer';
-  const isFocus = typeLower === 'focus' || typeLower === 'work';
+  
+  const isMeeting = typeLower === 'meeting';
+  const isBuffer = typeLower === 'buffer';
+  const isTask = typeLower === 'task' || typeLower === 'focus' || typeLower === 'work';
 
   const typeStyles = isMeeting
     ? 'border-l-amber-500 bg-amber-950/5'
-    : isFocus
+    : isBuffer
+    ? 'border-l-emerald-500 bg-emerald-950/5'
+    : isTask
     ? 'border-l-violet-500 bg-violet-950/5'
     : 'border-l-slate-700 bg-slate-900/30';
 
@@ -25,6 +29,10 @@ export default function TimeSlot({ slot }) {
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-amber-500/10 border border-amber-500/20">
             <Users className="h-4 w-4 text-amber-400" />
           </div>
+        ) : isBuffer ? (
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <Coffee className="h-4 w-4 text-emerald-400" />
+          </div>
         ) : (
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
             <ListChecks className="h-4 w-4 text-violet-400" />
@@ -33,9 +41,14 @@ export default function TimeSlot({ slot }) {
       </span>
       
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-bold text-slate-100 leading-snug">{slot.title || slot.label || 'Untitled Block'}</p>
+        <div className="flex items-baseline justify-between gap-2">
+          <p className="text-sm font-bold text-slate-100 leading-snug">{slot.title || slot.label || 'Untitled Block'}</p>
+          {slot.end_time && (
+            <span className="text-[10px] font-medium text-slate-500">until {slot.end_time}</span>
+          )}
+        </div>
         {slot.description && (
-          <p className="mt-1 text-xs text-slate-450 leading-relaxed">{slot.description}</p>
+          <p className="mt-1 text-xs text-slate-455 leading-relaxed">{slot.description}</p>
         )}
         {slot.agent_reason && (
           <p className="mt-2 inline-flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/40 px-2 py-1 text-[10px] font-semibold text-slate-500">

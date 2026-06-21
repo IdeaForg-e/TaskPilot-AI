@@ -1,4 +1,4 @@
-import { Trophy, Star, GitMerge, ShieldAlert, Timer, Users, Factory, LockKeyhole } from 'lucide-react';
+import { Trophy, Star, GitMerge, ShieldAlert, Timer, Users, Factory, LockKeyhole, Briefcase, Network, Activity } from 'lucide-react';
 
 export default function PriorityCard({ task, rank }) {
   const explanation = task.explanation || task.reason || 'No prioritization reasoning provided.';
@@ -17,6 +17,9 @@ export default function PriorityCard({ task, rank }) {
     ['Prod', task.production_impact_score, Factory],
     ['Customer', task.customer_impact_score, Users],
     ['Blocker', task.blocker_score, LockKeyhole],
+    ['Business', task.business_impact_score, Briefcase],
+    ['Dependency', task.dependency_score, Network],
+    ['Quality Factor', task.quality_factor_score, Activity],
   ];
 
   return (
