@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-  const url = import.meta.env.VITE_API_URL || 'https://taskpilot-ai-4.onrender.com';
+  const url = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:8000' : 'https://taskpilot-ai-4.onrender.com');
   const cleanUrl = url.endsWith('/') ? url.slice(0, -1) : url;
   return `${cleanUrl}/api/v1`;
 };
