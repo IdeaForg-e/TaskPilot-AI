@@ -956,5 +956,16 @@
     "linked_prs": [],
     "linked_incidents": [],
     "overdue": false
+  },
+  {
+    "id": "jira-5748",
+    "key": "PROJ-5748",
+    "title": "frontend is crashed and showing white screen on login",
+    "description": "inject a new P1 Jira ticket: frontend is crashed and showing white screen on login",
+    "type": "Bug",
+    "status": "To Do",
+    "priority": "High",
+    "created_at": "2026-06-21T08:49:00.059569Z",
+    "updated_at": "2026-06-21T08:49:00.059597Z"
   }
 ]
