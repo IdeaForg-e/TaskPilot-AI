@@ -1,0 +1,403 @@
+[
+  {
+    "id": "inc-001",
+    "key": "INC-001",
+    "title": "Mobile login authentication failures",
+    "severity": "P0",
+    "status": "Open",
+    "assignee": null,
+    "reporter": "user-014",
+    "team": "Backend",
+    "created_at": "2026-06-14T07:45:00Z",
+    "updated_at": "2026-06-17T09:00:00Z",
+    "resolved_at": null,
+    "description": "Multiple customers reporting inability to log in from mobile devices (iOS and Android). Error message: 'Authentication token validation failed'. Issue started after auth-service deployment on June 13.",
+    "impact": {
+      "users_affected": 312,
+      "severity_level": "Critical",
+      "business_impact": "Customer-facing login completely broken on mobile",
+      "sla_breach": true
+    },
+    "timeline": [
+      {
+        "time": "2026-06-14T07:30:00Z",
+        "event": "First customer report via email"
+      },
+      {
+        "time": "2026-06-14T07:45:00Z",
+        "event": "Incident created by QA"
+      },
+      {
+        "time": "2026-06-14T08:05:00Z",
+        "event": "Slack alert posted in #incidents"
+      },
+      {
+        "time": "2026-06-14T08:12:00Z",
+        "event": "Backend team investigating"
+      },
+      {
+        "time": "2026-06-14T09:00:00Z",
+        "event": "Root cause identified: mobile JWT format mismatch"
+      },
+      {
+        "time": "2026-06-14T10:30:00Z",
+        "event": "Temporary workaround applied (accept both formats)"
+      },
+      {
+        "time": "2026-06-14T10:45:00Z",
+        "event": "Mobile login restored for most users"
+      }
+    ],
+    "root_cause": "Auth-service deployment on June 13 changed JWT token format. Mobile apps were generating tokens in the old format, which the new validation logic rejected. Desktop web app was unaffected because it uses a different token flow.",
+    "resolution": "Temporary fix: Accept both old and new JWT formats. Permanent fix needed: Update mobile SDKs to use new format and deprecate old format with a migration period.",
+    "linked_jira": [
+      "jira-003"
+    ],
+    "linked_slack": [
+      "slack-014"
+    ],
+    "linked_emails": [
+      "email-001"
+    ],
+    "environment": "Production",
+    "services_affected": [
+      "auth-service",
+      "mobile-api"
+    ],
+    "customer_escalations": 3
+  },
+  {
+    "id": "inc-002",
+    "key": "INC-002",
+    "title": "Payment webhook processing failures",
+    "severity": "P1",
+    "status": "Investigating",
+    "assignee": "user-005",
+    "reporter": "user-005",
+    "team": "Backend",
+    "created_at": "2026-06-17T08:00:00Z",
+    "updated_at": "2026-06-17T12:00:00Z",
+    "resolved_at": null,
+    "description": "Razorpay payment webhooks are failing signature verification intermittently (approximately 5% failure rate). This causes payment status updates to be missed, resulting in orders showing as 'pending' when payments were actually successful.",
+    "impact": {
+      "users_affected": 45,
+      "severity_level": "High",
+      "business_impact": "Payment confirmations delayed, customer confusion, support tickets increasing",
+      "sla_breach": false
+    },
+    "timeline": [
+      {
+        "time": "2026-06-17T07:30:00Z",
+        "event": "Sentry alerts for webhook signature failures spike"
+      },
+      {
+        "time": "2026-06-17T08:00:00Z",
+        "event": "Incident created"
+      },
+      {
+        "time": "2026-06-17T08:15:00Z",
+        "event": "Redis connection errors also noticed in Sentry"
+      },
+      {
+        "time": "2026-06-17T09:00:00Z",
+        "event": "Investigation narrowed to clock skew between servers"
+      },
+      {
+        "time": "2026-06-17T10:00:00Z",
+        "event": "Identified intermittent Redis failures compounding issue"
+      }
+    ],
+    "root_cause": "Clock skew between TechFlow servers and Razorpay's timestamp-based signature. Additionally, intermittent Redis connection failures (ECONNREFUSED) are causing cache lookups for payment status to fail.",
+    "resolution": "Pending. Planned fix: Increase timestamp tolerance window from 30s to 300s for webhook signatures. Fix Redis connection pooling configuration.",
+    "linked_jira": [
+      "jira-004"
+    ],
+    "linked_slack": [],
+    "linked_emails": [],
+    "environment": "Production",
+    "services_affected": [
+      "payment-service",
+      "redis-cluster"
+    ],
+    "customer_escalations": 2
+  },
+  {
+    "id": "inc-003",
+    "key": "INC-003",
+    "title": "Database connection pool exhaustion",
+    "severity": "P0",
+    "status": "Monitoring",
+    "assignee": "user-011",
+    "reporter": "user-013",
+    "team": "Platform",
+    "created_at": "2026-06-15T02:10:00Z",
+    "updated_at": "2026-06-17T14:00:00Z",
+    "resolved_at": null,
+    "description": "Production database connections leaking, causing pool exhaustion at 847/1000 connections. Multiple services affected with intermittent 503 errors. Connection count was climbing at 15 connections per minute.",
+    "impact": {
+      "users_affected": 1200,
+      "severity_level": "Critical",
+      "business_impact": "All API endpoints degraded, intermittent 503 errors, customer-facing impact",
+      "sla_breach": true
+    },
+    "timeline": [
+      {
+        "time": "2026-06-15T02:10:00Z",
+        "event": "PagerDuty alert: connection count at 847/1000"
+      },
+      {
+        "time": "2026-06-15T02:15:00Z",
+        "event": "Slack alert in #incidents by Ravi"
+      },
+      {
+        "time": "2026-06-15T02:25:00Z",
+        "event": "Sneha begins investigation, identifies order-service connections not releasing"
+      },
+      {
+        "time": "2026-06-15T02:35:00Z",
+        "event": "Deepak correlates with order-service v2.3.1 deployment 2 hours prior"
+      },
+      {
+        "time": "2026-06-15T03:00:00Z",
+        "event": "Temporary fix: Increased pool limit to 1500, restarted order-service"
+      },
+      {
+        "time": "2026-06-15T03:30:00Z",
+        "event": "Connection count stabilized after restart"
+      },
+      {
+        "time": "2026-06-16T09:30:00Z",
+        "event": "Root cause confirmed: retry loop creating new connections without releasing failed ones"
+      },
+      {
+        "time": "2026-06-16T12:00:00Z",
+        "event": "Fix PR #133 submitted"
+      },
+      {
+        "time": "2026-06-16T18:00:00Z",
+        "event": "Fix deployed to staging"
+      },
+      {
+        "time": "2026-06-17T14:00:00Z",
+        "event": "Staging monitoring: connections stable at 45-60 range for 20+ hours"
+      }
+    ],
+    "root_cause": "Order-service v2.3.1 introduced a bug in the database retry logic. When a query failed, the retry code created a new connection for each retry attempt without releasing the failed connection. Under normal load, this caused connections to leak at approximately 15/minute until pool exhaustion.",
+    "resolution": "Fix applied in PR #133: Properly release connections in retry error handler. Add connection validation before use. Currently in staging monitoring — will deploy to production after 24-hour stability confirmation.",
+    "linked_jira": [
+      "jira-010"
+    ],
+    "linked_slack": [
+      "slack-004"
+    ],
+    "linked_emails": [
+      "email-006"
+    ],
+    "environment": "Production",
+    "services_affected": [
+      "order-service",
+      "user-service",
+      "payment-service",
+      "database-cluster"
+    ],
+    "customer_escalations": 0
+  },
+  {
+    "id": "inc-005",
+    "key": "INC-005",
+    "title": "Image processing service OOM kills",
+    "severity": "P1",
+    "status": "Blocked",
+    "assignee": "user-011",
+    "reporter": "user-013",
+    "team": "Platform",
+    "created_at": "2026-06-14T02:30:00Z",
+    "updated_at": "2026-06-17T09:00:00Z",
+    "resolved_at": null,
+    "description": "Image processing service has a memory leak causing OOM kills in production. Memory usage grows linearly until the 4GB limit is reached (~24 hours), then Kubernetes OOM killer terminates the pod. This has happened 3 times this week.",
+    "impact": {
+      "users_affected": 85,
+      "severity_level": "High",
+      "business_impact": "Image uploads fail intermittently when pods crash, user profile pictures and product images affected",
+      "sla_breach": false
+    },
+    "timeline": [
+      {
+        "time": "2026-06-12T06:00:00Z",
+        "event": "First OOM kill observed (ignored as one-off)"
+      },
+      {
+        "time": "2026-06-13T18:00:00Z",
+        "event": "Second OOM kill — pattern recognized"
+      },
+      {
+        "time": "2026-06-14T02:30:00Z",
+        "event": "Third OOM kill — incident created"
+      },
+      {
+        "time": "2026-06-14T03:10:00Z",
+        "event": "Sneha reports memory growing at 50MB/hour"
+      },
+      {
+        "time": "2026-06-14T03:20:00Z",
+        "event": "Deepak requests production access for Sneha"
+      },
+      {
+        "time": "2026-06-16T09:00:00Z",
+        "event": "Still blocked — production access not granted by DevOps"
+      }
+    ],
+    "root_cause": "Under investigation. Suspected: Image processing library (Pillow) not properly releasing memory after processing large images. Circular references preventing garbage collection. Need production profiling to confirm.",
+    "resolution": "Blocked on production access. Temporary workaround: Pod restart every 12 hours via CronJob.",
+    "linked_jira": [
+      "jira-015"
+    ],
+    "linked_slack": [
+      "slack-028",
+      "slack-029"
+    ],
+    "linked_emails": [],
+    "environment": "Production",
+    "services_affected": [
+      "image-processing-service"
+    ],
+    "customer_escalations": 0
+  },
+  {
+    "id": "inc-007",
+    "key": "INC-007",
+    "title": "API latency degradation - P95 at 1.2 seconds",
+    "severity": "P1",
+    "status": "Fix In Progress",
+    "assignee": "user-002",
+    "reporter": "user-014",
+    "team": "Backend",
+    "created_at": "2026-06-15T10:25:00Z",
+    "updated_at": "2026-06-17T11:00:00Z",
+    "resolved_at": null,
+    "description": "API P95 latency increased from 200ms to 1.2s after payment-service v1.5.0 deployment. Affecting /api/v1/payments, /api/v1/users, and /api/v1/orders endpoints. Customer complaints received.",
+    "impact": {
+      "users_affected": 500,
+      "severity_level": "High",
+      "business_impact": "Slow page loads, increased error rates (2.3%), customer complaints",
+      "sla_breach": true
+    },
+    "timeline": [
+      {
+        "time": "2026-06-14T16:00:00Z",
+        "event": "payment-service v1.5.0 deployed"
+      },
+      {
+        "time": "2026-06-15T10:25:00Z",
+        "event": "PagerDuty alert: P95 latency at 1.2s"
+      },
+      {
+        "time": "2026-06-15T10:30:00Z",
+        "event": "Slack alert by Rahul in #incidents"
+      },
+      {
+        "time": "2026-06-15T10:40:00Z",
+        "event": "Sanjay checks query execution plans"
+      },
+      {
+        "time": "2026-06-15T14:00:00Z",
+        "event": "Root cause: missing indexes on transaction history queries"
+      },
+      {
+        "time": "2026-06-16T11:00:00Z",
+        "event": "Additional cause: N+1 queries in orders endpoint"
+      },
+      {
+        "time": "2026-06-16T16:00:00Z",
+        "event": "Index fix PR #220 submitted"
+      },
+      {
+        "time": "2026-06-17T09:00:00Z",
+        "event": "Fix deployed to staging, latency back to normal in staging"
+      }
+    ],
+    "root_cause": "Payment-service v1.5.0 added transaction history queries without proper database indexes. Additionally, the orders endpoint had N+1 queries loading related payment records individually instead of batch loading. Combined effect caused P95 latency spike from 200ms to 1.2s.",
+    "resolution": "PR #220 adds missing indexes and optimizes N+1 queries. Staging shows P95 back to 180ms. Production deployment pending after staging validation.",
+    "linked_jira": [
+      "jira-022"
+    ],
+    "linked_slack": [],
+    "linked_emails": [],
+    "environment": "Production",
+    "services_affected": [
+      "api-gateway",
+      "payment-service",
+      "order-service",
+      "user-service"
+    ],
+    "customer_escalations": 2
+  },
+  {
+    "id": "inc-013",
+    "key": "INC-013",
+    "title": "SSL certificate expiration warning - 4 production domains",
+    "severity": "P1",
+    "status": "Planned",
+    "assignee": "user-013",
+    "reporter": "user-013",
+    "team": "DevOps",
+    "created_at": "2026-06-16T08:00:00Z",
+    "updated_at": "2026-06-17T08:00:00Z",
+    "resolved_at": null,
+    "description": "SSL/TLS certificates for 4 production domains expiring on June 20, 2026. If not renewed, all HTTPS traffic to these domains will fail, causing complete service outage.",
+    "impact": {
+      "users_affected": 0,
+      "severity_level": "High (potential Critical if not resolved)",
+      "business_impact": "If certificates expire: complete production outage for all web and API services",
+      "sla_breach": false
+    },
+    "timeline": [
+      {
+        "time": "2026-06-16T04:00:00Z",
+        "event": "Cloudflare expiration warning email received"
+      },
+      {
+        "time": "2026-06-16T08:00:00Z",
+        "event": "Incident created, PROJ-1016 created"
+      },
+      {
+        "time": "2026-06-16T08:00:00Z",
+        "event": "Ravi posts in #devops about certificate renewal"
+      },
+      {
+        "time": "2026-06-16T16:00:00Z",
+        "event": "Anil escalates priority in #general"
+      }
+    ],
+    "root_cause": "No automated certificate renewal process in place. Certificate expiration monitoring relies on manual tracking.",
+    "resolution": "Planned: Renew certificates during low-traffic maintenance window on June 19 at 10 PM IST. Post-incident: Set up Let's Encrypt auto-renewal.",
+    "linked_jira": [
+      "jira-016"
+    ],
+    "linked_slack": [
+      "slack-026"
+    ],
+    "linked_emails": [
+      "email-007"
+    ],
+    "environment": "Production",
+    "services_affected": [
+      "api.anilpradhan.com",
+      "app.anilpradhan.com",
+      "auth.anilpradhan.com",
+      "admin.anilpradhan.com"
+    ],
+    "customer_escalations": 0
+  },
+  {
+    "id": "inc-1968",
+    "key": "INC-1968",
+    "title": "Production upload API is down with 500 errors",
+    "description": "Production upload API is down with 500 errors",
+    "severity": "P1",
+    "status": "Open",
+    "reporter": "user-001",
+    "created_at": "2026-06-20T20:41:32.730530Z",
+    "updated_at": "2026-06-20T20:41:32.730542Z"
+  }
+]
