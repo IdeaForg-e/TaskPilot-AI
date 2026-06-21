@@ -1,5 +1,31 @@
 import { Trophy, Star, GitMerge, ShieldAlert, Timer, Users, Factory, LockKeyhole, Briefcase, Network, Activity } from 'lucide-react';
 
+const getPlatformStyle = (platform) => {
+  const styles = {
+    jira: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
+    github: 'bg-slate-500/20 text-slate-350 border border-slate-500/30',
+    slack: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+    email: 'bg-red-500/10 text-red-400 border border-red-500/20',
+    calendar: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+    meetings: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
+    incidents: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  };
+  return styles[platform.toLowerCase()] || 'bg-slate-800 text-slate-400 border border-slate-700';
+};
+
+const formatPlatformName = (platform) => {
+  const names = {
+    jira: 'Jira',
+    github: 'GitHub',
+    slack: 'Slack',
+    email: 'Email',
+    calendar: 'Calendar',
+    meetings: 'Meetings',
+    incidents: 'Incident',
+  };
+  return names[platform.toLowerCase()] || platform;
+};
+
 export default function PriorityCard({ task, rank }) {
   const explanation = task.explanation || task.reason || 'No prioritization reasoning provided.';
 
@@ -41,9 +67,19 @@ export default function PriorityCard({ task, rank }) {
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center justify-between gap-2.5">
-          <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors">
-            {task.title || `Task #${task.id}`}
-          </h4>
+          <div className="flex flex-wrap items-center gap-2">
+            <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors">
+              {task.title || `Task #${task.id}`}
+            </h4>
+            {task.platforms && task.platforms.map((platform) => (
+              <span
+                key={platform}
+                className={`inline-flex items-center rounded px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${getPlatformStyle(platform)}`}
+              >
+                {formatPlatformName(platform)}
+              </span>
+            ))}
+          </div>
           <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-bold text-violet-400 tracking-wide">
             Priority Score: {task.priority_score ?? '—'}
           </span>

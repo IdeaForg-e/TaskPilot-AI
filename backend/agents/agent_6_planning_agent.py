@@ -40,6 +40,7 @@ class PlanningAgent:
         day_end = datetime.strptime("18:00", "%H:%M")
         planned = 0.0
         overflow = []
+        rest_breaks_count = 0
 
         for task in ranked_tasks:
             duration = 1.0 if task.get("score", 0) >= 8 else 0.75
@@ -69,22 +70,26 @@ class PlanningAgent:
             )
             planned += duration
             
-            break_duration = timedelta(minutes=15)
-            break_end = end + break_duration
-            if break_end <= day_end and not self._overlaps_busy(end, break_end, busy):
-                slots.append(
-                    {
-                        "start_time": end.strftime("%H:%M"),
-                        "end_time": break_end.strftime("%H:%M"),
-                        "slot_type": "buffer",
-                        "priority_level": "neutral",
-                        "title": "Rest Break / Buffer",
-                        "task_id": None,
-                        "agent_reason": "Automated rest break to avoid fatigue and maintain high cognitive performance.",
-                    }
-                )
-                busy.append((end.strftime("%H:%M"), break_end.strftime("%H:%M")))
-                cursor = break_end
+            if rest_breaks_count < 2:
+                break_duration = timedelta(minutes=15)
+                break_end = end + break_duration
+                if break_end <= day_end and not self._overlaps_busy(end, break_end, busy):
+                    slots.append(
+                        {
+                            "start_time": end.strftime("%H:%M"),
+                            "end_time": break_end.strftime("%H:%M"),
+                            "slot_type": "buffer",
+                            "priority_level": "neutral",
+                            "title": "Rest Break / Buffer",
+                            "task_id": None,
+                            "agent_reason": "Automated rest break to avoid fatigue and maintain high cognitive performance.",
+                        }
+                    )
+                    busy.append((end.strftime("%H:%M"), break_end.strftime("%H:%M")))
+                    cursor = break_end
+                    rest_breaks_count += 1
+                else:
+                    cursor = end
             else:
                 cursor = end
 

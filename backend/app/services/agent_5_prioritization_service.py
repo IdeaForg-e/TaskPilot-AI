@@ -74,19 +74,41 @@ class PrioritizationService:
             self.db.add(score)
             scored.append((task, score))
 
+        from app.models.task import TaskContextLink
+        from app.models.source_event import SourceEvent
+        links = self.db.query(TaskContextLink.master_task_id, SourceEvent.source).\
+            join(SourceEvent, SourceEvent.id == TaskContextLink.source_event_id).all()
+        task_sources = {}
+        for master_task_id, source in links:
+            if master_task_id not in task_sources:
+                task_sources[master_task_id] = set()
+            task_sources[master_task_id].add(source)
+
         scored.sort(key=lambda pair: pair[1].overall_score or 0, reverse=True)
         ranked = []
         for rank, (task, score) in enumerate(scored, start=1):
             score.rank = rank
-            ranked.append(self._score_out(score, task))
+            ranked.append(self._score_out(score, task, task_sources.get(task.id, set())))
 
         self.db.commit()
         return {"total_ranked": len(ranked), "ranked_tasks": ranked}
 
     def get_ranked(self):
+        from app.models.task import TaskContextLink
+        from app.models.source_event import SourceEvent
+        
         tasks = {task.id: task for task in self.db.query(MasterTask).all()}
         scores = self.db.query(PriorityScore).order_by(PriorityScore.rank).all()
-        return [self._score_out(score, tasks.get(score.master_task_id)) for score in scores]
+        
+        links = self.db.query(TaskContextLink.master_task_id, SourceEvent.source).\
+            join(SourceEvent, SourceEvent.id == TaskContextLink.source_event_id).all()
+        task_sources = {}
+        for master_task_id, source in links:
+            if master_task_id not in task_sources:
+                task_sources[master_task_id] = set()
+            task_sources[master_task_id].add(source)
+            
+        return [self._score_out(score, tasks.get(score.master_task_id), task_sources.get(score.master_task_id, set())) for score in scores]
 
     def _task_dict(self, task):
         return {
@@ -99,8 +121,19 @@ class PrioritizationService:
             "source_count": task.source_count,
         }
 
-    def _score_out(self, score, task):
+    def _score_out(self, score, task, sources=None):
         task_title = task.title if task else ""
+        if sources is None and task:
+            from app.models.task import TaskContextLink
+            from app.models.source_event import SourceEvent
+            sources = [
+                s[0] for s in self.db.query(SourceEvent.source).\
+                    join(TaskContextLink, TaskContextLink.source_event_id == SourceEvent.id).\
+                    filter(TaskContextLink.master_task_id == task.id).distinct().all()
+            ]
+        elif sources is None:
+            sources = []
+
         return {
             "id": score.id,
             "rank": score.rank,
@@ -124,6 +157,7 @@ class PrioritizationService:
             "task_type": task.task_type if task else None,
             "assignee": task.assignee if task else None,
             "source_count": task.source_count if task else 0,
+            "platforms": sorted(list(sources)),
             "agent_summary": (
                 f"Priority agent scored this from {task.source_count if task else 0} fused signal(s), "
                 "balancing impact, deadline, blockers, and issue quality."

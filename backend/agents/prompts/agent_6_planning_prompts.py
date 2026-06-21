@@ -34,7 +34,7 @@ Planning rules:
 6. Recommendations should be manager-friendly: delegation, escalation, deferral,
    review order, or blocker handling.
 7. Preserve task_id for scheduled tasks.
-8. Inject 10-15 minute rest break slots (slot_type "buffer", title "Rest Break / Buffer") between back-to-back task slots or meetings to prevent developer fatigue.
+8. Inject exactly 2 rest break slots (slot_type "buffer", title "Rest Break / Buffer", duration 15-30 minutes each) across the whole day (ideally one mid-morning and one mid-afternoon) to prevent developer fatigue. Do not exceed 2 rest breaks.
 
 Return JSON with exactly:
 {{
