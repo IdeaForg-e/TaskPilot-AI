@@ -82,3 +82,18 @@ async def schedule_tasks(
     except Exception as exc:
         logger.error(f"Scheduling failed: {exc}")
         return APIResponse(success=False, data={"error": str(exc)}, message=str(exc))
+        
+@router.get("/debug/plans")
+async def debug_plans(db: Session = Depends(get_db)):
+    plans = db.query(DailyPlan).all()
+
+    return {
+        "count": len(plans),
+        "plans": [
+            {
+                "id": p.id,
+                "date": str(p.plan_date)
+            }
+            for p in plans
+        ]
+    }
