@@ -17,12 +17,22 @@ const API = axios.create({
 export const extractLLMWarning = (data) => {
   // Direct on data
   if (data?.llm_diagnostics) {
-    const warning = data.llm_diagnostics.find((item) => item.level === 'warning');
+    const warning = data.llm_diagnostics.find(
+      (item) => item.level === 'warning' && 
+                !item.message.toLowerCase().includes('rate limit') && 
+                !item.message.toLowerCase().includes('429') && 
+                !item.message.toLowerCase().includes('too many')
+    );
     if (warning) return warning.message;
   }
   // Nested inside data object
   if (data?.data?.llm_diagnostics) {
-    const warning = data.data.llm_diagnostics.find((item) => item.level === 'warning');
+    const warning = data.data.llm_diagnostics.find(
+      (item) => item.level === 'warning' && 
+                !item.message.toLowerCase().includes('rate limit') && 
+                !item.message.toLowerCase().includes('429') && 
+                !item.message.toLowerCase().includes('too many')
+    );
     if (warning) return warning.message;
   }
   return null;
@@ -53,7 +63,7 @@ export const getApiErrorMessage = (err) => {
   
   if (payload?.message) {
     if (payload.message.toLowerCase().includes('rate limit') || payload.message.toLowerCase().includes('429') || payload.message.toLowerCase().includes('too many')) {
-      return 'Request processed successfully using fallback engine.';
+      return null;
     }
     return payload.message;
   }
@@ -63,7 +73,7 @@ export const getApiErrorMessage = (err) => {
       ? payload.detail.map((item) => item.msg || item.message || String(item)).join(', ')
       : String(payload.detail);
     if (detailStr.toLowerCase().includes('rate limit') || detailStr.toLowerCase().includes('429') || detailStr.toLowerCase().includes('too many')) {
-      return 'Request processed successfully using fallback engine.';
+      return null;
     }
     return detailStr;
   }
@@ -79,7 +89,7 @@ export const getApiErrorMessage = (err) => {
     const msg = payload?.data?.error || '';
     if (msg.toLowerCase().includes('api key')) return 'LLM API key is missing or invalid. Add GROQ_API_KEY or NVIDIA_API_KEY in backend/.env';
     if (msg.toLowerCase().includes('rate limit') || msg.toLowerCase().includes('429') || msg.toLowerCase().includes('too many')) {
-      return 'Request processed successfully using local cache fallback.';
+      return null;
     }
     if (msg.toLowerCase().includes('timeout')) return 'LLM provider timed out. Check your network or API key validity.';
     if (msg.toLowerCase().includes('econnrefused') || msg.toLowerCase().includes('connection')) return 'Cannot connect to LLM provider. Check your network connection.';

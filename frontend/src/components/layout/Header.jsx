@@ -28,7 +28,12 @@ export default function Header({ onMenuClick }) {
             // Detect transition from running to finished
             if (prev === 'running' && finalStatus === 'completed') {
               const diagnostics = res.data?.llm_diagnostics || [];
-              const warning = diagnostics.find((item) => item.level === 'warning');
+              const warning = diagnostics.find(
+                (item) => item.level === 'warning' && 
+                          !item.message.toLowerCase().includes('rate limit') && 
+                          !item.message.toLowerCase().includes('429') && 
+                          !item.message.toLowerCase().includes('too many')
+              );
               if (warning) {
                 setStatus('warning');
                 setNotice(warning.message);
@@ -72,12 +77,17 @@ export default function Header({ onMenuClick }) {
       setPrevRunStatus('running');
       setIsPipelineRunning(true);
     } catch (err) {
-      setStatus('error');
-      setNotice(getApiErrorMessage(err));
-      setTimeout(() => {
+      const errMsg = getApiErrorMessage(err);
+      if (errMsg) {
+        setStatus('error');
+        setNotice(errMsg);
+        setTimeout(() => {
+          setStatus('idle');
+          setNotice(null);
+        }, 7000);
+      } else {
         setStatus('idle');
-        setNotice(null);
-      }, 7000);
+      }
     }
   };
 
