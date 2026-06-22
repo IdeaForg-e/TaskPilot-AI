@@ -28,10 +28,10 @@ class FusionAgent:
 
     def check_duplicate(self, task_a: dict, task_b: dict) -> dict:
         fallback = self._fallback(task_a, task_b)
-        if fallback["confidence"] >= 0.70:
+        if fallback["confidence"] >= 0.68:
             return fallback
 
-        if fallback["confidence"] < 0.55:
+        if fallback["confidence"] < 0.60:
             return {
                 "is_duplicate": False,
                 "confidence": fallback["confidence"]

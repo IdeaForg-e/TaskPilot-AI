@@ -1,4 +1,19 @@
+import json
+import logging
+import os
+import re
 from typing import Any
+
+import httpx
+
+from app.config import settings
+
+try:
+    from groq import Groq
+except Exception:  # pragma: no cover - fallback keeps the demo alive
+    Groq = None
+
+
 class LLMClient:
     diagnostics = []
 
@@ -11,7 +26,7 @@ class LLMClient:
         # Override with .env if provided
         self.timeout = int(os.getenv("LLM_TIMEOUT", default_timeout))
 
-        self.max_tokens = 3000 if reasoning else 1500
+        self.max_tokens = 1500 if reasoning else 750
 
         self.providers = self._build_providers()
         self.failed_providers = set()
@@ -236,3 +251,65 @@ class LLMClient:
         text = str(exc) or exc.__class__.__name__
         text = re.sub(r"(gsk|nvapi)-[A-Za-z0-9_\\-]+", "[redacted-api-key]", text)
         return text[:300]
+
+
+def clean_json_lines(json_str: str) -> str:
+    lines = json_str.splitlines()
+    for i, line in enumerate(lines):
+        parts = line.split(':', 1)
+        if len(parts) == 2:
+            key, val = parts
+            val_stripped = val.strip()
+            if val_stripped.startswith('"'):
+                first_q = val.find('"')
+                last_q = val.rfind('"')
+                if first_q != -1 and last_q != -1 and first_q < last_q:
+                    prefix = val[:first_q + 1]
+                    suffix = val[last_q:]
+                    content = val[first_q + 1:last_q]
+                    escaped_content = []
+                    for idx, char in enumerate(content):
+                        if char == '"':
+                            backslash_count = 0
+                            k = idx - 1
+                            while k >= 0 and content[k] == '\\':
+                                backslash_count += 1
+                                k -= 1
+                            if backslash_count % 2 == 0:
+                                escaped_content.append('\\"')
+                            else:
+                                escaped_content.append('"')
+                        else:
+                            escaped_content.append(char)
+                    lines[i] = key + ':' + prefix + "".join(escaped_content) + suffix
+    return "\n".join(lines)
+
+
+def parse_json(text: str) -> Any:
+    cleaned = (text or "").strip()
+    if cleaned.startswith("```"):
+        cleaned = re.sub(r"^```(?:json)?", "", cleaned).strip()
+        cleaned = re.sub(r"```$", "", cleaned).strip()
+
+    try:
+        return json.loads(cleaned)
+    except json.JSONDecodeError:
+        try:
+            repaired = clean_json_lines(cleaned)
+            return json.loads(repaired)
+        except Exception:
+            pass
+
+        match = re.search(r"(\{.*\}|\[.*\])", cleaned, re.DOTALL)
+        if match:
+            matched_text = match.group(1)
+            try:
+                return json.loads(matched_text)
+            except json.JSONDecodeError:
+                try:
+                    repaired = clean_json_lines(matched_text)
+                    return json.loads(repaired)
+                except Exception:
+                    pass
+        raise
+

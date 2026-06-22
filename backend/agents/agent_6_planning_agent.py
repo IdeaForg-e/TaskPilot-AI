@@ -15,11 +15,26 @@ class PlanningAgent:
         import json
         logger.info(f"PlanningAgent: Generating fallback deterministic plan first for date={date}")
         fallback = self._fallback(date, available_hours, meetings, ranked_tasks, buffer_hours)
+        # Optimize tokens: truncate task descriptions to 150 chars for LLM context
+        simplified_tasks = []
+        for t in ranked_tasks[:12]:
+            desc = t.get("description") or ""
+            if len(desc) > 150:
+                desc = desc[:147] + "..."
+            simplified_tasks.append({
+                "task_id": t.get("task_id") or t.get("id"),
+                "title": t.get("title"),
+                "description": desc,
+                "score": t.get("score") or t.get("overall_score"),
+                "urgency": t.get("urgency"),
+                "deadline": t.get("deadline")
+            })
+
         prompt = PLANNING_PROMPT.format(
             date=date,
             available_hours=available_hours,
             meetings=json.dumps(meetings, indent=2, ensure_ascii=False),
-            ranked_tasks=json.dumps(ranked_tasks[:12], indent=2, ensure_ascii=False),
+            ranked_tasks=json.dumps(simplified_tasks, indent=2, ensure_ascii=False),
         )
         logger.info("PlanningAgent: Invoking LLM service for optimal schedule blocks...")
         result = self.reasoning_llm.complete_json(prompt, fallback=fallback, temperature=0.2)
