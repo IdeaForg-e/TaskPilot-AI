@@ -27,20 +27,8 @@ export default function Header({ onMenuClick }) {
           setPrevRunStatus((prev) => {
             // Detect transition from running to finished
             if (prev === 'running' && finalStatus === 'completed') {
-              const diagnostics = res.data?.llm_diagnostics || [];
-              const warning = diagnostics.find(
-                (item) => item.level === 'warning' && 
-                          !item.message.toLowerCase().includes('rate limit') && 
-                          !item.message.toLowerCase().includes('429') && 
-                          !item.message.toLowerCase().includes('too many')
-              );
-              if (warning) {
-                setStatus('warning');
-                setNotice(warning.message);
-              } else {
-                setStatus('success');
-                setNotice('Your whole pipeline execution was completed.');
-              }
+              setStatus('success');
+              setNotice('Your whole pipeline execution was completed.');
               setTimeout(() => {
                 setStatus('idle');
                 setNotice(null);

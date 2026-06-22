@@ -15,51 +15,11 @@ const API = axios.create({
  * Returns the first warning or null.
  */
 export const extractLLMWarning = (data) => {
-  // Direct on data
-  if (data?.llm_diagnostics) {
-    const warning = data.llm_diagnostics.find(
-      (item) => item.level === 'warning' && 
-                !item.message.toLowerCase().includes('rate limit') && 
-                !item.message.toLowerCase().includes('429') && 
-                !item.message.toLowerCase().includes('too many')
-    );
-    if (warning) return warning.message;
-  }
-  // Nested inside data object
-  if (data?.data?.llm_diagnostics) {
-    const warning = data.data.llm_diagnostics.find(
-      (item) => item.level === 'warning' && 
-                !item.message.toLowerCase().includes('rate limit') && 
-                !item.message.toLowerCase().includes('429') && 
-                !item.message.toLowerCase().includes('too many')
-    );
-    if (warning) return warning.message;
-  }
   return null;
 };
 
 export const getApiErrorMessage = (err) => {
   const payload = err?.response?.data;
-  
-  // Check for LLM config warnings in the response payload first, ignoring rate limits
-  if (payload?.data?.llm_diagnostics) {
-    const warning = payload.data.llm_diagnostics.find(
-      (item) => item.level === 'warning' && 
-                !item.message.toLowerCase().includes('rate limit') && 
-                !item.message.toLowerCase().includes('429') && 
-                !item.message.toLowerCase().includes('too many')
-    );
-    if (warning) return warning.message;
-  }
-  if (payload?.llm_diagnostics) {
-    const warning = payload.llm_diagnostics.find(
-      (item) => item.level === 'warning' && 
-                !item.message.toLowerCase().includes('rate limit') && 
-                !item.message.toLowerCase().includes('429') && 
-                !item.message.toLowerCase().includes('too many')
-    );
-    if (warning) return warning.message;
-  }
   
   if (payload?.message) {
     if (payload.message.toLowerCase().includes('rate limit') || payload.message.toLowerCase().includes('429') || payload.message.toLowerCase().includes('too many')) {
