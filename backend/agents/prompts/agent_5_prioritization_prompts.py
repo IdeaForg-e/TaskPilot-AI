@@ -26,10 +26,23 @@ Multipliers (apply if triggered):
 explanation: 2–3 sentence paragraph on why this score. No bullet points, no score listing.
 
 Return JSON only:
-{"overall_score":0.0,"severity_score":0.0,"deadline_score":0.0,"production_impact_score":0.0,"customer_impact_score":0.0,"dependency_score":0.0,"blocker_score":0.0,"business_impact_score":0.0,"quality_factor_score":0.0,"explanation":"..."}"""
+{
+  "overall_score": 0.0,
+  "severity_score": 0.0,
+  "deadline_score": 0.0,
+  "production_impact_score": 0.0,
+  "customer_impact_score": 0.0,
+  "dependency_score": 0.0,
+  "blocker_score": 0.0,
+  "business_impact_score": 0.0,
+  "quality_factor_score": 0.0,
+  "explanation": "2-3 sentence paragraph here"
+}
+
+Return only valid JSON. No markdown, no commentary."""
 
 
-BATCH_PRIORITY_PROMPT = """You are a task prioritization agent. Score each task in the list below.
+BATCH_PRIORITY_PROMPT = """You are a task prioritization agent. Score every task in the list below.
 
 Tasks: {tasks_json}
 
@@ -50,5 +63,22 @@ Multipliers:
 
 explanation: 2–3 sentence paragraph per task. No bullets, no score listing.
 
-Return JSON only:
-{"scores":{"task_id_1":{"overall_score":0.0,"severity_score":0.0,"deadline_score":0.0,"production_impact_score":0.0,"customer_impact_score":0.0,"dependency_score":0.0,"blocker_score":0.0,"business_impact_score":0.0,"quality_factor_score":0.0,"explanation":"..."}}}"""
+Return a JSON object with a "scores" key containing ALL task IDs from the input:
+{
+  "scores": {
+    "<task_id>": {
+      "overall_score": 0.0,
+      "severity_score": 0.0,
+      "deadline_score": 0.0,
+      "production_impact_score": 0.0,
+      "customer_impact_score": 0.0,
+      "dependency_score": 0.0,
+      "blocker_score": 0.0,
+      "business_impact_score": 0.0,
+      "quality_factor_score": 0.0,
+      "explanation": "2-3 sentence paragraph here"
+    }
+  }
+}
+
+Return only valid JSON. No markdown, no commentary."""
