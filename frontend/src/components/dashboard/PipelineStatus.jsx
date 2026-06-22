@@ -9,9 +9,9 @@ const STAGES = [
   { name: 'Plan', desc: 'Daily Planning', key: 'planning' }
 ];
 
-// If the pipeline was last started more than 2 minutes ago and is still "running",
+// If the pipeline was last started more than 5 minutes ago and is still "running",
 // treat it as stale/idle — probably a server restart left a zombie record.
-const STALE_THRESHOLD_MS = 2 * 60 * 1000;
+const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 export default function PipelineStatus({ latestRun }) {
   const runInfo = latestRun?.latest_run || null;

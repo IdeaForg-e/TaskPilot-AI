@@ -262,6 +262,9 @@ class PlanningService:
             {
                 "task_id": score.master_task_id,
                 "title": tasks[score.master_task_id].title,
+                "description": tasks[score.master_task_id].description,
+                "urgency": tasks[score.master_task_id].urgency,
+                "deadline": tasks[score.master_task_id].deadline,
                 "score": score.overall_score,
                 "rank": score.rank,
             }

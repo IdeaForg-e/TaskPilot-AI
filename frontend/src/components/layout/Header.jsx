@@ -18,7 +18,7 @@ export default function Header({ onMenuClick }) {
           const startedAtStr = runInfo.started_at;
           const startedAt = startedAtStr ? new Date(startedAtStr.endsWith('Z') ? startedAtStr : startedAtStr + 'Z') : null;
           const now = new Date();
-          const isStale = rawStatus === 'running' && startedAt && (now - startedAt > 2 * 60 * 1000);
+          const isStale = rawStatus === 'running' && startedAt && (now - startedAt > 5 * 60 * 1000);
           
           const finalStatus = isStale ? 'failed' : rawStatus;
           const isRunning = finalStatus === 'running';
