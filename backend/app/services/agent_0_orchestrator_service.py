@@ -18,67 +18,71 @@ class OrchestratorService:
 
     def run_full_pipeline(self, existing_run_id: str = None):
         logger = logging.getLogger("taskpilot.orchestrator")
+        LLMClient.pipeline_mode = True
         LLMClient.reset_diagnostics()
-        if existing_run_id:
-            run = self.db.query(WorkflowRun).filter(WorkflowRun.id == existing_run_id).first()
-            if not run:
-                run = WorkflowRun(id=existing_run_id, status="running", current_agent="ingestion")
+        try:
+            if existing_run_id:
+                run = self.db.query(WorkflowRun).filter(WorkflowRun.id == existing_run_id).first()
+                if not run:
+                    run = WorkflowRun(id=existing_run_id, status="running", current_agent="ingestion")
+                    self.db.add(run)
+            else:
+                run = WorkflowRun(id=str(uuid.uuid4()), status="running", current_agent="ingestion")
                 self.db.add(run)
-        else:
-            run = WorkflowRun(id=str(uuid.uuid4()), status="running", current_agent="ingestion")
-            self.db.add(run)
-        self.db.commit()
-        logger.info(f"Starting pipeline execution run_id={run.id}")
-        results = {}
-        completed = []
+            self.db.commit()
+            logger.info(f"Starting pipeline execution run_id={run.id}")
+            results = {}
+            completed = []
 
-        steps = [
-            ("ingestion", lambda: IngestionService(self.db).ingest_all(["jira", "github", "slack", "email", "calendar", "meetings", "incidents"])),
-            ("extraction", lambda: ExtractionService(self.db).extract_all(True, 0.5)),
-            ("fusion", lambda: FusionService(self.db).fuse_all()),
-            ("quality", lambda: QualityService(self.db).evaluate_all()),
-            ("prioritization", lambda: PrioritizationService(self.db).prioritize_all()),
-            ("planning", lambda: PlanningService(self.db).generate_plan("user-001", "2026-06-22", 1.0)),
-        ]
+            steps = [
+                ("ingestion", lambda: IngestionService(self.db).ingest_all(["jira", "github", "slack", "email", "calendar", "meetings", "incidents"])),
+                ("extraction", lambda: ExtractionService(self.db).extract_all(True, 0.5)),
+                ("fusion", lambda: FusionService(self.db).fuse_all()),
+                ("quality", lambda: QualityService(self.db).evaluate_all()),
+                ("prioritization", lambda: PrioritizationService(self.db).prioritize_all()),
+                ("planning", lambda: PlanningService(self.db).generate_plan("user-001", "2026-06-22", 1.0)),
+            ]
 
-        for name, fn in steps:
-            try:
-                run.current_agent = name
-                self.db.commit()
-                logger.info(f"Executing pipeline stage: {name}")
-                results[name] = fn()
-                completed.append(name)
-                run.agents_completed = completed
-                self.db.commit()
-                logger.info(f"Stage '{name}' completed successfully")
-            except Exception as exc:
-                logger.error(f"Stage '{name}' failed: {exc}")
-                run.status = "failed"
-                run.error_log = f"{name} failed: {exc}"
-                run.completed_at = datetime.utcnow()
-                self.db.commit()
-                return {
-                    "run_id": run.id,
-                    "status": "failed",
-                    "failed_agent": name,
-                    "error": str(exc),
-                    "llm_diagnostics": LLMClient.get_diagnostics(),
-                    "completed_agents": completed,
-                    "results": results,
-                }
+            for name, fn in steps:
+                try:
+                    run.current_agent = name
+                    self.db.commit()
+                    logger.info(f"Executing pipeline stage: {name}")
+                    results[name] = fn()
+                    completed.append(name)
+                    run.agents_completed = completed
+                    self.db.commit()
+                    logger.info(f"Stage '{name}' completed successfully")
+                except Exception as exc:
+                    logger.error(f"Stage '{name}' failed: {exc}")
+                    run.status = "failed"
+                    run.error_log = f"{name} failed: {exc}"
+                    run.completed_at = datetime.utcnow()
+                    self.db.commit()
+                    return {
+                        "run_id": run.id,
+                        "status": "failed",
+                        "failed_agent": name,
+                        "error": str(exc),
+                        "llm_diagnostics": LLMClient.get_diagnostics(),
+                        "completed_agents": completed,
+                        "results": results,
+                    }
 
-        run.status = "completed"
-        run.current_agent = None
-        run.completed_at = datetime.utcnow()
-        self.db.commit()
-        logger.info(f"Pipeline execution completed successfully run_id={run.id}")
-        return {
-            "run_id": run.id,
-            "status": "completed",
-            "completed_agents": completed,
-            "llm_diagnostics": LLMClient.get_diagnostics(),
-            "results": results,
-        }
+            run.status = "completed"
+            run.current_agent = None
+            run.completed_at = datetime.utcnow()
+            self.db.commit()
+            logger.info(f"Pipeline execution completed successfully run_id={run.id}")
+            return {
+                "run_id": run.id,
+                "status": "completed",
+                "completed_agents": completed,
+                "llm_diagnostics": LLMClient.get_diagnostics(),
+                "results": results,
+            }
+        finally:
+            LLMClient.pipeline_mode = False
 
     def get_status(self, run_id):
         run = self.db.query(WorkflowRun).filter(WorkflowRun.id == run_id).first()
