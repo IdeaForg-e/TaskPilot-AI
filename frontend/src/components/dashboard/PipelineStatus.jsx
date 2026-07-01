@@ -1,22 +1,19 @@
 import { Workflow, Check, Loader2, Hourglass, XCircle } from 'lucide-react';
 
 const STAGES = [
-  { name: 'Ingest', desc: 'Data Ingestion', key: 'ingestion' },
-  { name: 'Extract', desc: 'Task Extraction', key: 'extraction' },
-  { name: 'Fuse', desc: 'Context Fusion', key: 'fusion' },
-  { name: 'Evaluate', desc: 'Quality Check', key: 'quality' },
-  { name: 'Prioritize', desc: 'Task Priority', key: 'prioritization' },
-  { name: 'Plan', desc: 'Daily Planning', key: 'planning' }
+  { name: 'INTAKE',       desc: 'Data Ingestion',  key: 'ingestion' },
+  { name: 'VALIDATE',     desc: 'Task Extraction', key: 'extraction' },
+  { name: 'PROCESS',      desc: 'Context Fusion',  key: 'fusion' },
+  { name: 'ANALYSIS',     desc: 'Quality Check',   key: 'quality' },
+  { name: 'PRIORITIZE',   desc: 'Task Priority',   key: 'prioritization' },
+  { name: 'PLAN',         desc: 'Daily Planning',  key: 'planning' },
 ];
 
-// If the pipeline was last started more than 5 minutes ago and is still "running",
-// treat it as stale/idle — probably a server restart left a zombie record.
 const STALE_THRESHOLD_MS = 5 * 60 * 1000;
 
 export default function PipelineStatus({ latestRun }) {
   const runInfo = latestRun?.latest_run || null;
-  
-  // Compute effective status from the DB state
+
   let status = 'idle';
   let currentAgent = null;
   let completedAgents = [];
@@ -26,129 +23,133 @@ export default function PipelineStatus({ latestRun }) {
     const rawAgent = runInfo.current_agent || null;
     const rawCompleted = runInfo.agents_completed || [];
     const startedAtStr = runInfo.started_at;
-    const startedAt = startedAtStr ? new Date(startedAtStr.endsWith('Z') ? startedAtStr : startedAtStr + 'Z') : null;
+    const startedAt = startedAtStr
+      ? new Date(startedAtStr.endsWith('Z') ? startedAtStr : startedAtStr + 'Z')
+      : null;
     const now = new Date();
     const isStale = rawStatus === 'running' && startedAt && (now - startedAt > STALE_THRESHOLD_MS);
 
     if (isStale) {
-      status = 'idle';
-      currentAgent = null;
-      completedAgents = rawCompleted; // Keep completed agents visible if any
+      status = 'idle'; currentAgent = null; completedAgents = rawCompleted;
     } else {
-      status = rawStatus;
-      currentAgent = rawAgent;
-      completedAgents = rawCompleted;
+      status = rawStatus; currentAgent = rawAgent; completedAgents = rawCompleted;
     }
   }
 
-  // When pipeline fully completes, all agents are done
-  const allCompleted = status === 'completed' || (status === 'failed' && completedAgents.length > 0);
-
-  let badgeText = "Pipeline Idle";
-  let badgeColor = "text-slate-400 bg-slate-950/20 border border-slate-800/30";
-
-  if (status === 'running') {
-    const stageIdx = STAGES.findIndex(s => s.key === currentAgent);
-    badgeText = `Active: Stage ${stageIdx !== -1 ? stageIdx + 1 : '-'}`;
-    badgeColor = "text-cyan-400 bg-cyan-950/20 border border-cyan-800/30";
-  } else if (status === 'completed') {
-    badgeText = "Completed";
-    badgeColor = "text-emerald-400 bg-emerald-950/20 border border-emerald-800/30";
-  } else if (status === 'failed') {
-    badgeText = "Failed";
-    badgeColor = "text-red-400 bg-red-950/20 border border-red-800/30";
-  }
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
     <div className="glass-card p-5 shadow-xl relative overflow-hidden">
-      <div className="mb-4.5 flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-violet-500/10 border border-violet-500/20">
-            <Workflow className="h-4.5 w-4.5 text-violet-400" />
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg"
+            style={{ background: 'rgba(142,205,255,0.1)', border: '0.5px solid rgba(142,205,255,0.15)' }}
+          >
+            <Workflow className="h-4 w-4" style={{ color: 'var(--primary)' }} />
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Pipeline Steps</h3>
-            <p className="text-[10px] text-slate-500">Autonomous processing sequence status</p>
+            <h3 className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+              Workflow Pipeline Status
+            </h3>
+            <p className="label-caps mt-0.5" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+              Autonomous processing sequence
+            </p>
           </div>
         </div>
-        <span className={`inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${badgeColor}`}>
-          {badgeText}
+        <span
+          className="label-caps text-[0.55rem] px-2 py-1 rounded-lg"
+          style={{ color: 'var(--primary)', background: 'rgba(142,205,255,0.08)', border: '0.5px solid rgba(142,205,255,0.12)' }}
+        >
+          Live Refresh: 4s
         </span>
       </div>
-      
+
+      {/* Running banner */}
       {status === 'running' && currentAgent && (
-        <div className="mb-4 rounded-xl bg-violet-500/10 border border-violet-500/20 p-3 flex items-center gap-2.5 animate-pulse-glow">
-          <Loader2 className="h-4 w-4 text-violet-400 animate-spin shrink-0" />
-          <p className="text-xs text-violet-300 font-semibold">
-            Currently running: <span className="text-white capitalize">{currentAgent.replace('_', ' ')} Agent</span>. Please wait for this stage to complete.
+        <div
+          className="mb-5 rounded-xl p-3 flex items-center gap-2.5 animate-pulse-glow"
+          style={{ background: 'rgba(142,205,255,0.06)', border: '0.5px solid rgba(142,205,255,0.15)' }}
+        >
+          <Loader2 className="h-4 w-4 animate-spin shrink-0" style={{ color: 'var(--primary)' }} />
+          <p className="font-body text-xs font-semibold" style={{ color: 'var(--primary)' }}>
+            Running: <span style={{ color: 'var(--on-surface)' }} className="capitalize">
+              {currentAgent.replace('_', ' ')} Agent
+            </span>
           </p>
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {STAGES.map((stage) => {
-          // Determine this stage's state:
-          const isCompleted = completedAgents.includes(stage.key);
+      {/* Horizontal stepper */}
+      <div className="relative flex items-start justify-between">
+        {/* Connecting line behind the nodes */}
+        <div
+          className="absolute top-[18px] left-0 right-0 h-px"
+          style={{ background: 'rgba(255,255,255,0.06)', zIndex: 0 }}
+        />
+
+        {STAGES.map((stage, idx) => {
+          const isCompleted = completedAgents.includes(stage.key) || status === 'completed';
           const isActive = status === 'running' && currentAgent === stage.key && !isCompleted;
           const isFailed = status === 'failed' && currentAgent === stage.key && !isCompleted;
-          // Stages after the failed one that never ran
-          const isSkipped = status === 'failed' && !isCompleted && !isFailed && !isActive;
-          // Future stages not yet reached when still running
-          const isPending = status === 'idle' || (status === 'running' && !isCompleted && !isActive);
 
-          let cardStyle = "border-slate-900 bg-slate-950/40 text-slate-500";
-          let icon = <Hourglass className="h-3.5 w-3.5 text-slate-650" />;
-          let statusText = "Pending";
+          let nodeStyle = {};
+          let nodeContent = <Hourglass className="h-3.5 w-3.5" style={{ color: 'var(--outline)' }} />;
+          let labelColor = 'var(--outline)';
+          let subText = 'Pending';
+          let subColor = 'var(--outline)';
 
-          if (isCompleted || (status === 'completed' && !isFailed)) {
-            // Completed — show green checkmark
-            cardStyle = "border-emerald-500/20 bg-emerald-500/5 text-slate-200 shadow-[0_0_8px_rgba(16,185,129,0.02)]";
-            icon = <Check className="h-3.5 w-3.5 text-emerald-400 stroke-[3]" />;
-            statusText = "Completed";
+          if (isCompleted) {
+            nodeStyle = { background: 'rgba(76,175,142,0.15)', border: '1.5px solid rgba(76,175,142,0.6)' };
+            nodeContent = <Check className="h-3.5 w-3.5 stroke-[2.5]" style={{ color: '#4caf8e' }} />;
+            labelColor = 'var(--on-surface-variant)';
+            subText = timeStr;
+            subColor = 'var(--outline)';
           }
-
           if (isActive) {
-            // Currently running — show spinning loader
-            cardStyle = "border-violet-500/40 bg-violet-500/10 text-white shadow-[0_0_12px_rgba(139,92,246,0.08)] animate-pulse-glow";
-            icon = <Loader2 className="h-3.5 w-3.5 text-violet-400 animate-spin" />;
-            statusText = "Active";
+            nodeStyle = { background: 'rgba(142,205,255,0.15)', border: '1.5px solid var(--primary)', boxShadow: '0 0 12px rgba(142,205,255,0.25)' };
+            nodeContent = <Loader2 className="h-3.5 w-3.5 animate-spin" style={{ color: 'var(--primary)' }} />;
+            labelColor = 'var(--primary)';
+            subText = 'Running...';
+            subColor = 'var(--primary)';
           }
-
           if (isFailed) {
-            // Failed — show red X
-            cardStyle = "border-red-500/40 bg-red-500/10 text-slate-200 shadow-[0_0_12px_rgba(239,68,68,0.08)] animate-pulse";
-            icon = <XCircle className="h-3.5 w-3.5 text-red-400 stroke-[2.5]" />;
-            statusText = "Failed";
-          }
-
-          if (isSkipped) {
-            // Skipped due to earlier failure — show dimmed
-            cardStyle = "border-slate-900 bg-slate-950/20 text-slate-600";
-            icon = <Hourglass className="h-3.5 w-3.5 text-slate-700" />;
-            statusText = "Skipped";
+            nodeStyle = { background: 'rgba(239,68,68,0.15)', border: '1.5px solid rgba(239,68,68,0.5)' };
+            nodeContent = <XCircle className="h-3.5 w-3.5" style={{ color: '#ef4444' }} />;
+            labelColor = '#ef4444';
+            subText = 'Failed';
+            subColor = '#ef4444';
           }
 
           return (
-            <div
-              key={stage.key}
-              className={`rounded-xl border p-3 flex flex-col justify-between min-h-[90px] transition-all duration-300 ${cardStyle}`}
-            >
-              <div className="flex items-center justify-between w-full">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  {stage.name}
-                </span>
-                {icon}
+            <div key={stage.key} className="flex flex-col items-center gap-2 flex-1 relative" style={{ zIndex: 1 }}>
+              {/* Node */}
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300"
+                style={{
+                  background: nodeStyle.background || 'rgba(255,255,255,0.03)',
+                  border: nodeStyle.border || '1.5px solid rgba(255,255,255,0.08)',
+                  boxShadow: nodeStyle.boxShadow,
+                }}
+              >
+                {nodeContent}
               </div>
-              
-              <div className="mt-3">
-                <p className="text-[11px] font-bold leading-tight truncate">
-                  {stage.desc}
+              {/* Label */}
+              <div className="text-center">
+                <p
+                  className="label-caps"
+                  style={{ color: labelColor, fontSize: '0.55rem', letterSpacing: '0.06em' }}
+                >
+                  {stage.name}
                 </p>
-                <span className={`text-[9px] font-semibold mt-1 block ${
-                  isActive ? 'text-violet-400' : isFailed ? 'text-red-400' : isCompleted ? 'text-emerald-400' : 'text-slate-600'
-                }`}>
-                  {statusText}
-                </span>
+                <p
+                  className="font-body mt-0.5"
+                  style={{ color: subColor, fontSize: '0.55rem', opacity: 0.8 }}
+                >
+                  {subText}
+                </p>
               </div>
             </div>
           );

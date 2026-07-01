@@ -1,93 +1,232 @@
-import { Trophy, Star, GitMerge, ShieldAlert, Timer, Users, Factory, LockKeyhole, Briefcase, Network, Activity } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Zap, Network, Users, Clock } from 'lucide-react';
+import EmptyState from '../common/EmptyState';
+
+const SOURCE_COLORS = {
+  jira: '#8ecdff', github: '#c0c7d2', slack: '#f59e0b',
+  email: '#ef4444', calendar: '#4caf8e', meetings: '#a78bfa', incidents: '#f97316',
+};
 
 const getPlatformStyle = (platform) => {
-  const styles = {
-    jira: 'bg-blue-500/10 text-blue-400 border border-blue-500/20',
-    github: 'bg-slate-500/20 text-slate-350 border border-slate-500/30',
-    slack: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
-    email: 'bg-red-500/10 text-red-400 border border-red-500/20',
-    calendar: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
-    meetings: 'bg-purple-500/10 text-purple-400 border border-purple-500/20',
-    incidents: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  const map = {
+    jira:      { bg: 'rgba(142,205,255,0.1)',  color: '#8ecdff',  border: 'rgba(142,205,255,0.2)' },
+    github:    { bg: 'rgba(192,199,210,0.1)',  color: '#c0c7d2',  border: 'rgba(192,199,210,0.2)' },
+    slack:     { bg: 'rgba(245,158,11,0.1)',   color: '#f59e0b',  border: 'rgba(245,158,11,0.2)' },
+    email:     { bg: 'rgba(239,68,68,0.1)',    color: '#ef4444',  border: 'rgba(239,68,68,0.2)' },
+    calendar:  { bg: 'rgba(76,175,142,0.1)',   color: '#4caf8e',  border: 'rgba(76,175,142,0.2)' },
+    meetings:  { bg: 'rgba(167,139,250,0.1)',  color: '#a78bfa',  border: 'rgba(167,139,250,0.2)' },
+    incidents: { bg: 'rgba(249,115,22,0.1)',   color: '#f97316',  border: 'rgba(249,115,22,0.2)' },
   };
-  return styles[platform.toLowerCase()] || 'bg-slate-800 text-slate-400 border border-slate-700';
+  return map[platform?.toLowerCase()] || { bg: 'rgba(255,255,255,0.05)', color: 'var(--outline)', border: 'rgba(255,255,255,0.08)' };
 };
 
-const formatPlatformName = (platform) => {
-  const names = {
-    jira: 'Jira',
-    github: 'GitHub',
-    slack: 'Slack',
-    email: 'Email',
-    calendar: 'Calendar',
-    meetings: 'Meetings',
-    incidents: 'Incident',
-  };
-  return names[platform.toLowerCase()] || platform;
+const URGENCY_LEVEL = {
+  p0_critical:  { label: 'Critical Alert', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.25)' },
+  critical:     { label: 'Critical Alert', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.25)' },
+  p1_high:      { label: 'High Urgency',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
+  high:         { label: 'High Urgency',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
+  optimization: { label: 'Optimization',   color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.25)' },
+  medium:       { label: 'Optimization',   color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.25)' },
 };
+
+function getUrgencyLevel(task, rank) {
+  const score = task.priority_score || 0;
+  if (rank === 1 || score >= 85) return URGENCY_LEVEL.critical;
+  if (score >= 70) return URGENCY_LEVEL.high;
+  return URGENCY_LEVEL.optimization;
+}
 
 export default function PriorityCard({ task, rank }) {
   const explanation = task.explanation || task.reason || 'No prioritization reasoning provided.';
+  const platforms = task.platforms || (task.source ? [task.source] : []);
+  const urgency = getUrgencyLevel(task, rank);
 
-  // Styled colors for podium ranks
-  const rankColors = {
-    1: 'bg-gradient-to-tr from-amber-500 to-yellow-350 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.25)] border-amber-400/30',
-    2: 'bg-gradient-to-tr from-slate-400 to-slate-200 text-slate-950 shadow-[0_0_15px_rgba(148,163,184,0.15)] border-slate-350/30',
-    3: 'bg-gradient-to-tr from-amber-700 to-amber-600 text-white shadow-[0_0_15px_rgba(180,83,9,0.15)] border-amber-650/30',
-  };
-
-  const currentRankColor = rankColors[rank] || 'bg-slate-900/60 border-slate-800 text-indigo-400';
-  const breakdown = [
-    ['Severity', task.severity_score, ShieldAlert],
-    ['Deadline', task.deadline_score, Timer],
-    ['Prod', task.production_impact_score, Factory],
-    ['Customer', task.customer_impact_score, Users],
-    ['Blocker', task.blocker_score, LockKeyhole],
-    ['Business', task.business_impact_score, Briefcase],
-    ['Dependency', task.dependency_score, Network],
-    ['Quality Factor', task.quality_factor_score, Activity],
-  ];
-
-  return (
-    <div className="glass-card glass-card-hover flex items-start gap-4 p-5 shadow-lg relative overflow-hidden group">
-      {/* Visual podium glows */}
-      {rank <= 3 && (
-        <div className="absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-500/3 blur-2xl group-hover:bg-amber-500/6 transition-colors" />
-      )}
-
-      <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-xs font-bold border transition-transform duration-300 group-hover:scale-105 ${currentRankColor}`}>
-        {rank === 1 ? (
-          <Trophy className="h-4 w-4 stroke-[2.5]" />
-        ) : rank === 2 || rank === 3 ? (
-          <Star className="h-4 w-4 fill-current stroke-[2.5]" />
-        ) : (
-          <span>#{rank}</span>
-        )}
-      </span>
-
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center justify-between gap-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors">
-              {task.title || `Task #${task.id}`}
-            </h4>
-            {task.platforms && task.platforms.map((platform) => (
-              <span
-                key={platform}
-                className={`inline-flex items-center rounded px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider ${getPlatformStyle(platform)}`}
-              >
-                {formatPlatformName(platform)}
-              </span>
-            ))}
-          </div>
-          <span className="inline-flex items-center gap-1 rounded-full border border-violet-500/20 bg-violet-500/10 px-2.5 py-0.5 text-[10px] font-bold text-violet-400 tracking-wide">
-            Priority Score: {task.priority_score ?? '—'}
-          </span>
+  // Featured card for rank #1
+  if (rank === 1) {
+    return (
+      <div
+        className="glass-card glass-card-hover p-6 relative overflow-hidden"
+        style={{ background: 'rgba(239,68,68,0.03)' }}
+      >
+        {/* Rank badge */}
+        <div
+          className="absolute top-4 right-6 font-headline text-6xl font-light select-none pointer-events-none"
+          style={{ color: 'rgba(255,255,255,0.04)' }}
+        >
+          1
         </div>
-        <p className="mt-2 text-xs text-slate-400 leading-relaxed max-w-2xl">
-          {explanation}
-        </p>
 
+        <div className="flex flex-col lg:flex-row lg:items-start gap-5">
+          {/* Alert icon */}
+          <div
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl"
+            style={{ background: urgency.bg, border: `0.5px solid ${urgency.border}` }}
+          >
+            <AlertTriangle className="h-6 w-6" style={{ color: urgency.color }} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {/* Badge + ID */}
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span
+                className="chip text-[0.55rem] py-0.5"
+                style={{ background: urgency.bg, color: urgency.color, border: `0.5px solid ${urgency.border}` }}
+              >
+                {urgency.label}
+              </span>
+              <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                ID: WF-{String(task.id || '0001').substring(0, 6).toUpperCase()}
+              </span>
+            </div>
+
+            <h3
+              className="font-headline text-xl font-semibold leading-snug mb-3"
+              style={{ color: 'var(--on-surface)' }}
+            >
+              {task.title || `Task #${task.id}`}
+            </h3>
+
+            <p
+              className="font-body text-sm leading-relaxed mb-5 max-w-2xl"
+              style={{ color: 'var(--on-surface-variant)' }}
+            >
+              {explanation}
+            </p>
+
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-6">
+              {task.assignee && (
+                <div>
+                  <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                    Assigned Lead
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="h-6 w-6 rounded-full flex items-center justify-center text-[0.5rem] font-bold text-white uppercase"
+                      style={{ background: SOURCE_COLORS[platforms[0]] || 'var(--primary-container)' }}
+                    >
+                      {task.assignee.substring(0, 2)}
+                    </div>
+                    <span className="font-body text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+                      {task.assignee}
+                    </span>
+                  </div>
+                </div>
+              )}
+              <div>
+                <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                  Priority Score
+                </p>
+                <span className="font-headline text-sm font-semibold" style={{ color: 'var(--primary)' }}>
+                  {task.priority_score ?? '—'} / 100
+                </span>
+              </div>
+              {platforms.length > 0 && (
+                <div>
+                  <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                    Sources
+                  </p>
+                  <div className="flex flex-wrap gap-1">
+                    {platforms.slice(0, 3).map((p) => {
+                      const ps = getPlatformStyle(p);
+                      return (
+                        <span
+                          key={p}
+                          className="chip text-[0.5rem] py-0"
+                          style={{ background: ps.bg, color: ps.color, border: `0.5px solid ${ps.border}` }}
+                        >
+                          {p}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
+              <button className="btn-primary ml-auto text-xs py-2 px-5 rounded-xl">
+                Launch Debugger
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular cards (rank 2+)
+  return (
+    <div className="glass-card glass-card-hover p-4 relative overflow-hidden">
+      {/* Rank watermark */}
+      <div
+        className="absolute top-3 right-4 font-headline text-4xl font-light select-none pointer-events-none"
+        style={{ color: 'rgba(255,255,255,0.04)' }}
+      >
+        {rank < 10 ? `0${rank}` : rank}
+      </div>
+
+      {/* Badge */}
+      <div className="flex items-start gap-3 mb-3">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+          style={{ background: urgency.bg, border: `0.5px solid ${urgency.border}` }}
+        >
+          {rank === 2 || rank === 3
+            ? <Zap className="h-4 w-4" style={{ color: urgency.color }} />
+            : <ShieldAlert className="h-4 w-4" style={{ color: urgency.color }} />
+          }
+        </div>
+        <div className="min-w-0 flex-1">
+          <span
+            className="chip text-[0.5rem] py-0 mb-1"
+            style={{ background: urgency.bg, color: urgency.color, border: `0.5px solid ${urgency.border}` }}
+          >
+            {urgency.label}
+          </span>
+          <h4
+            className="font-headline text-sm font-semibold leading-snug"
+            style={{ color: 'var(--on-surface)' }}
+          >
+            {task.title || `Task #${task.id}`}
+          </h4>
+        </div>
+      </div>
+
+      <p
+        className="font-body text-xs leading-relaxed line-clamp-3 mb-3"
+        style={{ color: 'var(--on-surface-variant)' }}
+      >
+        {explanation}
+      </p>
+
+      {/* Footer */}
+      <div
+        className="flex items-center justify-between pt-3"
+        style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}
+      >
+        <div className="flex items-center gap-2">
+          {task.assignee && (
+            <>
+              <div
+                className="h-5 w-5 rounded-full flex items-center justify-center text-[0.45rem] font-bold text-white uppercase"
+                style={{ background: 'var(--primary-container)' }}
+              >
+                {task.assignee.substring(0, 2)}
+              </div>
+              <span className="font-body text-[0.65rem]" style={{ color: 'var(--outline)' }}>
+                {task.assignee}
+              </span>
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <span
+            className="font-headline text-sm font-semibold"
+            style={{ color: 'var(--primary)' }}
+          >
+            {task.priority_score ?? '—'}
+          </span>
+          <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>/ 100</span>
+        </div>
       </div>
     </div>
   );

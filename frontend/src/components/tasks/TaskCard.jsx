@@ -1,91 +1,128 @@
-import { Tag, User, Layers, GitMerge, EyeOff } from 'lucide-react';
+import { Tag, Layers, GitMerge, EyeOff } from 'lucide-react';
 
-const STATUS_STYLES = {
-  done: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.1)]',
-  completed: 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.1)]',
-  in_progress: 'border-amber-500/20 bg-amber-500/10 text-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.1)]',
-  blocked: 'border-red-500/20 bg-red-500/10 text-red-400 shadow-[0_0_12px_rgba(239,68,68,0.1)]',
-  todo: 'border-slate-800 bg-slate-900/40 text-slate-400',
+const STATUS_CONFIG = {
+  done:        { label: 'Done',        color: '#4caf8e', bg: 'rgba(76,175,142,0.1)',  border: 'rgba(76,175,142,0.2)' },
+  completed:   { label: 'Completed',   color: '#4caf8e', bg: 'rgba(76,175,142,0.1)',  border: 'rgba(76,175,142,0.2)' },
+  in_progress: { label: 'In Progress', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.2)' },
+  blocked:     { label: 'Blocked',     color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.2)' },
+  open:        { label: 'Open',        color: 'var(--primary)', bg: 'rgba(142,205,255,0.08)', border: 'rgba(142,205,255,0.15)' },
+  todo:        { label: 'Todo',        color: 'var(--outline)',  bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.08)' },
 };
 
 export default function TaskCard({ task, onClick, selected }) {
   const statusKey = (task.status || 'todo').toLowerCase().replace(/\s+/g, '_');
-  const statusClass = STATUS_STYLES[statusKey] || STATUS_STYLES.todo;
+  const statusCfg = STATUS_CONFIG[statusKey] || STATUS_CONFIG.todo;
   const platforms = task.source_platforms || (task.source ? [task.source] : []);
 
   return (
     <button
       onClick={onClick}
-      className={`glass-card w-full p-5 text-left shadow-md group relative overflow-hidden transition-all duration-300 ${
+      className="glass-card w-full p-4 text-left group relative overflow-hidden transition-all duration-300"
+      style={
         selected
-          ? 'border-violet-500/50 bg-violet-950/20 shadow-[0_0_15px_rgba(139,92,246,0.15)] ring-1 ring-violet-500/20'
-          : 'glass-card-hover border-slate-900/60'
-      }`}
+          ? {
+              borderColor: 'rgba(142,205,255,0.3)',
+              background: 'rgba(142,205,255,0.04)',
+              boxShadow: '0 0 0 0.5px rgba(142,205,255,0.2), 0 20px 40px rgba(0,0,0,0.4)',
+            }
+          : {}
+      }
     >
-      {/* Background highlight on card hover */}
-      <div className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full bg-indigo-500/5 blur-xl group-hover:bg-indigo-500/10 transition-colors" />
+      {/* Hover glow */}
+      <div
+        className="absolute -left-8 -bottom-8 h-20 w-20 rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(142,205,255,0.08), transparent)' }}
+      />
 
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h4 className="text-sm font-bold text-slate-100 group-hover:text-indigo-200 transition-colors line-clamp-2">
+      {/* Header row */}
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <h4
+          className="font-headline text-sm font-semibold leading-snug line-clamp-2 flex-1"
+          style={{ color: 'var(--on-surface)' }}
+        >
           {task.title || `Task #${task.id}`}
         </h4>
         <span
-          className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusClass}`}
+          className="chip shrink-0 text-[0.5rem] py-0.5"
+          style={{ background: statusCfg.bg, color: statusCfg.color, border: `0.5px solid ${statusCfg.border}` }}
         >
-          {task.status || 'todo'}
+          {statusCfg.label}
         </span>
       </div>
 
+      {/* Description */}
       {task.description && (
-        <p className="mb-4 line-clamp-2 text-xs text-slate-400/90 leading-relaxed">
+        <p
+          className="font-body text-xs leading-relaxed line-clamp-2 mb-3"
+          style={{ color: 'var(--on-surface-variant)' }}
+        >
           {task.description}
         </p>
       )}
 
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      {/* Tags row */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
         {task.is_hidden && (
-          <span className="inline-flex items-center gap-1 rounded-lg border border-amber-500/20 bg-amber-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-300">
-            <EyeOff className="h-3 w-3" />
-            Hidden Work
+          <span
+            className="chip text-[0.5rem] py-0"
+            style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: '0.5px solid rgba(245,158,11,0.2)' }}
+          >
+            <EyeOff className="h-2.5 w-2.5" />
+            Hidden
           </span>
         )}
         {(task.source_count || 0) > 1 && (
-          <span className="inline-flex items-center gap-1 rounded-lg border border-cyan-500/20 bg-cyan-500/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-cyan-300">
-            <GitMerge className="h-3 w-3" />
-            {task.source_count} Signals Merged
+          <span
+            className="chip text-[0.5rem] py-0"
+            style={{ background: 'rgba(142,205,255,0.1)', color: 'var(--primary)', border: '0.5px solid rgba(142,205,255,0.2)' }}
+          >
+            <GitMerge className="h-2.5 w-2.5" />
+            {task.source_count} Merged
           </span>
         )}
-        {platforms.slice(0, 4).map((platform) => (
+        {platforms.slice(0, 3).map((p) => (
           <span
-            key={platform}
-            className="rounded-lg border border-slate-700/60 bg-slate-950/50 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-slate-400"
+            key={p}
+            className="chip text-[0.5rem] py-0"
+            style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--outline)', border: '0.5px solid rgba(255,255,255,0.07)' }}
           >
-            {platform}
+            {p.toUpperCase()}
           </span>
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-3.5 border-t border-slate-900 pt-3.5 text-[10px] font-semibold text-slate-500">
+      {/* Footer */}
+      <div
+        className="flex flex-wrap items-center gap-3 pt-3"
+        style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}
+      >
         {task.type && (
           <span className="flex items-center gap-1">
-            <Layers className="h-3 w-3 text-slate-650" />
-            <span className="text-slate-400">{task.type}</span>
+            <Layers className="h-3 w-3" style={{ color: 'var(--outline)' }} />
+            <span className="font-body text-[0.65rem]" style={{ color: 'var(--on-surface-variant)' }}>
+              {task.type}
+            </span>
           </span>
         )}
         {platforms.length > 0 && (
           <span className="flex items-center gap-1">
-            <Tag className="h-3 w-3 text-slate-650" />
-            <span className="inline-flex items-center rounded bg-slate-900 px-1 py-0.2 text-[9px] font-bold text-slate-400 uppercase">
+            <Tag className="h-3 w-3" style={{ color: 'var(--outline)' }} />
+            <span className="font-body text-[0.65rem]" style={{ color: 'var(--on-surface-variant)' }}>
               {platforms.join(' + ')}
             </span>
           </span>
         )}
         {task.assignee && (
-          <span className="flex items-center gap-1 ml-auto">
-            <div className="flex h-4.5 w-4.5 items-center justify-center rounded-full bg-gradient-to-tr from-violet-600 to-indigo-500 text-[8px] font-bold text-white uppercase">
+          <span className="flex items-center gap-1.5 ml-auto">
+            <div
+              className="h-5 w-5 rounded-full flex items-center justify-center font-body text-[0.5rem] font-bold text-white uppercase"
+              style={{ background: 'var(--primary-container)' }}
+            >
               {task.assignee.substring(0, 2)}
             </div>
-            <span className="text-slate-400">{task.assignee}</span>
+            <span className="font-body text-[0.65rem]" style={{ color: 'var(--on-surface-variant)' }}>
+              {task.assignee}
+            </span>
           </span>
         )}
       </div>
