@@ -1,4 +1,4 @@
-import { Clock, PlusCircle, CheckCircle, Tag, User } from 'lucide-react';
+import { Clock, PlusCircle, CheckCircle } from 'lucide-react';
 import EmptyState from '../common/EmptyState';
 
 function parseUTCDate(dateString) {
@@ -12,18 +12,22 @@ function getRelativeTimeString(dateString) {
   if (!dateString) return '—';
   const date = parseUTCDate(dateString);
   const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
+  const diffSec = Math.floor((now - date) / 1000);
   const diffMin = Math.floor(diffSec / 60);
-  const diffHr = Math.floor(diffMin / 60);
+  const diffHr  = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHr / 24);
 
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffSec < 60)   return 'Just now';
+  if (diffMin < 60)   return `${diffMin}m ago`;
+  if (diffHr < 24)    return `${diffHr}h ago`;
   if (diffDays === 1) return 'Yesterday';
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
+
+const SOURCE_COLORS = {
+  jira: '#8ecdff', github: '#c0c7d2', slack: '#f59e0b',
+  email: '#ef4444', calendar: '#4caf8e', meetings: '#a78bfa', incidents: '#f97316',
+};
 
 export default function RecentActivity({ tasks = [] }) {
   const recent = [...tasks]
@@ -32,75 +36,125 @@ export default function RecentActivity({ tasks = [] }) {
 
   return (
     <div className="glass-card p-5 shadow-lg relative overflow-hidden">
-      <div className="mb-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-indigo-500/10">
-            <Clock className="h-4 w-4 text-indigo-400" />
+      {/* Header */}
+      <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="flex h-7 w-7 items-center justify-center rounded-lg"
+            style={{ background: 'rgba(142,205,255,0.1)' }}
+          >
+            <Clock className="h-3.5 w-3.5" style={{ color: 'var(--primary)' }} />
           </div>
-          <h3 className="text-sm font-bold text-slate-200">System Activity Feed</h3>
+          <h3 className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+            Recent Assessment Reports
+          </h3>
         </div>
-        <span className="text-[10px] text-slate-500 font-medium">Last 5 active tasks</span>
+        <span
+          className="font-body text-xs font-semibold cursor-pointer transition-colors"
+          style={{ color: 'var(--primary)' }}
+        >
+          View All
+        </span>
       </div>
 
       {recent.length === 0 ? (
         <EmptyState message="No recent system activity recorded yet." />
       ) : (
-        <div className="flow-root">
-          <ul className="-mb-8">
-            {recent.map((task, idx) => {
-              const isLast = idx === recent.length - 1;
-              const sourceLabel = task.source || 'Manual';
-              const isAgentExtracted = sourceLabel.toLowerCase() !== 'manual';
+        <>
+          {/* Table header */}
+          <div
+            className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-3 pb-2 mb-1"
+            style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}
+          >
+            {['Report Name', 'Status', 'Assigned To', 'Timeline'].map((h) => (
+              <span
+                key={h}
+                className="label-caps"
+                style={{ color: 'var(--outline)', fontSize: '0.55rem' }}
+              >
+                {h}
+              </span>
+            ))}
+          </div>
 
-              return (
-                <li key={task.id || idx}>
-                  <div className="relative pb-8">
-                    {!isLast && (
-                      <span
-                        className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-slate-800/80"
-                        aria-hidden="true"
-                      />
-                    )}
-                    <div className="relative flex space-x-3">
-                      <div>
-                        <span className={`flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-slate-950 ${
-                          isAgentExtracted 
-                            ? 'bg-violet-500/15 text-violet-400' 
-                            : 'bg-indigo-500/15 text-indigo-400'
-                        }`}>
-                          {isAgentExtracted ? (
-                            <PlusCircle className="h-4.5 w-4.5" />
-                          ) : (
-                            <CheckCircle className="h-4.5 w-4.5" />
-                          )}
-                        </span>
-                      </div>
-                      <div className="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                        <div>
-                          <p className="text-xs font-semibold text-slate-200">
-                            {task.title || `Extracted task #${task.id}`}
-                            <span className="font-normal text-slate-400"> via </span>
-                            <span className="inline-flex items-center rounded-full bg-slate-900 border border-slate-850 px-1.5 py-0.2 text-[9px] font-bold text-slate-450 uppercase tracking-wider">
-                              {sourceLabel}
-                            </span>
-                          </p>
-                          {task.description && (
-                            <p className="mt-1 text-[11px] text-slate-500 truncate max-w-lg">
-                              {task.description}
-                            </p>
-                          )}
-                        </div>
-                        <div className="whitespace-nowrap text-right text-[10px] font-medium text-slate-500">
-                          {getRelativeTimeString(task.created_at)}
-                        </div>
-                      </div>
-                    </div>
+          {/* Rows */}
+          {recent.map((task, idx) => {
+            const sourceLabel = task.source || 'manual';
+            const sourceColor = SOURCE_COLORS[sourceLabel.toLowerCase()] || 'var(--outline)';
+            const statusKey = (task.status || 'new').toLowerCase();
+            const isNew = statusKey === 'open' || statusKey === 'todo' || statusKey === 'new';
+
+            return (
+              <div
+                key={task.id || idx}
+                className="hairline-row grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 items-center px-3 py-3 rounded-xl cursor-default transition-all"
+              >
+                {/* Name */}
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.07)' }}
+                  >
+                    {isNew
+                      ? <PlusCircle className="h-3.5 w-3.5" style={{ color: 'var(--primary)' }} />
+                      : <CheckCircle className="h-3.5 w-3.5" style={{ color: '#4caf8e' }} />
+                    }
                   </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+                  <div className="min-w-0">
+                    <p
+                      className="font-body text-xs font-semibold truncate"
+                      style={{ color: 'var(--on-surface)' }}
+                    >
+                      {task.title || `Task #${task.id}`}
+                    </p>
+                    <p
+                      className="label-caps mt-0.5"
+                      style={{ color: 'var(--outline)', fontSize: '0.5rem' }}
+                    >
+                      {task.type || sourceLabel}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Status chip */}
+                <span
+                  className="chip text-[0.55rem] py-0.5 w-fit"
+                  style={
+                    isNew
+                      ? { background: 'rgba(142,205,255,0.1)', color: 'var(--primary)', border: '0.5px solid rgba(142,205,255,0.2)' }
+                      : { background: 'rgba(255,255,255,0.05)', color: 'var(--outline)', border: '0.5px solid rgba(255,255,255,0.07)' }
+                  }
+                >
+                  {isNew ? 'New' : 'Archived'}
+                </span>
+
+                {/* Assignee */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <div
+                    className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 font-body text-[0.5rem] font-bold text-white uppercase"
+                    style={{ background: sourceColor }}
+                  >
+                    {(task.assignee || sourceLabel).substring(0, 2)}
+                  </div>
+                  <span
+                    className="font-body text-xs truncate"
+                    style={{ color: 'var(--on-surface-variant)' }}
+                  >
+                    {task.assignee || sourceLabel}
+                  </span>
+                </div>
+
+                {/* Timeline */}
+                <span
+                  className="font-body text-xs"
+                  style={{ color: 'var(--outline)' }}
+                >
+                  {getRelativeTimeString(task.created_at)}
+                </span>
+              </div>
+            );
+          })}
+        </>
       )}
     </div>
   );

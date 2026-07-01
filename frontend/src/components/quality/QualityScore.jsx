@@ -3,24 +3,28 @@ export default function QualityScore({ score = 0 }) {
   const good = clamped >= 50;
 
   return (
-    <div className="flex items-center gap-4">
-      <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-900 border border-slate-850">
+    <div className="flex items-center gap-3">
+      <div
+        className="h-1.5 flex-1 overflow-hidden rounded-full"
+        style={{ background: 'rgba(255,255,255,0.06)' }}
+      >
         <div
-          className={`h-full rounded-full transition-all duration-1000 ease-out ${
-            good 
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_8px_rgba(16,185,129,0.3)]' 
-              : 'bg-gradient-to-r from-red-500 to-orange-400 shadow-[0_0_8px_rgba(239,68,68,0.3)]'
-          }`}
-          style={{ 
+          className="h-full rounded-full"
+          style={{
             width: `${clamped}%`,
-            animation: 'progressFill 1s cubic-bezier(0.4, 0, 0.2, 1) forwards' 
+            background: good
+              ? 'linear-gradient(90deg, #10b981, #06b6d4)'
+              : 'linear-gradient(90deg, #ef4444, #f97316)',
+            boxShadow: good
+              ? '0 0 8px rgba(16,185,129,0.3)'
+              : '0 0 8px rgba(239,68,68,0.3)',
+            animation: 'progressFill 1s cubic-bezier(0.4,0,0.2,1) forwards',
           }}
         />
       </div>
       <span
-        className={`w-10 shrink-0 text-right text-xs font-bold ${
-          good ? 'text-emerald-400' : 'text-red-400'
-        }`}
+        className="font-headline text-sm font-semibold w-10 text-right shrink-0"
+        style={{ color: good ? '#4caf8e' : '#ef4444' }}
       >
         {clamped}%
       </span>

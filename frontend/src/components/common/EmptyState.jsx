@@ -2,11 +2,19 @@ import { Inbox } from 'lucide-react';
 
 export default function EmptyState({ message, icon: Icon = Inbox }) {
   return (
-    <div className="glass-card flex flex-col items-center justify-center gap-4 p-12 text-center max-w-md mx-auto w-full animate-scale-in">
-      <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-violet-500/10 to-cyan-500/10 border border-slate-800/80 shadow-inner">
-        <Icon className="h-6 w-6 text-indigo-400 animate-float" />
+    <div
+      className="glass-card flex flex-col items-center justify-center gap-4 p-12 text-center max-w-md mx-auto w-full animate-scale-in"
+    >
+      <div
+        className="flex h-14 w-14 items-center justify-center rounded-2xl animate-float"
+        style={{
+          background: 'rgba(142,205,255,0.06)',
+          border: '0.5px solid rgba(142,205,255,0.12)',
+        }}
+      >
+        <Icon className="h-6 w-6" style={{ color: 'var(--primary)' }} />
       </div>
-      <p className="text-sm font-medium leading-relaxed text-slate-400">
+      <p className="font-body text-sm leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
         {message || 'No items or data found.'}
       </p>
     </div>

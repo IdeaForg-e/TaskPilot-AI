@@ -10,39 +10,56 @@ export default function QualityReport({ reports = [] }) {
   const sorted = [...reports].sort((a, b) => (a.score || 0) - (b.score || 0));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {sorted.map((report) => {
         const poor = (report.score || 0) < 50;
         return (
           <div
             key={report.task_id || report.id}
-            className={`glass-card glass-card-hover border-l-4 p-5 shadow-lg ${
-              poor
-                ? 'border-l-red-500 bg-red-950/5'
-                : 'border-l-emerald-500 bg-emerald-950/5'
-            }`}
+            className="glass-card glass-card-hover p-5 relative overflow-hidden"
+            style={{
+              borderLeft: `2px solid ${poor ? '#ef4444' : '#4caf8e'}`,
+              background: poor ? 'rgba(239,68,68,0.02)' : 'rgba(76,175,142,0.02)',
+            }}
           >
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <h4 className="flex items-center gap-2.5 text-sm font-bold text-slate-100">
-                {poor ? (
-                  <CircleAlert className="h-4.5 w-4.5 text-red-400 animate-pulse" />
-                ) : (
-                  <CircleCheck className="h-4.5 w-4.5 text-emerald-400" />
-                )}
+            {/* Header */}
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h4 className="flex items-center gap-2.5 font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+                {poor
+                  ? <CircleAlert className="h-4 w-4 animate-pulse shrink-0" style={{ color: '#ef4444' }} />
+                  : <CircleCheck className="h-4 w-4 shrink-0" style={{ color: '#4caf8e' }} />
+                }
                 {report.task_title || `Task #${report.task_id || report.id}`}
               </h4>
+              <span
+                className="chip shrink-0 text-[0.5rem] py-0.5"
+                style={
+                  poor
+                    ? { background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '0.5px solid rgba(239,68,68,0.2)' }
+                    : { background: 'rgba(76,175,142,0.1)', color: '#4caf8e', border: '0.5px solid rgba(76,175,142,0.2)' }
+                }
+              >
+                {poor ? 'Deficient' : 'Passing'}
+              </span>
             </div>
 
-            <div className="bg-slate-950/40 p-4 rounded-xl border border-slate-900/60">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block mb-2">Quality Grade</span>
+            {/* Quality score bar */}
+            <div
+              className="rounded-xl p-4 mb-4"
+              style={{ background: 'rgba(0,0,0,0.15)', border: '0.5px solid rgba(255,255,255,0.05)' }}
+            >
+              <span className="label-caps block mb-2" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                Quality Grade
+              </span>
               <QualityScore score={report.score || 0} />
             </div>
 
+            {/* Missing fields */}
             {report.missing_fields?.length > 0 && (
-              <div className="mt-4">
+              <div className="mb-4">
                 <div className="flex items-center gap-1.5 mb-2">
-                  <ClipboardList className="h-3.5 w-3.5 text-slate-500" />
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                  <ClipboardList className="h-3.5 w-3.5" style={{ color: 'var(--outline)' }} />
+                  <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
                     Deficiencies / Missing Attributes
                   </span>
                 </div>
@@ -50,7 +67,8 @@ export default function QualityReport({ reports = [] }) {
                   {report.missing_fields.map((field) => (
                     <span
                       key={field}
-                      className="rounded-lg border border-red-500/10 bg-red-500/5 px-2 py-0.5 text-[9px] font-bold text-red-300 uppercase tracking-wide shadow-sm"
+                      className="chip text-[0.5rem] py-0"
+                      style={{ background: 'rgba(239,68,68,0.08)', color: '#ef4444', border: '0.5px solid rgba(239,68,68,0.15)' }}
                     >
                       {field}
                     </span>
@@ -59,19 +77,25 @@ export default function QualityReport({ reports = [] }) {
               </div>
             )}
 
+            {/* Clarification questions */}
             {report.clarification_questions?.length > 0 && (
-              <div className="mt-4">
+              <div>
                 <div className="flex items-center gap-1.5 mb-2">
-                  <HelpCircle className="h-3.5 w-3.5 text-slate-505" />
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
-                    Suggested Refinements / Clarifications
+                  <HelpCircle className="h-3.5 w-3.5" style={{ color: 'var(--outline)' }} />
+                  <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                    Suggested Refinements
                   </span>
                 </div>
-                <ul className="list-none space-y-2 ml-5">
+                <ul className="space-y-2 ml-5">
                   {report.clarification_questions.map((q, i) => (
-                    <li key={i} className="text-xs text-slate-400 flex items-start gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 mt-1.5 shrink-0" />
-                      <span>{q}</span>
+                    <li key={i} className="flex items-start gap-2">
+                      <span
+                        className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0"
+                        style={{ background: 'var(--primary)' }}
+                      />
+                      <span className="font-body text-xs" style={{ color: 'var(--on-surface-variant)' }}>
+                        {q}
+                      </span>
                     </li>
                   ))}
                 </ul>
