@@ -77,7 +77,7 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 | **Hidden Tasks** | Buried in emails, 35% untracked | Auto-extracted by LLM agents, 0% missed |
 | **Prioritization** | Gut-feel, loudest wins | 8-factor algorithmic scoring with explanations |
 | **Mid-day Changes** | Manually re-triage everything | Say "Inject P1" → pipeline auto re-runs |
-| **Time Saved** | 0 | **45+ minutes/day** |
+| **Time Saved** | 0 | **2+ hours/day** |
 
 ---
 
