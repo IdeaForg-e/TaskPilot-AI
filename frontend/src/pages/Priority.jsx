@@ -27,8 +27,8 @@ export default function Priority() {
   if (loading) return <LoadingSpinner label="Calculating workspace priorities..." />;
   if (error)   return <ErrorMessage message={error} onRetry={loadTasks} />;
 
-  const highPriorityCount = tasks.filter((t) => (t.priority_score || 0) >= 80).length;
-  const criticalCount     = tasks.filter((t) => (t.priority_score || 0) >= 90).length;
+  const highPriorityCount = tasks.filter((t) => (t.priority_score || 0) >= 8.0).length;
+  const criticalCount     = tasks.filter((t) => (t.priority_score || 0) >= 9.0).length;
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -84,15 +84,15 @@ export default function Priority() {
               </p>
               <div className="flex items-end gap-1">
                 <span className="font-headline text-4xl font-light" style={{ color: 'var(--on-surface)' }}>
-                  {Math.round(tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1))}
+                  {(tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1)).toFixed(1)}
                 </span>
-                <span className="font-body text-sm mb-1" style={{ color: 'var(--outline)' }}>/100</span>
+                <span className="font-body text-sm mb-1" style={{ color: 'var(--outline)' }}>/10</span>
               </div>
               <div className="mt-2 h-1 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
                 <div
                   className="h-full rounded-full"
                   style={{
-                    width: `${Math.round(tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1))}%`,
+                    width: `${Math.round((tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1)) * 10)}%`,
                     background: 'var(--primary)',
                     transition: 'width 1s ease',
                   }}

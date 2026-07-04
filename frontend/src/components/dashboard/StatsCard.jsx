@@ -36,12 +36,29 @@ export default function StatsCard({ label, value, icon: Icon, accent = 'blue' })
         )}
       </div>
 
-      <p
-        className="font-headline text-2xl font-semibold leading-none truncate"
-        style={{ color: 'var(--on-surface)' }}
-      >
-        {value}
-      </p>
+      {typeof value === 'string' && value.length > 10 ? (
+        <p
+          className="font-headline text-sm font-semibold leading-snug"
+          style={{
+            color: 'var(--on-surface)',
+            display: '-webkit-box',
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: 'vertical',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            minHeight: '2.5rem',
+          }}
+        >
+          {value}
+        </p>
+      ) : (
+        <p
+          className="font-headline text-2xl font-semibold leading-none truncate"
+          style={{ color: 'var(--on-surface)' }}
+        >
+          {value}
+        </p>
+      )}
     </div>
   );
 }

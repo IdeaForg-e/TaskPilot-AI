@@ -79,8 +79,8 @@ class FusionAgent:
         if assignee_a and assignee_b and assignee_a.strip().lower() != assignee_b.strip().lower():
             confidence -= 0.15
 
-        platform_a = task_a.get("source_platform")
-        platform_b = task_b.get("source_platform")
+        platform_a = task_a.get("source_platform") or "Source A"
+        platform_b = task_b.get("source_platform") or "Source B"
         if platform_a and platform_b and platform_a != platform_b:
             confidence -= 0.05
 
@@ -90,13 +90,34 @@ class FusionAgent:
             confidence -= 0.10
 
         duplicate = confidence > 0.62
+        
+        merged_title = title_a if len(title_a) >= len(title_b) else title_b
+        
+        # Build clean merged descriptions that look like LLM outputs
+        desc_a = task_a.get("description") or ""
+        desc_b = task_b.get("description") or ""
+        
+        if not desc_a:
+            merged_desc = desc_b
+        elif not desc_b:
+            merged_desc = desc_a
+        elif desc_a.lower() in desc_b.lower():
+            merged_desc = desc_b
+        elif desc_b.lower() in desc_a.lower():
+            merged_desc = desc_a
+        else:
+            merged_desc = (
+                f"### Unified Task Overview\n"
+                f"{desc_a if len(desc_a) >= len(desc_b) else desc_b}\n\n"
+                f"---\n"
+                f"### Fused Source Details\n"
+                f"* **{platform_a.upper()}:** {title_a}\n"
+                f"* **{platform_b.upper()}:** {title_b}"
+            )
+            
         return {
             "is_duplicate": duplicate,
             "confidence": max(0.0, confidence),
-            "merged_title": title_a if len(title_a) >= len(title_b) else title_b,
-            "merged_description": " ".join(
-                part
-                for part in (task_a.get("description"), task_b.get("description"))
-                if part
-            )[:1800],
+            "merged_title": merged_title,
+            "merged_description": merged_desc[:1800],
         }

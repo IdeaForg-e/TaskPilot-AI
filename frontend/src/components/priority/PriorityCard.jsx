@@ -117,7 +117,7 @@ export default function PriorityCard({ task, rank }) {
                   Priority Score
                 </p>
                 <span className="font-headline text-sm font-semibold" style={{ color: 'var(--primary)' }}>
-                  {task.priority_score ?? '—'} / 100
+                  {task.priority_score ?? '—'} / 10
                 </span>
               </div>
               {platforms.length > 0 && (
@@ -225,7 +225,7 @@ export default function PriorityCard({ task, rank }) {
           >
             {task.priority_score ?? '—'}
           </span>
-          <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>/ 100</span>
+          <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>/ 10</span>
         </div>
       </div>
     </div>

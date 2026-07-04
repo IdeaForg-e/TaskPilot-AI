@@ -65,6 +65,9 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 - 📅 **Generates dynamic daily plans** that are calendar-aware and adapt in real-time
 - 💬 **Supports natural language interaction** — ask questions, inject P1 incidents mid-day, get instant re-prioritization
 - 🚨 **Proactively detects** overloaded developers, approaching deadlines, and blocked pipelines
+- 🛡️ **SQLite WAL Concurrency Mode:** Built-in Write-Ahead Logging preventing thread/connection locking during parallel reads and writes
+- ⚡ **LLM Parsing & Token Resilience:** Upgraded regex parser that automatically filters `<think>` reasoning tags and repairs malformed JSON syntax on the fly, backed by optimized output token limits to prevent 429 TPM errors
+- 🖥️ **Live Performance Diagnostics:** Fully dynamic dashboard widgets displaying real-time API latency values tracked directly from backend calls
 
 ### Before vs After
 
@@ -550,8 +553,8 @@ flowchart TB
 
 | Provider | Model | Parameters | Use Case | Latency |
 |:---|:---|:---:|:---|:---:|
-| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `llama-3.1-8b-instant` | 8B | Fast extraction, fusion, quality scoring | ~200ms |
-| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `llama-3.3-70b-versatile` | 70B | Complex reasoning, prioritization, planning | ~2s |
+| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `openai/gpt-oss-20b` | 20B | Fast extraction, fusion, quality scoring | ~300ms |
+| ![Groq](https://img.shields.io/badge/Groq-Primary-F55036?style=flat-square) | `qwen/qwen3.6-27b` | 27B | Complex reasoning, prioritization, planning | ~1.5s |
 | ![NVIDIA](https://img.shields.io/badge/NVIDIA-Fallback-76B900?style=flat-square) | `meta/llama-3.1-8b-instruct` | 8B | Fast fallback when Groq is unavailable | ~500ms |
 | ![NVIDIA](https://img.shields.io/badge/NVIDIA-Fallback-76B900?style=flat-square) | `meta/llama-3.3-70b-instruct` | 70B | Reasoning fallback | ~3s |
 
@@ -639,8 +642,8 @@ npm run dev
 GROQ_API_KEY=gsk_your_groq_api_key
 
 # Optional — Model overrides
-GROQ_MODEL_FAST=llama-3.1-8b-instant
-GROQ_MODEL_REASONING=llama-3.3-70b-versatile
+GROQ_MODEL_FAST=openai/gpt-oss-20b
+GROQ_MODEL_REASONING=qwen/qwen3.6-27b
 
 # Optional — Fallback LLM (NVIDIA NIM)
 NVIDIA_API_KEY=nvapi_your_nvidia_key

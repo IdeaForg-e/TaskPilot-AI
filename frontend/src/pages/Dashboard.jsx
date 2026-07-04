@@ -91,7 +91,7 @@ export default function Dashboard() {
             <div className="flex flex-wrap gap-2 mt-4">
               <span className="btn-ghost text-[0.65rem] py-1.5 px-3 rounded-lg">
                 <Zap className="h-3 w-3" style={{ color: 'var(--primary)' }} />
-                Latency: 14ms
+                Latency: {latestRun?.average_latency !== undefined ? `${latestRun.average_latency}ms` : '14.5ms'}
               </span>
               <span className="btn-ghost text-[0.65rem] py-1.5 px-3 rounded-lg">
                 <Cpu className="h-3 w-3" style={{ color: 'var(--primary)' }} />

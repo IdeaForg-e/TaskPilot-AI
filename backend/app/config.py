@@ -11,8 +11,8 @@ load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
 
 class Settings:
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
-    GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "llama-3.1-8b-instant")
-    GROQ_MODEL_REASONING: str = os.getenv("GROQ_MODEL_REASONING", "llama-3.3-70b-versatile")
+    GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "openai/gpt-oss-20b")
+    GROQ_MODEL_REASONING: str = os.getenv("GROQ_MODEL_REASONING", "qwen/qwen3.6-27b")
     NVIDIA_API_KEY: str = os.getenv("NVIDIA_API_KEY", "")
     NVIDIA_BASE_URL: str = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
     NVIDIA_MODEL_FAST: str = os.getenv("NVIDIA_MODEL_FAST", "meta/llama-3.1-8b-instruct")

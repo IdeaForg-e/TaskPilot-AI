@@ -35,7 +35,7 @@ export default function PriorityList({ tasks = [] }) {
             style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}
           >
             <h3 className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
-              Recent Activity Logs
+              Remaining Backlog Priority Rankings
             </h3>
             <div className="flex items-center gap-2">
               <button className="btn-ghost text-[0.6rem] py-1 px-2 rounded-lg">
@@ -66,8 +66,8 @@ export default function PriorityList({ tasks = [] }) {
           {/* Rows */}
           {tableTasks.map((task, i) => {
             const score = task.priority_score || 0;
-            const bars = Math.round((score / 100) * 5);
-            const statusColor = score >= 80 ? '#ef4444' : score >= 60 ? '#f59e0b' : '#89929b';
+            const bars = Math.round((score / 10) * 5);
+            const statusColor = score >= 8.0 ? '#ef4444' : score >= 6.0 ? '#f59e0b' : '#89929b';
 
             return (
               <div
@@ -101,7 +101,7 @@ export default function PriorityList({ tasks = [] }) {
 
                 {/* Score */}
                 <span className="font-headline text-sm font-semibold" style={{ color: 'var(--primary)' }}>
-                  {score} / 100
+                  {score} / 10
                 </span>
 
                 {/* Status */}

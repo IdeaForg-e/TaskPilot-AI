@@ -40,7 +40,7 @@ class OrchestratorService:
                 ("fusion", lambda: FusionService(self.db).fuse_all()),
                 ("quality", lambda: QualityService(self.db).evaluate_all()),
                 ("prioritization", lambda: PrioritizationService(self.db).prioritize_all()),
-                ("planning", lambda: PlanningService(self.db).generate_plan("user-001", "2026-06-22", 1.0)),
+                ("planning", lambda: PlanningService(self.db).generate_plan("user-001", "2026-07-14", 1.0)),
             ]
 
             for name, fn in steps:
@@ -119,7 +119,8 @@ class OrchestratorService:
                 "latest_run": None,
                 "total_runs": total_runs,
                 "system_accuracy": system_accuracy,
-                "environment": environment
+                "environment": environment,
+                "average_latency": LLMClient.get_average_latency()
             }
         
         # Detect stale "running" pipeline — if it's been running > 5 minutes, it's dead
@@ -153,5 +154,6 @@ class OrchestratorService:
             },
             "total_runs": total_runs,
             "system_accuracy": system_accuracy,
-            "environment": environment
+            "environment": environment,
+            "average_latency": LLMClient.get_average_latency()
         }

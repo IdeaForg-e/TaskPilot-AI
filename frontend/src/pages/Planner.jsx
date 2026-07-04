@@ -268,10 +268,10 @@ export default function Planner() {
                 })}
               </h3>
             </div>
-            <span
-              className="chip chip-blue text-[0.55rem] py-0.5"
-            >
-              {selectedDate === todayStr ? 'OCT 24, TODAY' : selectedDate}
+            <span className="chip chip-blue text-[0.55rem] py-0.5">
+              {selectedDate === todayStr 
+                ? `${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}, TODAY` 
+                : selectedDate}
             </span>
           </div>
 

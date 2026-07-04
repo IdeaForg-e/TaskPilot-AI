@@ -8,8 +8,8 @@
     "assignee": null,
     "reporter": "user-014",
     "team": "Backend",
-    "created_at": "2026-06-14T07:45:00Z",
-    "updated_at": "2026-06-17T09:00:00Z",
+    "created_at": "2026-07-08T07:45:00",
+    "updated_at": "2026-07-10T09:00:00",
     "resolved_at": null,
     "description": "Multiple customers reporting inability to log in from mobile devices (iOS and Android). Error message: 'Authentication token validation failed'. Issue started after auth-service deployment on June 13.",
     "impact": {
@@ -20,31 +20,31 @@
     },
     "timeline": [
       {
-        "time": "2026-06-14T07:30:00Z",
+        "time": "2026-07-08T07:30:00",
         "event": "First customer report via email"
       },
       {
-        "time": "2026-06-14T07:45:00Z",
+        "time": "2026-07-08T07:45:00",
         "event": "Incident created by QA"
       },
       {
-        "time": "2026-06-14T08:05:00Z",
+        "time": "2026-07-08T08:05:00",
         "event": "Slack alert posted in #incidents"
       },
       {
-        "time": "2026-06-14T08:12:00Z",
+        "time": "2026-07-08T08:12:00",
         "event": "Backend team investigating"
       },
       {
-        "time": "2026-06-14T09:00:00Z",
+        "time": "2026-07-08T09:00:00",
         "event": "Root cause identified: mobile JWT format mismatch"
       },
       {
-        "time": "2026-06-14T10:30:00Z",
+        "time": "2026-07-08T10:30:00",
         "event": "Temporary workaround applied (accept both formats)"
       },
       {
-        "time": "2026-06-14T10:45:00Z",
+        "time": "2026-07-08T10:45:00",
         "event": "Mobile login restored for most users"
       }
     ],
@@ -75,8 +75,8 @@
     "assignee": "user-005",
     "reporter": "user-005",
     "team": "Backend",
-    "created_at": "2026-06-17T08:00:00Z",
-    "updated_at": "2026-06-17T12:00:00Z",
+    "created_at": "2026-07-10T08:00:00",
+    "updated_at": "2026-07-10T12:00:00",
     "resolved_at": null,
     "description": "Razorpay payment webhooks are failing signature verification intermittently (approximately 5% failure rate). This causes payment status updates to be missed, resulting in orders showing as 'pending' when payments were actually successful.",
     "impact": {
@@ -87,23 +87,23 @@
     },
     "timeline": [
       {
-        "time": "2026-06-17T07:30:00Z",
+        "time": "2026-07-10T07:30:00",
         "event": "Sentry alerts for webhook signature failures spike"
       },
       {
-        "time": "2026-06-17T08:00:00Z",
+        "time": "2026-07-10T08:00:00",
         "event": "Incident created"
       },
       {
-        "time": "2026-06-17T08:15:00Z",
+        "time": "2026-07-10T08:15:00",
         "event": "Redis connection errors also noticed in Sentry"
       },
       {
-        "time": "2026-06-17T09:00:00Z",
+        "time": "2026-07-10T09:00:00",
         "event": "Investigation narrowed to clock skew between servers"
       },
       {
-        "time": "2026-06-17T10:00:00Z",
+        "time": "2026-07-10T10:00:00",
         "event": "Identified intermittent Redis failures compounding issue"
       }
     ],
@@ -130,8 +130,8 @@
     "assignee": "user-011",
     "reporter": "user-013",
     "team": "Platform",
-    "created_at": "2026-06-15T02:10:00Z",
-    "updated_at": "2026-06-17T14:00:00Z",
+    "created_at": "2026-07-09T02:10:00",
+    "updated_at": "2026-07-11T14:00:00",
     "resolved_at": null,
     "description": "Production database connections leaking, causing pool exhaustion at 847/1000 connections. Multiple services affected with intermittent 503 errors. Connection count was climbing at 15 connections per minute.",
     "impact": {
@@ -142,43 +142,43 @@
     },
     "timeline": [
       {
-        "time": "2026-06-15T02:10:00Z",
+        "time": "2026-07-09T02:10:00",
         "event": "PagerDuty alert: connection count at 847/1000"
       },
       {
-        "time": "2026-06-15T02:15:00Z",
+        "time": "2026-07-09T02:15:00",
         "event": "Slack alert in #incidents by Ravi"
       },
       {
-        "time": "2026-06-15T02:25:00Z",
+        "time": "2026-07-09T02:25:00",
         "event": "Sneha begins investigation, identifies order-service connections not releasing"
       },
       {
-        "time": "2026-06-15T02:35:00Z",
+        "time": "2026-07-09T02:35:00",
         "event": "Deepak correlates with order-service v2.3.1 deployment 2 hours prior"
       },
       {
-        "time": "2026-06-15T03:00:00Z",
+        "time": "2026-07-09T03:00:00",
         "event": "Temporary fix: Increased pool limit to 1500, restarted order-service"
       },
       {
-        "time": "2026-06-15T03:30:00Z",
+        "time": "2026-07-09T03:30:00",
         "event": "Connection count stabilized after restart"
       },
       {
-        "time": "2026-06-16T09:30:00Z",
+        "time": "2026-07-10T09:30:00",
         "event": "Root cause confirmed: retry loop creating new connections without releasing failed ones"
       },
       {
-        "time": "2026-06-16T12:00:00Z",
+        "time": "2026-07-10T12:00:00",
         "event": "Fix PR #133 submitted"
       },
       {
-        "time": "2026-06-16T18:00:00Z",
+        "time": "2026-07-10T18:00:00",
         "event": "Fix deployed to staging"
       },
       {
-        "time": "2026-06-17T14:00:00Z",
+        "time": "2026-07-11T14:00:00",
         "event": "Staging monitoring: connections stable at 45-60 range for 20+ hours"
       }
     ],
@@ -211,8 +211,8 @@
     "assignee": "user-011",
     "reporter": "user-013",
     "team": "Platform",
-    "created_at": "2026-06-14T02:30:00Z",
-    "updated_at": "2026-06-17T09:00:00Z",
+    "created_at": "2026-07-08T02:30:00",
+    "updated_at": "2026-07-10T09:00:00",
     "resolved_at": null,
     "description": "Image processing service has a memory leak causing OOM kills in production. Memory usage grows linearly until the 4GB limit is reached (~24 hours), then Kubernetes OOM killer terminates the pod. This has happened 3 times this week.",
     "impact": {
@@ -223,27 +223,27 @@
     },
     "timeline": [
       {
-        "time": "2026-06-12T06:00:00Z",
+        "time": "2026-07-06T06:00:00",
         "event": "First OOM kill observed (ignored as one-off)"
       },
       {
-        "time": "2026-06-13T18:00:00Z",
+        "time": "2026-07-07T18:00:00",
         "event": "Second OOM kill — pattern recognized"
       },
       {
-        "time": "2026-06-14T02:30:00Z",
+        "time": "2026-07-08T02:30:00",
         "event": "Third OOM kill — incident created"
       },
       {
-        "time": "2026-06-14T03:10:00Z",
+        "time": "2026-07-08T03:10:00",
         "event": "Sneha reports memory growing at 50MB/hour"
       },
       {
-        "time": "2026-06-14T03:20:00Z",
+        "time": "2026-07-08T03:20:00",
         "event": "Deepak requests production access for Sneha"
       },
       {
-        "time": "2026-06-16T09:00:00Z",
+        "time": "2026-07-10T09:00:00",
         "event": "Still blocked — production access not granted by DevOps"
       }
     ],
@@ -272,8 +272,8 @@
     "assignee": "user-002",
     "reporter": "user-014",
     "team": "Backend",
-    "created_at": "2026-06-15T10:25:00Z",
-    "updated_at": "2026-06-17T11:00:00Z",
+    "created_at": "2026-07-09T10:25:00",
+    "updated_at": "2026-07-10T11:00:00",
     "resolved_at": null,
     "description": "API P95 latency increased from 200ms to 1.2s after payment-service v1.5.0 deployment. Affecting /api/v1/payments, /api/v1/users, and /api/v1/orders endpoints. Customer complaints received.",
     "impact": {
@@ -284,35 +284,35 @@
     },
     "timeline": [
       {
-        "time": "2026-06-14T16:00:00Z",
+        "time": "2026-07-08T16:00:00",
         "event": "payment-service v1.5.0 deployed"
       },
       {
-        "time": "2026-06-15T10:25:00Z",
+        "time": "2026-07-09T10:25:00",
         "event": "PagerDuty alert: P95 latency at 1.2s"
       },
       {
-        "time": "2026-06-15T10:30:00Z",
+        "time": "2026-07-09T10:30:00",
         "event": "Slack alert by Rahul in #incidents"
       },
       {
-        "time": "2026-06-15T10:40:00Z",
+        "time": "2026-07-09T10:40:00",
         "event": "Sanjay checks query execution plans"
       },
       {
-        "time": "2026-06-15T14:00:00Z",
+        "time": "2026-07-09T14:00:00",
         "event": "Root cause: missing indexes on transaction history queries"
       },
       {
-        "time": "2026-06-16T11:00:00Z",
+        "time": "2026-07-10T11:00:00",
         "event": "Additional cause: N+1 queries in orders endpoint"
       },
       {
-        "time": "2026-06-16T16:00:00Z",
+        "time": "2026-07-10T16:00:00",
         "event": "Index fix PR #220 submitted"
       },
       {
-        "time": "2026-06-17T09:00:00Z",
+        "time": "2026-07-10T09:00:00",
         "event": "Fix deployed to staging, latency back to normal in staging"
       }
     ],
@@ -341,8 +341,8 @@
     "assignee": "user-013",
     "reporter": "user-013",
     "team": "DevOps",
-    "created_at": "2026-06-16T08:00:00Z",
-    "updated_at": "2026-06-17T08:00:00Z",
+    "created_at": "2026-07-10T08:00:00",
+    "updated_at": "2026-07-10T08:00:00",
     "resolved_at": null,
     "description": "SSL/TLS certificates for 4 production domains expiring on June 20, 2026. If not renewed, all HTTPS traffic to these domains will fail, causing complete service outage.",
     "impact": {
@@ -353,19 +353,19 @@
     },
     "timeline": [
       {
-        "time": "2026-06-16T04:00:00Z",
+        "time": "2026-07-09T04:00:00",
         "event": "Cloudflare expiration warning email received"
       },
       {
-        "time": "2026-06-16T08:00:00Z",
+        "time": "2026-07-10T08:00:00",
         "event": "Incident created, PROJ-1016 created"
       },
       {
-        "time": "2026-06-16T08:00:00Z",
+        "time": "2026-07-10T08:00:00",
         "event": "Ravi posts in #devops about certificate renewal"
       },
       {
-        "time": "2026-06-16T16:00:00Z",
+        "time": "2026-07-10T16:00:00",
         "event": "Anil escalates priority in #general"
       }
     ],
@@ -397,7 +397,40 @@
     "severity": "P1",
     "status": "Open",
     "reporter": "user-001",
-    "created_at": "2026-06-20T20:41:32.730530Z",
-    "updated_at": "2026-06-20T20:41:32.730542Z"
+    "created_at": "2026-07-13T20:41:32.730530",
+    "updated_at": "2026-07-13T20:41:32.730542"
+  },
+  {
+    "id": "inc-4661",
+    "key": "INC-4661",
+    "title": "Production upload API is down with 500 errors",
+    "description": "Production upload API is down with 500 errors",
+    "severity": "P1",
+    "status": "Open",
+    "reporter": "user-001",
+    "created_at": "2026-07-15T15:08:45.345614",
+    "updated_at": "2026-07-15T15:08:45.345623"
+  },
+  {
+    "id": "inc-8522",
+    "key": "INC-8522",
+    "title": "Acme Corp database connection failure causing 504 gateway timeouts",
+    "description": "inject a P1 defect",
+    "severity": "P1",
+    "status": "Open",
+    "reporter": "user-001",
+    "created_at": "2026-07-15T15:11:29.052433",
+    "updated_at": "2026-07-15T15:11:29.052474"
+  },
+  {
+    "id": "inc-8967",
+    "key": "INC-8967",
+    "title": "Acme Corp database connection failure causing 504 gateway timeouts",
+    "description": "inject a P1 defect",
+    "severity": "P1",
+    "status": "Open",
+    "reporter": "user-001",
+    "created_at": "2026-07-15T15:13:03.119258",
+    "updated_at": "2026-07-15T15:13:03.119279"
   }
 ]

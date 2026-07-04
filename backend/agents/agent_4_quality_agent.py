@@ -76,6 +76,35 @@ class QualityAgent:
         if not assignee:
             missing.append("owner")
 
+        # Context-aware realistic question generation
+        questions = []
+        if clear_title < 50:
+            questions.append("The current title is too brief. Could you specify the exact component and issue to improve tracking?")
+        if not assignee:
+            questions.append("No primary owner is assigned. Who on the engineering team should take ownership of this task?")
+        if environment < 50:
+            if "database" in lower or "timeout" in lower:
+                questions.append("Please specify if this database timeout is occurring in the Production database cluster or Staging.")
+            elif "ssl" in lower or "cert" in lower:
+                questions.append("Which environment's SSL endpoint is expiring? Please provide the domain name (e.g., api.company.com).")
+            else:
+                questions.append("Please clarify the target environment (Production, Staging, or CI/CD pipeline) where this issue is active.")
+        if reproduction < 50 and task_type in ("bug", "incident"):
+            if "login" in lower:
+                questions.append("Could you outline the step-by-step auth flow or network payloads that trigger the login failure?")
+            elif "upload" in lower or "500" in lower:
+                questions.append("Please provide the exact steps to reproduce the 500 error during upload, including payload details.")
+            else:
+                questions.append("Please outline the step-by-step reproduction path or event timeline that led to this error.")
+        if error_logs < 50 and task_type in ("bug", "incident"):
+            if "database" in lower or "timeout" in lower:
+                questions.append("Please attach the database connection pool stack traces showing the connection timeout.")
+            else:
+                questions.append("Please attach the corresponding server console logs or system stack trace from the failure window.")
+
+        if not questions:
+            questions = [f"Please provide clarified details for the missing {item}." for item in missing[:3]]
+
         actionability = "actionable"
         if overall < 55:
             actionability = "needs_info"
@@ -92,6 +121,6 @@ class QualityAgent:
             "assignee": assignee_score,
             "overall_score": overall,
             "missing_info": missing,
-            "clarification_questions": [f"Please provide {item}." for item in missing[:3]],
+            "clarification_questions": questions[:3],
             "actionability": actionability,
         }

@@ -72,42 +72,81 @@ class ExtractionAgent:
             str(item.get(key, ""))
             for key in ("content", "body", "summary", "description", "subject", "title")
         )
-        lower = text.lower()
-        if not any(
-            marker in lower
-            for marker in (
-                "can you",
-                "please",
-                "need to",
-                "should",
-                "don't forget",
-                "action",
-                "blocked",
-                "urgent",
-                "review",
-                "investigate",
-                "fix",
-                "prepare",
-                "update",
-            )
-        ):
-            return []
+        
+        # Parse lines to check for multiple distinct action points (e.g. bullets or numbered lists)
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        candidates = []
+        action_words = (
+            "can you",
+            "please",
+            "need to",
+            "should",
+            "don't forget",
+            "action",
+            "blocked",
+            "urgent",
+            "review",
+            "investigate",
+            "fix",
+            "prepare",
+            "update",
+            "renew",
+            "confirm",
+            "patch",
+        )
 
-        title = self._title_from_text(text, item, source_type)
-        if self._is_vague_title(title):
-            return []
-        urgency = "critical" if any(w in lower for w in ("p0", "critical", "urgent", "outage")) else "high"
-        assignee = self._find_assignee(item, text)
-        return [
-            {
-                "title": title,
-                "description": text[:800],
-                "assignee": assignee,
-                "deadline": self._find_deadline(text),
-                "urgency": urgency,
-                "confidence": 0.72 if assignee else 0.62,
-            }
-        ]
+        for line in lines:
+            line_lower = line.lower()
+            cleaned_line = re.sub(r"^[-*•\d\.\s]+", "", line).strip()
+            if not cleaned_line:
+                continue
+
+            if any(marker in line_lower for marker in action_words) and len(cleaned_line) > 10:
+                title = self._title_from_text(cleaned_line, item, source_type)
+                if self._is_vague_title(title):
+                    continue
+                urgency = "critical" if any(w in line_lower for w in ("p0", "critical", "urgent", "outage")) else "high"
+                assignee = self._find_assignee(item, line)
+                deadline = self._find_deadline(line)
+                
+                desc = cleaned_line
+                if item.get("subject"):
+                    desc += f" (Context: {item['subject']})"
+
+                candidates.append(
+                    {
+                        "title": title,
+                        "description": desc,
+                        "assignee": assignee or self._find_assignee(item, text),
+                        "deadline": deadline or self._find_deadline(text),
+                        "urgency": urgency,
+                        "confidence": 0.85 if assignee else 0.75,
+                    }
+                )
+
+        # Fallback to single overall task extraction if no line-by-line tasks were found
+        if not candidates:
+            lower = text.lower()
+            if not any(marker in lower for marker in action_words):
+                return []
+
+            title = self._title_from_text(text, item, source_type)
+            if self._is_vague_title(title):
+                return []
+            urgency = "critical" if any(w in lower for w in ("p0", "critical", "urgent", "outage")) else "high"
+            assignee = self._find_assignee(item, text)
+            candidates.append(
+                {
+                    "title": title,
+                    "description": text[:800].strip(),
+                    "assignee": assignee,
+                    "deadline": self._find_deadline(text),
+                    "urgency": urgency,
+                    "confidence": 0.75 if assignee else 0.65,
+                }
+            )
+
+        return candidates
 
     def _meeting_action_items(self, item: dict) -> list[dict]:
         tasks = []

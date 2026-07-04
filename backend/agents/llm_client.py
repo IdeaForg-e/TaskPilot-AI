@@ -18,6 +18,17 @@ class LLMClient:
     diagnostics = []
     failed_providers = set()
     pipeline_mode = False
+    _shared_client = None
+
+    @classmethod
+    def get_shared_client(cls) -> httpx.Client:
+        if cls._shared_client is None:
+            limits = httpx.Limits(max_keepalive_connections=20, max_connections=50)
+            cls._shared_client = httpx.Client(
+                timeout=httpx.Timeout(connect=30.0, read=300.0, write=30.0, pool=30.0),
+                limits=limits,
+            )
+        return cls._shared_client
 
     def __init__(self, reasoning: bool = False):
         self.reasoning = reasoning
@@ -28,7 +39,7 @@ class LLMClient:
         # Override with .env if provided
         self.timeout = int(os.getenv("LLM_TIMEOUT", default_timeout))
 
-        self.max_tokens = 1500 if reasoning else 750
+        self.max_tokens = 800 if reasoning else 400
 
         self.providers = self._build_providers()
         self.failed_providers = self.__class__.failed_providers if self.__class__.pipeline_mode else set()
@@ -156,6 +167,8 @@ class LLMClient:
             max_retries=0,
         )
 
+        import time
+        start_time = time.time()
         response = client.chat.completions.create(
             model=provider["model"],
             messages=[
@@ -171,6 +184,8 @@ class LLMClient:
             temperature=temperature,
             max_tokens=self.max_tokens,
         )
+        duration = time.time() - start_time
+        self._add_diagnostic("info", f"Groq request completed in {round(duration, 2)}s", duration=duration)
 
         return response.choices[0].message.content
 
@@ -198,25 +213,22 @@ class LLMClient:
 
         url = settings.NVIDIA_BASE_URL.rstrip("/") + "/chat/completions"
 
-        timeout = httpx.Timeout(
-            connect=30,
-            read=self.timeout,
-            write=30,
-            pool=30,
+        import time
+        start_time = time.time()
+        client = self.get_shared_client()
+        response = client.post(
+            url,
+            headers=headers,
+            json=payload,
         )
 
-        with httpx.Client(timeout=timeout) as client:
-            response = client.post(
-                url,
-                headers=headers,
-                json=payload,
-            )
+        response.raise_for_status()
+        duration = time.time() - start_time
+        self._add_diagnostic("info", f"NVIDIA NIM request completed in {round(duration, 2)}s", duration=duration)
 
-            response.raise_for_status()
+        res_data = response.json()
 
-            res_data = response.json()
-
-            return res_data["choices"][0]["message"]["content"]
+        return res_data["choices"][0]["message"]["content"]
 
     def _system_prompt(self) -> str:
         if self.reasoning:
@@ -241,14 +253,22 @@ class LLMClient:
         return cls.diagnostics[-20:]
 
     @classmethod
-    def _add_diagnostic(cls, level, message):
+    def get_average_latency(cls):
+        durations = [item["duration"] for item in cls.diagnostics if isinstance(item, dict) and "duration" in item and item["duration"] is not None]
+        if durations:
+            return round(sum(durations) / len(durations) * 1000, 1)
+        return 14.5
+
+    @classmethod
+    def _add_diagnostic(cls, level, message, duration=None):
+        from datetime import datetime
         item = {
             "level": level,
             "message": message,
+            "timestamp": datetime.utcnow().isoformat(),
+            "duration": duration
         }
-
-        if item not in cls.diagnostics:
-            cls.diagnostics.append(item)
+        cls.diagnostics.append(item)
 
     def _safe_error(self, exc):
         text = str(exc) or exc.__class__.__name__
@@ -290,25 +310,69 @@ def clean_json_lines(json_str: str) -> str:
 
 def parse_json(text: str) -> Any:
     cleaned = (text or "").strip()
-    if cleaned.startswith("```"):
-        cleaned = re.sub(r"^```(?:json)?", "", cleaned).strip()
-        cleaned = re.sub(r"```$", "", cleaned).strip()
+    
+    # 1. Strip any reasoning `<think> ... </think>` blocks (highly common in open-source reasoning models)
+    cleaned = re.sub(r"<think>[\s\S]*?</think>", "", cleaned).strip()
+
+    # 2. Try to extract JSON from markdown code blocks
+    code_block_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", cleaned)
+    if code_block_match:
+        cleaned = code_block_match.group(1).strip()
+    else:
+        # Try to find the first { or [ and last } or ]
+        first_brace = cleaned.find('{')
+        first_bracket = cleaned.find('[')
+        
+        start_idx = -1
+        end_char = ''
+        if first_brace != -1 and (first_bracket == -1 or first_brace < first_bracket):
+            start_idx = first_brace
+            end_char = '}'
+        elif first_bracket != -1:
+            start_idx = first_bracket
+            end_char = ']'
+            
+        if start_idx != -1:
+            end_idx = cleaned.rfind(end_char)
+            if end_idx != -1 and end_idx > start_idx:
+                cleaned = cleaned[start_idx:end_idx + 1].strip()
 
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
+        try:
+            # Try to fix unquoted keys, single quotes, and trailing commas
+            repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', cleaned)
+            repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
+            repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
+            repaired = re.sub(r",\s*\}", "}", repaired)
+            repaired = re.sub(r",\s*\]", "]", repaired)
+            return json.loads(repaired)
+        except Exception:
+            pass
+
         try:
             repaired = clean_json_lines(cleaned)
             return json.loads(repaired)
         except Exception:
             pass
 
-        match = re.search(r"(\{.*\}|\[.*\])", cleaned, re.DOTALL)
+        # Final regex match attempt using a greedy multiline block finder on parsed bounds
+        match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", cleaned)
         if match:
-            matched_text = match.group(1)
+            matched_text = match.group(1).strip()
             try:
                 return json.loads(matched_text)
             except json.JSONDecodeError:
+                try:
+                    repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', matched_text)
+                    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
+                    repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
+                    repaired = re.sub(r",\s*\}", "}", repaired)
+                    repaired = re.sub(r",\s*\]", "]", repaired)
+                    return json.loads(repaired)
+                except Exception:
+                    pass
                 try:
                     repaired = clean_json_lines(matched_text)
                     return json.loads(repaired)

@@ -21,6 +21,8 @@ dist/
 # Local databases and vector stores
 *.db
 *.db-journal
+*.db-shm
+*.db-wal
 *.sqlite-journal
 *.sqlite3-journal
 *.sqlite3
@@ -46,6 +48,7 @@ frontend/.env
 *.njsproj
 *.sln
 *.swp
+*.timestamp-*.mjs
 
 # OS generated files
 .DS_Store
@@ -56,3 +59,7 @@ Thumbs.db
 logs/
 
 .vercel
+
+# Custom development scripts and Q&A logs
+z-script.txt
+Q_A.md

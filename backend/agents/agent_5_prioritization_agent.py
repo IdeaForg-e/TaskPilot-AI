@@ -190,12 +190,14 @@ class PrioritizationAgent:
     def _fallback(self, task: dict, quality_score: float) -> dict:
         title = task.get("title", "") or ""
         text = f"{title} {task.get('description', '')}".lower()
-        urgency_map = {"critical": 9.5, "high": 8.0, "medium": 5.5, "low": 3.0}
+        urgency_map = {"critical": 9.6, "high": 8.2, "medium": 5.4, "low": 2.8}
         severity = urgency_map.get((task.get("urgency") or "").lower(), 5.0)
+        
         if task.get("task_type") in ("incident", "security"):
-            severity = max(severity, 8.5)
-        if any(w in text for w in ("p0", "critical", "cvss", "certificate", "expires", "outage")):
-            severity = max(severity, 9.0)
+            severity = max(severity, 8.8)
+        if any(w in text for w in ("p0", "critical", "cvss", "certificate", "expires", "outage", "broken")):
+            severity = max(severity, 9.4)
+
         is_reporting_work = any(
             w in text
             for w in (
@@ -207,21 +209,30 @@ class PrioritizationAgent:
                 "coordinate your demos",
             )
         )
-        production = 10 if any(w in text for w in ("production", "outage", "incident", "customer")) else 4
-        customer = 9 if any(w in text for w in ("customer", "enterprise", "acme", "globaltech", "users affected")) else 4
+
+        production = 9.8 if any(w in text for w in ("outage", "down", "broken", "critical error")) else (8.4 if "production" in text or "prod" in text else 4.0)
+        customer = 9.5 if any(w in text for w in ("acme", "globaltech")) else (8.2 if any(w in text for w in ("customer", "client", "user", "enterprise")) else 3.8)
+        
         if is_reporting_work and task.get("task_type") == "request":
-            production = min(production, 5)
-            customer = min(customer, 5)
-            severity = min(severity, 6)
-        blocker = 8 if any(w in text for w in ("blocked", "blocking", "credentials", "certificate", "ci pipeline")) else 3
-        deadline = 8 if task.get("deadline") else 4
+            production = min(production, 4.8)
+            customer = min(customer, 4.8)
+            severity = min(severity, 5.5)
+
+        blocker = 9.2 if "blocker" in text or "blocked" in text else (7.8 if any(w in text for w in ("credentials", "certificate", "expired", "pipeline")) else 3.0)
+        deadline = 8.5 if task.get("deadline") else 4.0
+        
         if any(w in text for w in ("today", "eod", "expires", "due date", "within 24 hours")):
-            deadline = max(deadline, 9)
-        dependency = min(10, 3 + int(task.get("source_count") or 1))
-        business = max(customer, production)
-        quality_factor = max(1, min(10, quality_score / 10))
+            deadline = max(deadline, 9.6)
+        elif any(w in text for w in ("tomorrow", "next day")):
+            deadline = max(deadline, 8.8)
+
+        dependency = min(10.0, 3.2 + float(task.get("source_count") or 1) * 0.8)
+        business = round(max(customer, production) * 0.95 + 0.4, 1)
+        quality_factor = max(1.0, min(10.0, float(quality_score) / 10.0))
+        
         title_quality_multiplier = 0.55 if self._is_vague_title(title) else 1.0
         work_type_multiplier = 0.72 if is_reporting_work and task.get("task_type") == "request" else 1.0
+        
         overall = round(
             (
                 severity * 0.25
@@ -239,14 +250,14 @@ class PrioritizationAgent:
 
         scores = {
             "overall_score": overall,
-            "severity_score": severity,
-            "deadline_score": deadline,
-            "production_impact_score": production,
-            "customer_impact_score": customer,
-            "dependency_score": dependency,
-            "blocker_score": blocker,
-            "business_impact_score": business,
-            "quality_factor_score": quality_factor,
+            "severity_score": round(severity, 1),
+            "deadline_score": round(deadline, 1),
+            "production_impact_score": round(production, 1),
+            "customer_impact_score": round(customer, 1),
+            "dependency_score": round(dependency, 1),
+            "blocker_score": round(blocker, 1),
+            "business_impact_score": round(business, 1),
+            "quality_factor_score": round(quality_factor, 1),
         }
 
         reasons = build_priority_reasons(scores, task)

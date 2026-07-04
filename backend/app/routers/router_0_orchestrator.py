@@ -27,6 +27,25 @@ def run_pipeline_task(run_id: str):
 @router.post("/orchestrate/run", response_model=APIResponse)
 def run_pipeline(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     try:
+        from datetime import datetime, timedelta
+        
+        # Check for active pipeline runs (status == "running")
+        # In case a run hangs (e.g. server crash), we implement a 5-minute timeout threshold
+        active_run = db.query(WorkflowRun).filter(WorkflowRun.status == "running").first()
+        if active_run:
+            if datetime.utcnow() - active_run.started_at < timedelta(minutes=5):
+                return APIResponse(
+                    success=False,
+                    data={"error": "Another pipeline run is currently active.", "run_id": active_run.id},
+                    message="Pipeline is currently running. Please wait for the current run to complete.",
+                )
+            else:
+                logger.warning(f"Marking stale pipeline run {active_run.id} as failed due to timeout.")
+                active_run.status = "failed"
+                active_run.completed_at = datetime.utcnow()
+                active_run.error_log = "Run timed out / preempted by new execution."
+                db.commit()
+
         run_id = str(uuid.uuid4())
         run = WorkflowRun(id=run_id, status="running", current_agent="ingestion")
         db.add(run)
