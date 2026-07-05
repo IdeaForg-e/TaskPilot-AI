@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Menu, Play, Loader2, CheckCircle2, XCircle, AlertTriangle,
-  Search, Bell, Sun, Moon, LayoutGrid,
+  Search, Bell, Sun, Moon,
 } from 'lucide-react';
 import { getApiErrorMessage, runPipeline, getLatestPipelineRun } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
@@ -191,17 +191,7 @@ export default function Header({ onMenuClick }) {
             <Bell className="h-4 w-4" />
           </button>
 
-          {/* Grid icon */}
-          <button
-            className="rounded-xl p-2 transition-all hidden sm:flex"
-            style={{
-              color: 'var(--on-surface-variant)',
-              background: 'rgba(255,255,255,0.04)',
-              border: '0.5px solid rgba(255,255,255,0.07)',
-            }}
-          >
-            <LayoutGrid className="h-4 w-4" />
-          </button>
+          
 
           {/* Run Pipeline CTA */}
           <button
