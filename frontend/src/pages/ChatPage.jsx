@@ -300,25 +300,7 @@ export default function ChatPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto chat-scroll">
-            {/* Environment */}
-            <div className="p-5" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center justify-between mb-2">
-                <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>Environment</span>
-                <span
-                  className="chip text-[0.5rem] py-0.5"
-                  style={{ background: 'rgba(142,205,255,0.1)', color: 'var(--primary)', border: '0.5px solid rgba(142,205,255,0.2)' }}
-                >
-                  PROD-A
-                </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-body text-xs" style={{ color: 'var(--on-surface-variant)' }}>Uptime</span>
-                <span className="font-headline text-sm font-semibold" style={{ color: '#4caf8e' }}>99.998%</span>
-              </div>
-              <div className="mt-2 h-1 w-full rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                <div className="h-full rounded-full" style={{ width: '99.998%', background: '#4caf8e' }} />
-              </div>
-            </div>
+            
 
             {/* AI Reminders & Scheduled Tasks */}
             <div className="p-5" style={{ borderBottom: '0.5px solid rgba(255,255,255,0.05)' }}>
