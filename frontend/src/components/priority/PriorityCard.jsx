@@ -142,10 +142,7 @@ export default function PriorityCard({ task, rank }) {
                 </div>
               )}
 
-              {/* CTA */}
-              <button className="btn-primary ml-auto text-xs py-2 px-5 rounded-xl">
-                Launch Debugger
-              </button>
+             
             </div>
           </div>
         </div>
