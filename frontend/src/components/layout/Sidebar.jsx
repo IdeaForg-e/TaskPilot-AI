@@ -140,14 +140,7 @@ export default function Sidebar({ open, onClose }) {
 
         {/* Bottom Section */}
         <div className="flex flex-col gap-2 p-4">
-          {/* New Workflow CTA */}
-          <button
-            className="btn-primary w-full justify-center text-xs py-2.5"
-            onClick={onClose}
-          >
-            <Plus className="h-3.5 w-3.5" />
-            New Workflow
-          </button>
+         
 
           {/* Bottom links */}
           <div className="flex flex-col gap-0.5 pt-1">
