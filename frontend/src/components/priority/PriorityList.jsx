@@ -56,7 +56,7 @@ export default function PriorityList({ tasks = [] }) {
             className="grid grid-cols-[2fr_1fr_1fr_1fr_0.5fr] gap-4 px-5 py-2.5"
             style={{ borderBottom: '0.5px solid rgba(255,255,255,0.04)' }}
           >
-            {['Task Details', 'Complexity', 'Urgency Score', 'Status', 'Action'].map((h) => (
+            {['Task Details', 'Complexity', 'Urgency Score', 'Status', 'View Evaluation'].map((h) => (
               <span key={h} className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
                 {h}
               </span>
