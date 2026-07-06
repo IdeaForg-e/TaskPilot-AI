@@ -378,7 +378,7 @@ export default function ChatPage() {
                               className="flex-1 rounded-lg py-1 text-[0.6rem] font-semibold font-body transition-colors"
                               style={{ background: 'rgba(142,205,255,0.08)', border: '0.5px solid rgba(142,205,255,0.15)', color: 'var(--primary)' }}
                             >
-                              Ask Copilot
+                              Remind Me
                             </button>
                           </div>
                         )}
