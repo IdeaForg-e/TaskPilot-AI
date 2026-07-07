@@ -35,7 +35,7 @@ function getUrgencyLevel(task, rank) {
   return URGENCY_LEVEL.optimization;
 }
 
-export default function PriorityCard({ task, rank }) {
+export default function PriorityCard({ task, rank, onClick }) {
   const explanation = task.explanation || task.reason || 'No prioritization reasoning provided.';
   const platforms = task.platforms || (task.source ? [task.source] : []);
   const urgency = getUrgencyLevel(task, rank);
@@ -43,8 +43,9 @@ export default function PriorityCard({ task, rank }) {
   // Featured card for rank #1
   if (rank === 1) {
     return (
-      <div
-        className="glass-card glass-card-hover p-6 relative overflow-hidden"
+      <button
+        onClick={onClick}
+        className="glass-card glass-card-hover p-6 relative overflow-hidden text-left w-full cursor-pointer transition-all block duration-300"
         style={{ background: 'rgba(239,68,68,0.03)' }}
       >
         {/* Rank badge */}
@@ -151,13 +152,16 @@ export default function PriorityCard({ task, rank }) {
             </div>
           </div>
         </div>
-      </div>
+      </button>
     );
   }
 
   // Regular cards (rank 2+)
   return (
-    <div className="glass-card glass-card-hover p-4 relative overflow-hidden">
+    <button
+      onClick={onClick}
+      className="glass-card glass-card-hover p-4 relative overflow-hidden text-left w-full cursor-pointer block transition-all duration-300"
+    >
       {/* Rank watermark */}
       <div
         className="absolute top-3 right-4 font-headline text-4xl font-light select-none pointer-events-none"
@@ -235,6 +239,6 @@ export default function PriorityCard({ task, rank }) {
           <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>/ 10</span>
         </div>
       </div>
-    </div>
+    </button>
   );
 }

@@ -1,7 +1,7 @@
 import PriorityCard from './PriorityCard';
 import EmptyState from '../common/EmptyState';
 
-export default function PriorityList({ tasks = [] }) {
+export default function PriorityList({ tasks = [], onSelectTask }) {
   if (tasks.length === 0) {
     return <EmptyState message="No ranked tasks available. Run the pipeline first." />;
   }
@@ -15,14 +15,14 @@ export default function PriorityList({ tasks = [] }) {
     <div className="space-y-4">
       {/* Featured #1 */}
       <div className="animate-fade-in-up stagger-1">
-        <PriorityCard task={topTask} rank={1} />
+        <PriorityCard task={topTask} rank={1} onClick={() => onSelectTask(topTask)} />
       </div>
 
       {/* Grid #2–4 */}
       {gridTasks.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up stagger-2">
           {gridTasks.map((task, i) => (
-            <PriorityCard key={task.id} task={task} rank={i + 2} />
+            <PriorityCard key={task.id} task={task} rank={i + 2} onClick={() => onSelectTask(task)} />
           ))}
         </div>
       )}
@@ -72,7 +72,8 @@ export default function PriorityList({ tasks = [] }) {
             return (
               <div
                 key={task.id}
-                className="hairline-row grid grid-cols-[2fr_1fr_1fr_1fr_0.5fr] gap-4 items-center px-5 py-3.5 cursor-default"
+                onClick={() => onSelectTask(task)}
+                className="hairline-row grid grid-cols-[2fr_1fr_1fr_1fr_0.5fr] gap-4 items-center px-5 py-3.5 cursor-pointer hover:bg-white/2 transition-colors"
               >
                 {/* Task details */}
                 <div className="min-w-0">
@@ -114,7 +115,11 @@ export default function PriorityList({ tasks = [] }) {
 
                 {/* Action */}
                 <button
-                  className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectTask(task);
+                  }}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors hover:bg-white/5 cursor-pointer"
                   style={{ border: '0.5px solid rgba(255,255,255,0.08)' }}
                 >
                   <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" style={{ color: 'var(--outline)' }}>

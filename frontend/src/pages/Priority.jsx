@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getRankedTasks, getApiErrorMessage } from '../services/api';
 import PriorityList from '../components/priority/PriorityList';
+import TaskDetail from '../components/tasks/TaskDetail';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import { AlertTriangle, Sparkles } from 'lucide-react';
@@ -9,6 +10,7 @@ export default function Priority() {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const loadTasks = async () => {
     setLoading(true); setError(null);
@@ -31,7 +33,8 @@ export default function Priority() {
   const criticalCount     = tasks.filter((t) => (t.priority_score || 0) >= 9.0).length;
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <>
+      <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -153,7 +156,13 @@ export default function Priority() {
         </div>
       )}
 
-      <PriorityList tasks={tasks} />
+      <PriorityList tasks={tasks} onSelectTask={setSelectedTask} />
     </div>
-  );
+
+    {/* Task Detail Modal Pop-up (Rendered outside the transform-animated container) */}
+    {selectedTask && (
+      <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
+    )}
+  </>
+);
 }
