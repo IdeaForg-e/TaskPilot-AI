@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import {
   getPlan, getPlansList, generatePlan, getApiErrorMessage,
 } from '../services/api';
 import DailyPlanner from '../components/planner/DailyPlanner';
+import TaskDetail from '../components/tasks/TaskDetail';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
 import {
-  CalendarRange, Sparkles, ChevronLeft, ChevronRight, Calendar,
+  CalendarRange, Sparkles, ChevronLeft, ChevronRight, Calendar, X,
 } from 'lucide-react';
 
 const MONTH_NAMES = [
@@ -33,6 +35,9 @@ export default function Planner() {
   const [loadingList, setLoadingList] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState(null);
+
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showRules, setShowRules] = useState(false);
 
   const loadPlannedDates = async () => {
     try {
@@ -118,7 +123,8 @@ export default function Planner() {
   const efficiencyPct = Math.min(100, 70 + plannedDates.length * 4);
 
   return (
-    <div className="space-y-5 animate-fade-in-up">
+    <>
+      <div className="space-y-5 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -130,7 +136,10 @@ export default function Planner() {
             {MONTH_NAMES[currentMonth]} {currentYear}.
           </p>
         </div>
-        <button className="btn-ghost self-start flex items-center gap-2 text-xs">
+        <button 
+          onClick={() => setShowRules(true)}
+          className="btn-ghost self-start flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors"
+        >
           <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
           </svg>
@@ -320,10 +329,75 @@ export default function Planner() {
               </button>
             </div>
           ) : (
-            <DailyPlanner plan={plan} />
+            <DailyPlanner plan={plan} onSelectTask={setSelectedTask} />
           )}
         </div>
       </div>
     </div>
-  );
+
+    {/* Task Detail Modal Pop-up (Rendered outside the transform-animated container) */}
+    {selectedTask && (
+      <TaskDetail task={selectedTask} tasks={[]} onClose={() => setSelectedTask(null)} />
+    )}
+
+    {/* Optimizer Rules Modal Pop-up (Rendered outside the transform-animated container) */}
+    {showRules && createPortal(
+      <div 
+        onClick={() => setShowRules(false)}
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-scale-in cursor-pointer"
+      >
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-lg overflow-y-auto border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-6 rounded-2xl shadow-2xl flex flex-col justify-between cursor-default"
+        >
+          <div>
+            <div className="mb-5 flex items-center justify-between border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
+                  <Sparkles className="h-3.5 w-3.5 text-primary" />
+                </span>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">AI Optimizer Engine Rules</h2>
+              </div>
+              <button
+                onClick={() => setShowRules(false)}
+                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-4 font-body text-xs text-slate-300">
+              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
+                <h4 className="font-semibold text-white mb-1">📅 Rule 1: Cognitive Peak Windowing</h4>
+                <p className="leading-relaxed">Deep Focus agenda slots are allocated dynamically during morning hours when developer cognitive load capacity is at its peak.</p>
+              </div>
+              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
+                <h4 className="font-semibold text-white mb-1">🛡️ Rule 2: DND Auto-Shielding</h4>
+                <p className="leading-relaxed">Enforces strict Do Not Disturb alerts for high-complexity coding items to prevent team workflow interruptions.</p>
+              </div>
+              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
+                <h4 className="font-semibold text-white mb-1">☕ Rule 3: Fatigue Recovery Blocks</h4>
+                <p className="leading-relaxed">AI automatically inserts mandatory 30-minute buffers after meeting sequences to alleviate cognitive fatigue.</p>
+              </div>
+              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
+                <h4 className="font-semibold text-white mb-1">🔄 Rule 4: Signal Fusion Alignment</h4>
+                <p className="leading-relaxed">Cross-references backlog triage priorities between Jira issue severity metrics and GitHub activity feeds dynamically.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-slate-850 mt-5 pt-4">
+            <button
+              onClick={() => setShowRules(false)}
+              className="w-full rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 py-2 text-xs font-semibold text-slate-350 transition-all cursor-pointer text-center"
+            >
+              Acknowledge & Close
+            </button>
+          </div>
+        </div>
+      </div>,
+      document.body
+    )}
+  </>
+);
 }

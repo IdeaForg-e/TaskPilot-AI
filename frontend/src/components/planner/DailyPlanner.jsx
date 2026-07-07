@@ -2,7 +2,7 @@ import { Star, LayoutGrid, Clock, Sparkles } from 'lucide-react';
 import TimeSlot from './TimeSlot';
 import EmptyState from '../common/EmptyState';
 
-export default function DailyPlanner({ plan }) {
+export default function DailyPlanner({ plan, onSelectTask }) {
   const topTasks = plan?.top_priority_tasks || plan?.top_tasks || [];
   const remainingTasks = plan?.remaining_tasks || [];
   const slots = (plan?.time_blocks || plan?.schedule || [])
@@ -61,9 +61,10 @@ export default function DailyPlanner({ plan }) {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {topTasks.map((task, idx) => (
-              <div
+              <button
                 key={task.id || idx}
-                className="glass-card p-4 relative overflow-hidden"
+                onClick={() => onSelectTask(task)}
+                className="glass-card p-4 relative overflow-hidden text-left w-full cursor-pointer hover:border-primary/20 transition-all duration-300 block"
                 style={{ background: 'rgba(142,205,255,0.04)', borderColor: 'rgba(142,205,255,0.12)' }}
               >
                 <div
@@ -81,7 +82,7 @@ export default function DailyPlanner({ plan }) {
                     Priority: {task.priority_score}
                   </p>
                 )}
-              </div>
+              </button>
             ))}
           </div>
         </div>
@@ -115,15 +116,16 @@ export default function DailyPlanner({ plan }) {
           </div>
           <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {remainingTasks.map((task, idx) => (
-              <div
+              <button
                 key={task.id || idx}
-                className="glass-card p-3 glass-card-hover flex items-center gap-2.5"
+                onClick={() => onSelectTask(task)}
+                className="glass-card p-3 glass-card-hover flex items-center gap-2.5 text-left w-full cursor-pointer hover:border-primary/20 transition-all duration-300 block animate-scale-in"
               >
-                <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: 'rgba(255,255,255,0.2)' }} />
+                <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: 'var(--primary)', opacity: 0.5 }} />
                 <span className="font-body text-xs truncate" style={{ color: 'var(--on-surface-variant)' }}>
                   {task.title}
                 </span>
-              </div>
+              </button>
             ))}
           </div>
         </div>
