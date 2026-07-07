@@ -1,4 +1,5 @@
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import {
   Menu, Play, Loader2, CheckCircle2, XCircle, AlertTriangle,
   Search, Bell, Sun, Moon,
