@@ -67,7 +67,7 @@ export default function Header({ onMenuClick }) {
         id: 'pipeline',
         type: runInfo.latest_run.status === 'completed' ? 'success' : 'error',
         title: `Pipeline ${runInfo.latest_run.status === 'completed' ? 'Completed' : 'Failed'}`,
-        desc: `Run ID: ${runInfo.latest_run.id.substring(0, 8)}`,
+        desc: `Run ID: ${(runInfo.latest_run.run_id || runInfo.latest_run.id || '').substring(0, 8)}`,
       });
     }
 
