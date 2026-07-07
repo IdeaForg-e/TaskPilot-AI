@@ -134,11 +134,9 @@ export default function Tasks() {
                   e.stopPropagation();
                   setOpenDropdown(isOpen ? null : idx);
                 }}
-                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-white/10"
+                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-primary/30"
                 style={{
                   color: 'var(--on-surface)',
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '0.5px solid rgba(255,255,255,0.07)',
                 }}
               >
                 <span className="truncate pr-1">{displayLabel}</span>
@@ -147,11 +145,10 @@ export default function Tasks() {
 
               {isOpen && (
                 <div
-                  className="absolute left-0 mt-1.5 min-w-[170px] max-h-60 overflow-y-auto rounded-xl p-1 shadow-2xl z-40 animate-scale-in"
+                  className="glass-card absolute left-0 mt-1.5 min-w-[170px] max-h-60 overflow-y-auto rounded-xl p-1 shadow-2xl z-40 animate-scale-in"
                   style={{
-                    background: 'rgba(17,19,24,0.98)',
-                    backdropFilter: 'blur(30px)',
-                    border: '0.5px solid rgba(255,255,255,0.09)',
+                    background: 'var(--surface-container-high)',
+                    borderColor: 'var(--outline-variant)',
                   }}
                 >
                   {options.map((option) => (
@@ -161,10 +158,10 @@ export default function Tasks() {
                         set(option);
                         setOpenDropdown(null);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-white/5 cursor-pointer block truncate"
+                      className="w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-primary/10 cursor-pointer block truncate"
                       style={{
-                        color: option === value ? 'var(--primary)' : 'var(--on-surface-variant)',
-                        background: option === value ? 'rgba(142,205,255,0.05)' : 'transparent',
+                        color: option === value ? 'var(--primary)' : 'var(--on-surface)',
+                        background: option === value ? 'rgba(142,205,255,0.08)' : 'transparent',
                       }}
                     >
                       {option === 'all' ? placeholder : option}
