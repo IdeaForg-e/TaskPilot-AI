@@ -19,6 +19,7 @@ export default function ChatPage() {
   const [loadingReminders, setLoadingReminders] = useState(true);
 
   const [attachedFile, setAttachedFile] = useState(null);
+  const [fileContent, setFileContent] = useState('');
   const [selectedTask, setSelectedTask] = useState(null);
 
   const loadReminders = async () => {
@@ -65,10 +66,18 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, { role: 'user', content: displayContent }]);
     if (!messageText) setInput('');
     setSending(true);
+    // Prepare query content containing the text file contents (truncated to keep LLM token cost low)
+    let finalQuery = textToSend;
+    if (attachedFile && fileContent) {
+      const truncated = fileContent.substring(0, 3000);
+      finalQuery = `${textToSend || 'Analyze this file.'}\n\n[File Attachment: ${attachedFile.name}]\n\`\`\`\n${truncated}\n\`\`\``;
+    }
+
     setAttachedFile(null);
+    setFileContent('');
 
     try {
-      const res = await sendChatMessage(textToSend || `Analyze uploaded file: ${displayContent}`);
+      const res = await sendChatMessage(finalQuery);
       const reply = res.data?.reply || res.data?.message || res.data?.content || 'Unable to fetch response.';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
       await loadReminders();
@@ -281,7 +290,14 @@ export default function ChatPage() {
               style={{ display: 'none' }} 
               onChange={(e) => {
                 const f = e.target.files[0];
-                if (f) setAttachedFile(f);
+                if (f) {
+                  setAttachedFile(f);
+                  const reader = new FileReader();
+                  reader.onload = (event) => {
+                    setFileContent(event.target.result || '');
+                  };
+                  reader.readAsText(f);
+                }
                 e.target.value = ''; // Reset input target
               }} 
             />
