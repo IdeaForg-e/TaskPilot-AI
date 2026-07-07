@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, User, Tag, Shield, Layers, HelpCircle, GitMerge, EyeOff, BarChart3, Link2 } from 'lucide-react';
 import { getTaskDetail, getApiErrorMessage } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
@@ -38,7 +39,7 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
   // Compute workload for assignee (count active status tasks)
   const assigneeTasksCount = data.assignee ? tasks.filter(t => t.assignee === data.assignee && t.status !== 'completed').length : 0;
 
-  return (
+  return createPortal(
     <div 
       onClick={(e) => e.target === e.currentTarget && onClose()}
       className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-scale-in cursor-pointer"
@@ -323,5 +324,7 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
         </div>
       </div>
     </div>
+  ,
+    document.body
   );
 }
