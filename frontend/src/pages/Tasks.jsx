@@ -155,8 +155,8 @@ export default function Tasks() {
                         set(option);
                         setOpenDropdown(null);
                       }}
-                      className={`w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-primary/10 cursor-pointer block truncate ${
-                        option === value ? 'text-primary bg-primary/10' : 'text-on-surface'
+                      className={`w-full text-left px-3 py-2.5 text-xs font-body rounded-lg cursor-pointer block truncate dropdown-option ${
+                        option === value ? 'active' : ''
                       }`}
                     >
                       {option === 'all' ? placeholder : option}
