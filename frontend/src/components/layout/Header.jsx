@@ -4,7 +4,7 @@ import {
   Menu, Play, Loader2, CheckCircle2, XCircle, AlertTriangle,
   Search, Bell, Sun, Moon,
 } from 'lucide-react';
-import { getApiErrorMessage, runPipeline, getLatestPipelineRun, getTasks } from '../../services/api';
+import { getApiErrorMessage, runPipeline, getLatestPipelineRun, getTasks, getPlan } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
 
 const PAGE_TITLES = {
@@ -100,6 +100,93 @@ export default function Header({ onMenuClick }) {
         });
       }
     });
+
+    // Helper to format today's date YYYY-MM-DD
+    const getTodayStr = () => {
+      const t = new Date();
+      return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
+    };
+
+    // 4. Next Upcoming Task from today's plan, or fallback to highest priority pending task
+    let todayPlan = null;
+    try {
+      const planRes = await getPlan(getTodayStr());
+      todayPlan = planRes.data || null;
+    } catch (err) {
+      // Fallback silent if today's plan is not generated yet
+    }
+
+    let foundUpcoming = false;
+    if (todayPlan) {
+      const slots = todayPlan.time_slots || todayPlan.time_blocks || [];
+      const taskSlots = slots.filter(s => s.slot_type === 'task' && s.task_id);
+      
+      if (taskSlots.length > 0) {
+        const now = new Date();
+        const currentMins = now.getHours() * 60 + now.getMinutes();
+
+        const parseTimeToMins = (timeStr) => {
+          if (!timeStr) return 0;
+          const [h, m] = timeStr.split(':').map(Number);
+          return h * 60 + m;
+        };
+
+        const upcomingSlots = taskSlots.filter(s => {
+          const startMins = parseTimeToMins(s.start_time);
+          const taskObj = tasksList.find(t => t.id === s.task_id);
+          const isCompleted = taskObj?.status === 'completed' || taskObj?.status === 'done';
+          return startMins > currentMins && !isCompleted;
+        });
+
+        upcomingSlots.sort((a, b) => parseTimeToMins(a.start_time) - parseTimeToMins(b.start_time));
+
+        if (upcomingSlots.length > 0) {
+          const nextSlot = upcomingSlots[0];
+          list.push({
+            id: `next-task-${nextSlot.task_id}`,
+            type: 'upcoming',
+            title: `Next Scheduled Task Today`,
+            desc: `[${nextSlot.start_time}] ${nextSlot.title}`,
+          });
+          foundUpcoming = true;
+        } else {
+          const ongoingSlots = taskSlots.filter(s => {
+            const startMins = parseTimeToMins(s.start_time);
+            const endMins = parseTimeToMins(s.end_time);
+            const taskObj = tasksList.find(t => t.id === s.task_id);
+            const isCompleted = taskObj?.status === 'completed' || taskObj?.status === 'done';
+            return currentMins >= startMins && currentMins <= endMins && !isCompleted;
+          });
+          if (ongoingSlots.length > 0) {
+            list.push({
+              id: `next-task-${ongoingSlots[0].task_id}`,
+              type: 'upcoming',
+              title: `Current Active Task`,
+              desc: `[${ongoingSlots[0].start_time} - ${ongoingSlots[0].end_time}] ${ongoingSlots[0].title}`,
+            });
+            foundUpcoming = true;
+          }
+        }
+      }
+    }
+
+    if (!foundUpcoming && tasksList.length > 0) {
+      const pendingTasks = [...tasksList]
+        .filter(t => t.status !== 'completed' && t.status !== 'done')
+        .sort((a, b) => {
+          const scoreA = a.priority_score || (a.urgency === 'critical' ? 9.0 : a.urgency === 'high' ? 7.5 : 5.0);
+          const scoreB = b.priority_score || (b.urgency === 'critical' ? 9.0 : b.urgency === 'high' ? 7.5 : 5.0);
+          return scoreB - scoreA;
+        });
+      if (pendingTasks.length > 0) {
+        list.push({
+          id: `next-priority-task-${pendingTasks[0].id}`,
+          type: 'upcoming',
+          title: `Next Priority Backlog Task`,
+          desc: pendingTasks[0].title,
+        });
+      }
+    }
 
     setNotifications(list);
   };
@@ -309,6 +396,7 @@ export default function Header({ onMenuClick }) {
                       let badgeColor = '#ef4444'; // critical
                       if (n.type === 'warning') badgeColor = '#f59e0b';
                       if (n.type === 'success') badgeColor = '#4caf8e';
+                      if (n.type === 'upcoming') badgeColor = '#a855f7'; // Purple badge color for upcoming next tasks
 
                       return (
                         <div
