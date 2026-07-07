@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { Send, Bot, User, MessageSquare, Bell, CheckCircle2, Circle, Clock, Paperclip, Zap, Shield } from 'lucide-react';
+import { Send, Bot, User, MessageSquare, Bell, CheckCircle2, Circle, Clock, Paperclip, Zap, Shield, X, FileIcon } from 'lucide-react';
 import { sendChatMessage, getApiErrorMessage, getPlan, getPlansList, getTasks, updateTaskStatus } from '../services/api';
 import EmptyState from '../components/common/EmptyState';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import TaskDetail from '../components/tasks/TaskDetail';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -16,6 +17,9 @@ export default function ChatPage() {
   const [reminderPlan, setReminderPlan] = useState(null);
   const [tasksList, setTasksList] = useState([]);
   const [loadingReminders, setLoadingReminders] = useState(true);
+
+  const [attachedFile, setAttachedFile] = useState(null);
+  const [selectedTask, setSelectedTask] = useState(null);
 
   const loadReminders = async () => {
     try {
@@ -46,14 +50,25 @@ export default function ChatPage() {
   }, [messages, sending]);
 
   const handleSend = async (messageText = null) => {
-    const textToSend = messageText || input.trim();
-    if (!textToSend || sending) return;
+    let textToSend = messageText || input.trim();
+    if (!textToSend && !attachedFile) return;
+    if (sending) return;
     setError(null);
-    setMessages((prev) => [...prev, { role: 'user', content: textToSend }]);
+
+    let displayContent = textToSend;
+    if (attachedFile) {
+      displayContent = textToSend 
+        ? `${textToSend}\n\n📎 Attached: ${attachedFile.name}`
+        : `📎 Attached: ${attachedFile.name}`;
+    }
+
+    setMessages((prev) => [...prev, { role: 'user', content: displayContent }]);
     if (!messageText) setInput('');
     setSending(true);
+    setAttachedFile(null);
+
     try {
-      const res = await sendChatMessage(textToSend);
+      const res = await sendChatMessage(textToSend || `Analyze uploaded file: ${displayContent}`);
       const reply = res.data?.reply || res.data?.message || res.data?.content || 'Unable to fetch response.';
       setMessages((prev) => [...prev, { role: 'assistant', content: reply }]);
       await loadReminders();
@@ -130,11 +145,26 @@ export default function ChatPage() {
           {/* Messages */}
           <div ref={scrollRef} className="chat-scroll flex-1 overflow-y-auto p-5 space-y-4" style={{ background: 'rgba(0,0,0,0.1)' }}>
             {messages.length === 0 ? (
-              <div className="h-full flex items-center justify-center">
+              <div className="h-full flex flex-col items-center justify-center p-6 space-y-4">
                 <EmptyState
                   message="Welcome to TaskPilot AI. Ask me about tasks status, quality grades, priority models, or prompt the orchestrator directly."
                   icon={MessageSquare}
                 />
+                <div className="flex flex-wrap gap-2 justify-center max-w-md mx-auto">
+                  {[
+                    "Show deficient tasks",
+                    "What is my highest priority task?",
+                    "Summarize quality reports"
+                  ].map((s, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSend(s)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800 text-[10px] text-slate-300 hover:text-white hover:border-primary/30 transition-all cursor-pointer"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
             ) : (
               <div className="space-y-4">
@@ -243,9 +273,33 @@ export default function ChatPage() {
             className="shrink-0 flex flex-col gap-2 p-4"
             style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)', background: 'rgba(0,0,0,0.15)' }}
           >
+            {/* Hidden File Input */}
+            <input 
+              type="file" 
+              id="chat-file-input" 
+              style={{ display: 'none' }} 
+              onChange={(e) => {
+                const f = e.target.files[0];
+                if (f) setAttachedFile(f);
+                e.target.value = ''; // Reset input target
+              }} 
+            />
+
+            {/* Attached file chip indicator */}
+            {attachedFile && (
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-primary/10 border border-primary/20 text-xs text-primary self-start animate-scale-in">
+                <FileIcon className="h-3.5 w-3.5" />
+                <span className="font-body text-[10px] font-semibold truncate max-w-[180px]">{attachedFile.name}</span>
+                <button onClick={() => setAttachedFile(null)} className="text-primary hover:text-white transition-colors cursor-pointer ml-1">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            )}
+
             <div className="flex items-end gap-3">
               <button
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors"
+                onClick={() => document.getElementById('chat-file-input').click()}
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-colors cursor-pointer hover:bg-white/5 hover:text-white"
                 style={{ border: '0.5px solid rgba(255,255,255,0.08)', color: 'var(--outline)' }}
               >
                 <Paperclip className="h-3.5 w-3.5" />
@@ -261,13 +315,13 @@ export default function ChatPage() {
               />
               <button
                 onClick={() => handleSend()}
-                disabled={sending || !input.trim()}
+                disabled={sending || (!input.trim() && !attachedFile)}
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all"
                 style={{
                   background: 'var(--primary-container)',
                   boxShadow: '0 4px 12px rgba(0,125,184,0.3)',
-                  opacity: (sending || !input.trim()) ? 0.5 : 1,
-                  cursor: (sending || !input.trim()) ? 'not-allowed' : 'pointer',
+                  opacity: (sending || (!input.trim() && !attachedFile)) ? 0.5 : 1,
+                  cursor: (sending || (!input.trim() && !attachedFile)) ? 'not-allowed' : 'pointer',
                 }}
               >
                 <Send className="h-3.5 w-3.5 text-white" />
@@ -347,12 +401,16 @@ export default function ChatPage() {
                             }
                           </button>
                           <div className="flex-1 min-w-0">
-                            <span
-                              className={`font-body text-[0.7rem] font-semibold block leading-snug ${isCompleted ? 'line-through' : ''}`}
+                            <button
+                              onClick={() => {
+                                const matched = tasksList.find((t) => t.id === slot.task_id);
+                                setSelectedTask(matched || { id: slot.task_id, title: slot.title });
+                              }}
+                              className={`font-body text-[0.7rem] font-semibold block text-left leading-snug hover:text-primary transition-colors cursor-pointer ${isCompleted ? 'line-through' : ''}`}
                               style={{ color: isCompleted ? 'var(--outline)' : 'var(--on-surface)' }}
                             >
                               {slot.title}
-                            </span>
+                            </button>
                             <span className="flex items-center gap-1 mt-1">
                               <Clock className="h-3 w-3" style={{ color: 'var(--primary)' }} />
                               <span className="font-body text-[0.6rem]" style={{ color: 'var(--outline)' }}>
@@ -415,6 +473,11 @@ export default function ChatPage() {
           </div>
         </div>
       </div>
+
+      {/* Task Detail Modal Pop-up */}
+      {selectedTask && (
+        <TaskDetail task={selectedTask} tasks={tasksList} onClose={() => setSelectedTask(null)} />
+      )}
     </div>
   );
 }
