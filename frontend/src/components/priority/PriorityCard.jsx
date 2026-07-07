@@ -83,7 +83,7 @@ export default function PriorityCard({ task, rank, onClick }) {
               className="font-headline text-xl font-semibold leading-snug mb-3"
               style={{ color: 'var(--on-surface)' }}
             >
-              {task.title || `Task #${task.id}`}
+              #{rank}. {task.title || `Task #${task.id}`}
             </h3>
 
             <p
@@ -192,7 +192,7 @@ export default function PriorityCard({ task, rank, onClick }) {
             className="font-headline text-sm font-semibold leading-snug"
             style={{ color: 'var(--on-surface)' }}
           >
-            {task.title || `Task #${task.id}`}
+            #{rank}. {task.title || `Task #${task.id}`}
           </h4>
         </div>
       </div>

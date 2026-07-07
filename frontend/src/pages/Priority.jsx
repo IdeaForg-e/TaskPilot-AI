@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getRankedTasks, getApiErrorMessage } from '../services/api';
+import { getRankedTasks, getApiErrorMessage, prioritizeTasks } from '../services/api';
 import PriorityList from '../components/priority/PriorityList';
 import TaskDetail from '../components/tasks/TaskDetail';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -15,6 +15,19 @@ export default function Priority() {
   const loadTasks = async () => {
     setLoading(true); setError(null);
     try {
+      const res = await getRankedTasks();
+      setTasks(res.data || []);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRecalculate = async () => {
+    setLoading(true); setError(null);
+    try {
+      await prioritizeTasks();
       const res = await getRankedTasks();
       setTasks(res.data || []);
     } catch (err) {
@@ -156,7 +169,7 @@ export default function Priority() {
         </div>
       )}
 
-      <PriorityList tasks={tasks} onSelectTask={setSelectedTask} />
+      <PriorityList tasks={tasks} onSelectTask={setSelectedTask} onRecalculate={handleRecalculate} />
     </div>
 
     {/* Task Detail Modal Pop-up (Rendered outside the transform-animated container) */}
