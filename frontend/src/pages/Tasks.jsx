@@ -76,7 +76,8 @@ export default function Tasks() {
   if (error)   return <ErrorMessage message={error} onRetry={loadTasks} />;
 
   return (
-    <div className="space-y-5 animate-fade-in-up">
+    <>
+      <div className="space-y-5 animate-fade-in-up">
       {/* Header */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -140,11 +141,12 @@ export default function Tasks() {
           isDetailOpen={false}
         />
       </div>
-
-      {/* Task Detail Modal Pop-up */}
-      {selectedTask && (
-        <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
-      )}
     </div>
-  );
+
+    {/* Task Detail Modal Pop-up (Rendered outside the transform-animated container) */}
+    {selectedTask && (
+      <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
+    )}
+  </>
+);
 }
