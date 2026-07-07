@@ -134,10 +134,7 @@ export default function Tasks() {
                   e.stopPropagation();
                   setOpenDropdown(isOpen ? null : idx);
                 }}
-                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-primary/30"
-                style={{
-                  color: 'var(--on-surface)',
-                }}
+                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-primary/30 text-on-surface"
               >
                 <span className="truncate pr-1">{displayLabel}</span>
                 <span className="text-[8px] opacity-40 shrink-0">▼</span>
@@ -158,11 +155,9 @@ export default function Tasks() {
                         set(option);
                         setOpenDropdown(null);
                       }}
-                      className="w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-primary/10 cursor-pointer block truncate"
-                      style={{
-                        color: option === value ? 'var(--primary)' : 'var(--on-surface)',
-                        background: option === value ? 'rgba(142,205,255,0.08)' : 'transparent',
-                      }}
+                      className={`w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-primary/10 cursor-pointer block truncate ${
+                        option === value ? 'text-primary bg-primary/10' : 'text-on-surface'
+                      }`}
                     >
                       {option === 'all' ? placeholder : option}
                     </button>
