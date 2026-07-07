@@ -558,17 +558,3 @@ body {
     radial-gradient(ellipse 50% 40% at 85% 20%, rgba(142, 205, 255, 0.03) 0%, transparent 70%);
 }
 
-/* ─── CUSTOM DROPDOWN OPTIONS ─── */
-.dropdown-option {
-  color: var(--on-surface) !important;
-  background: transparent !important;
-  transition: all var(--transition-fast) !important;
-}
-.dropdown-option:hover {
-  background: rgba(142, 205, 255, 0.12) !important;
-  color: var(--primary) !important;
-}
-.dropdown-option.active {
-  color: var(--primary) !important;
-  background: rgba(142, 205, 255, 0.08) !important;
-}

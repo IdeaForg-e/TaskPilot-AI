@@ -20,8 +20,6 @@ export default function Tasks() {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
 
-  const [openDropdown, setOpenDropdown] = useState(null);
-
   const loadTasks = async () => {
     setLoading(true); setError(null);
     try { const res = await getTasks(); setTasks(res.data || []); }
@@ -30,13 +28,6 @@ export default function Tasks() {
   };
 
   useEffect(() => { loadTasks(); }, []);
-
-  // Auto close dropdowns on click outside
-  useEffect(() => {
-    const handleClose = () => setOpenDropdown(null);
-    window.addEventListener('click', handleClose);
-    return () => window.removeEventListener('click', handleClose);
-  }, []);
 
   const statuses  = useMemo(() => ['all', ...new Set(tasks.map((t) => t.status).filter(Boolean))], [tasks]);
   const types     = useMemo(() => ['all', ...new Set(tasks.map((t) => t.type || t.source).filter(Boolean))], [tasks]);
@@ -123,50 +114,21 @@ export default function Tasks() {
           { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'All Types' },
           { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'All Assignees' },
           { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'All Platforms' },
-        ].map(({ value, set, options, placeholder }, idx) => {
-          const isOpen = openDropdown === idx;
-          const displayLabel = value === 'all' ? placeholder : value;
-
-          return (
-            <div key={idx} className="relative select-none">
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setOpenDropdown(isOpen ? null : idx);
-                }}
-                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-primary/30 text-on-surface"
-              >
-                <span className="truncate pr-1">{displayLabel}</span>
-                <span className="text-[8px] opacity-40 shrink-0">▼</span>
-              </button>
-
-              {isOpen && (
-                <div
-                  className="glass-card absolute left-0 mt-1.5 min-w-[170px] max-h-60 overflow-y-auto rounded-xl p-1 shadow-2xl z-40 animate-scale-in"
-                  style={{
-                    background: 'var(--surface-container-high)',
-                    borderColor: 'var(--outline-variant)',
-                  }}
-                >
-                  {options.map((option) => (
-                    <button
-                      key={option}
-                      onClick={() => {
-                        set(option);
-                        setOpenDropdown(null);
-                      }}
-                      className={`w-full text-left px-3 py-2.5 text-xs font-body rounded-lg cursor-pointer block truncate dropdown-option ${
-                        option === value ? 'active' : ''
-                      }`}
-                    >
-                      {option === 'all' ? placeholder : option}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        ].map(({ value, set, options, placeholder }, idx) => (
+          <select
+            key={idx}
+            value={value}
+            onChange={(e) => set(e.target.value)}
+            className="glass-select px-3 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[130px]"
+            style={{ color: 'var(--on-surface)' }}
+          >
+            {options.map((o) => (
+              <option key={o} value={o} style={{ background: '#1e2024', color: '#e2e2e8' }}>
+                {o === 'all' ? placeholder : o}
+              </option>
+            ))}
+          </select>
+        ))}
       </div>
 
       {/* Task list + detail panel */}
