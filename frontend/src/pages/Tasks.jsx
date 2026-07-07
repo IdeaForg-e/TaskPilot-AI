@@ -131,20 +131,20 @@ export default function Tasks() {
         ))}
       </div>
 
-      {/* Task list + detail panel */}
-      <div className="flex flex-col lg:flex-row gap-5 items-start">
-        <div className="flex-1 min-w-0">
-          <TaskList
-            tasks={filteredTasks}
-            onSelectTask={handleSelectTask}
-            selectedTaskId={selectedTask?.id}
-            isDetailOpen={!!selectedTask}
-          />
-        </div>
-        {selectedTask && (
-          <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
-        )}
+      {/* Task list */}
+      <div className="w-full">
+        <TaskList
+          tasks={filteredTasks}
+          onSelectTask={handleSelectTask}
+          selectedTaskId={selectedTask?.id}
+          isDetailOpen={false}
+        />
       </div>
+
+      {/* Task Detail Modal Pop-up */}
+      {selectedTask && (
+        <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
+      )}
     </div>
   );
 }
