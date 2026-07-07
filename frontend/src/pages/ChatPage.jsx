@@ -154,7 +154,8 @@ export default function ChatPage() {
                   {[
                     "Show deficient tasks",
                     "What is my highest priority task?",
-                    "Summarize quality reports"
+                    "Summarize quality reports",
+                    "Inject P1 task: Payment checkout flow failing on Safari"
                   ].map((s, idx) => (
                     <button
                       key={idx}
