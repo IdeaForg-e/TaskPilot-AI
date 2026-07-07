@@ -68,6 +68,10 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 - 🛡️ **SQLite WAL Concurrency Mode:** Built-in Write-Ahead Logging preventing thread/connection locking during parallel reads and writes
 - ⚡ **LLM Parsing & Token Resilience:** Upgraded regex parser that automatically filters `<think>` reasoning tags and repairs malformed JSON syntax on the fly, backed by optimized output token limits to prevent 429 TPM errors
 - 🖥️ **Live Performance Diagnostics:** Fully dynamic dashboard widgets displaying real-time API latency values tracked directly from backend calls
+- 🔔 **Smart Notification System:** Real-time alerts for pipeline status, P1 critical escalations, developer overload warnings, and next upcoming scheduled task — all updating every 15 seconds
+- 📥 **One-Click Report Download:** Dashboard button generates a comprehensive `.txt` system health report covering task summaries, QA metrics, priority leaderboard, and developer workload status
+- 🌗 **System Theme Sync:** Automatic dark/light theme detection synced with OS-level `prefers-color-scheme`, with manual toggle override
+- 🏆 **Interactive Leaderboard:** Clickable priority cards with inline rank numbers and dedicated EvaluationModal showing per-task scoring breakdown and AI-generated explanations
 
 ### Before vs After
 
@@ -403,19 +407,42 @@ The React dashboard provides **6 purpose-built views** with a premium dark glass
 
 | Page | Purpose | Key Features |
 |:---|:---|:---|
-| 🏠 **Dashboard** | Command center overview | Stats cards, pipeline stepper with real-time status, system metrics, recent activity |
-| 📋 **Tasks** | Unified task explorer | Filterable/searchable task list, source badges, detailed task drill-down |
-| ✅ **Quality** | Quality audit reports | Score breakdowns, missing info alerts, actionability classification |
-| 🏆 **Priority** | Priority leaderboard | Ranked cards with explainable reasoning paragraphs, multi-factor score breakdown |
-| 📅 **Planner** | Daily schedule view | Time-blocked timeline, meeting protection, top-3 agenda, overflow detection |
-| 💬 **Chat** | AI assistant | Real-time chat interface, P1 injection, markdown rendering, pipeline status |
+| 🏠 **Dashboard** | Command center overview | Stats cards, pipeline stepper with real-time status, system metrics, recent activity, **one-click Download Report** |
+| 📋 **Tasks** | Unified task explorer | Filterable/searchable task list, source badges, detailed task drill-down via centered modal pop-ups |
+| ✅ **Quality** | QA analytics dashboard | **SVG circular gauge ring**, dynamic pass/fail tabs, search queries, score breakdowns, missing info alerts |
+| 🏆 **Priority** | Priority leaderboard | Ranked cards with **inline rank numbers (#1, #2…)**, clickable rows opening dedicated **EvaluationModal** with AI explanation text and multi-factor score breakdown |
+| 📅 **Planner** | Daily schedule view | Time-blocked timeline, meeting protection, top-3 agenda, overflow detection, **clickable tasks opening TaskDetail**, **Optimizer Rules modal** |
+| 💬 **Chat** | AI copilot assistant | Real-time chat interface, P1 injection, **prompt suggestion chips**, **task injection quick actions**, **paperclip file attachment**, markdown rendering |
+
+### Smart Notification System (Bell Icon)
+
+The header **notification bell** dropdown automatically tracks and surfaces:
+
+| Alert Type | Badge Color | Trigger |
+|:---|:---:|:---|
+| 🚀 **Pipeline Status** | 🟢 Green / 🔴 Red | Pipeline completes or fails |
+| ⚠️ **Developer Overload** | 🟡 Amber | Any engineer has >5 active tasks |
+| 🔥 **P1 Critical Escalation** | 🔴 Red | Tasks with `critical` or `high` urgency |
+| 🟣 **Next Upcoming Task** | 🟣 Purple | Next scheduled task from today's AI plan, or highest-priority backlog task as fallback |
+
+> Notifications auto-refresh every **15 seconds** in the background.
+
+### Download Report
+
+One-click **"Download Report"** button on the Dashboard generates a comprehensive `.txt` file containing:
+- System health summary (total tasks, QA scores, pipeline status, system accuracy)
+- Quality assurance pass/fail breakdown
+- Full priority leaderboard with scores, assignees, urgency, and platforms
+- Developer workload analysis with `[OVERLOAD ALERT]` flags
 
 **Design Highlights:**
 - 🌙 **Dark mode** with glassmorphism card design (`backdrop-blur-xl`)
+- 🌗 **System theme sync** — auto-detects OS `prefers-color-scheme` with manual toggle override
 - ✨ **Micro-animations** — fade-in-up stagger effects, pulse indicators, hover transitions
 - 📱 **Fully responsive** — collapsible sidebar, mobile-optimized layouts
 - 🔄 **Auto-polling** — dashboard updates every 4 seconds during pipeline execution
 - 🎨 **Gradient accents** — violet-to-cyan brand palette throughout
+- 🖼️ **React Portals** — all modals render via `createPortal` to `document.body`, preventing CSS transform context issues
 
 ---
 
@@ -752,17 +779,22 @@ TaskPilot-AI/
 ├── 📂 frontend/
 │   └── 📂 src/
 │       ├── App.jsx                    # React Router setup (6 routes)
+│       ├── 📂 context/               # React Context providers
+│       │   └── ThemeContext.jsx        # Dark/light theme with OS prefers-color-scheme sync
 │       ├── 📂 pages/                 # Page-level components
-│       │   ├── Dashboard.jsx          # Command center with stats + pipeline
-│       │   ├── Tasks.jsx              # Unified task explorer
-│       │   ├── Quality.jsx            # Quality audit reports
-│       │   ├── Priority.jsx           # Priority leaderboard
-│       │   ├── Planner.jsx            # Daily schedule timeline
-│       │   └── ChatPage.jsx           # AI chat interface
+│       │   ├── Dashboard.jsx          # Command center with stats + pipeline + Download Report
+│       │   ├── Tasks.jsx              # Unified task explorer with filters + search
+│       │   ├── Quality.jsx            # QA analytics dashboard with SVG gauge + tabs
+│       │   ├── Priority.jsx           # Priority leaderboard + EvaluationModal
+│       │   ├── Planner.jsx            # Daily schedule timeline + Optimizer Rules modal
+│       │   └── ChatPage.jsx           # AI copilot with prompt chips + file attachment
 │       ├── 📂 components/            # Reusable UI components
 │       │   ├── 📂 dashboard/         # StatsCard, PipelineStatus, RecentActivity
-│       │   ├── 📂 layout/            # Sidebar, Layout, Header
+│       │   ├── 📂 layout/            # Sidebar, Layout, Header (notifications + theme toggle)
 │       │   ├── 📂 common/            # LoadingSpinner, ErrorMessage
+│       │   ├── 📂 tasks/             # TaskDetail (React Portal modal)
+│       │   ├── 📂 priority/          # PriorityList component
+│       │   ├── 📂 quality/           # Quality sub-components
 │       │   └── 📂 planner/           # DailyPlanner components
 │       └── 📂 services/
 │           └── api.js                 # Axios client + error normalization
@@ -824,8 +856,9 @@ All endpoints are prefixed with `/api/v1`.
 | Agentic behavior (autonomous reasoning) | ✅ | Pipeline auto-runs, P1 injection triggers full re-prioritization |
 | Dynamic re-prioritization | ✅ | Chat P1 injection → full pipeline re-run → new rankings |
 | Multi-agent architecture | ✅ | 7 specialized agents with orchestrator coordination |
-| Proactive alerting | ✅ | Developer overload warnings, stale pipeline detection |
+| Proactive alerting | ✅ | Developer overload warnings, stale pipeline detection, **smart notification bell with next task tracking** |
 | Calendar-aware planning | ✅ | Meeting block protection, available hours calculation |
+| Exportable reports | ✅ | **One-click Dashboard report download** — system health, QA metrics, priority leaderboard, workload status |
 
 ---
 
