@@ -9,11 +9,13 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const taskId = task.master_task_id || task.task_id || task.id;
+
   const loadDetail = async () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getTaskDetail(task.id);
+      const res = await getTaskDetail(taskId);
       setDetail(res.data || task);
     } catch (err) {
       setError(getApiErrorMessage(err));
@@ -25,7 +27,7 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
   useEffect(() => {
     loadDetail();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [task.id]);
+  }, [taskId]);
 
   const data = detail || task;
   const platforms = data.source_platforms || [];
