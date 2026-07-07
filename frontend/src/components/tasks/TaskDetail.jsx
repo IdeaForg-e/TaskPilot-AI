@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X, User, Tag, Shield, Layers, HelpCircle, GitMerge, EyeOff, BarChart3, Link2, Bell } from 'lucide-react';
+import { X, User, Tag, Shield, Layers, HelpCircle, GitMerge, EyeOff, BarChart3, Link2 } from 'lucide-react';
 import { getTaskDetail, getApiErrorMessage } from '../../services/api';
 import LoadingSpinner from '../common/LoadingSpinner';
 import ErrorMessage from '../common/ErrorMessage';
@@ -12,41 +12,7 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
 
   const taskId = task.master_task_id || task.task_id || task.id;
 
-  const [isReminded, setIsReminded] = useState(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
-      return stored.includes(taskId);
-    } catch {
-      return false;
-    }
-  });
 
-  const toggleReminder = () => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
-      let updated;
-      if (stored.includes(taskId)) {
-        updated = stored.filter(id => id !== taskId);
-        setIsReminded(false);
-      } else {
-        updated = [...stored, taskId];
-        setIsReminded(true);
-      }
-      localStorage.setItem('tp-reminders', JSON.stringify(updated));
-      window.dispatchEvent(new Event('tp-reminders-updated'));
-    } catch (e) {
-      console.error('Failed to update reminders storage', e);
-    }
-  };
-
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
-      setIsReminded(stored.includes(taskId));
-    } catch {
-      setIsReminded(false);
-    }
-  }, [taskId]);
 
   const loadDetail = async () => {
     setLoading(true);
@@ -90,27 +56,12 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
               </div>
               <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Task Telemetry</h2>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={toggleReminder}
-                className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer border ${
-                  isReminded
-                    ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
-                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
-                }`}
-                title={isReminded ? "Remove Reminder" : "Remind Me"}
-              >
-                <Bell className="h-3.5 w-3.5" />
-                <span>{isReminded ? 'Reminded' : 'Remind Me'}</span>
-              </button>
-
-              <button
-                onClick={onClose}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-900 hover:text-white transition-colors cursor-pointer"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-900 hover:text-white transition-colors cursor-pointer"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
 
           {loading && <LoadingSpinner label="Querying pipeline datastore..." />}

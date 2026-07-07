@@ -42,88 +42,72 @@ export default function Header({ onMenuClick }) {
   };
 
   const loadNotifications = async () => {
+    let tasksList = [];
+    let runInfo = null;
+
     try {
-      const [tasksRes, runRes] = await Promise.all([
-        getTasks(),
-        getLatestPipelineRun()
-      ]);
-      const tasksList = tasksRes.data || [];
-      const runInfo = runRes.data || null;
-
-      const list = [];
-
-      // 1. Pipeline Status notification
-      if (runInfo?.latest_run) {
-        list.push({
-          id: 'pipeline',
-          type: runInfo.latest_run.status === 'completed' ? 'success' : 'error',
-          title: `Pipeline ${runInfo.latest_run.status === 'completed' ? 'Completed' : 'Failed'}`,
-          desc: `Run ID: ${runInfo.latest_run.id.substring(0, 8)}`,
-        });
-      }
-
-      // 2. Overload warnings (tasks per assignee count > 5)
-      const assigneeCounts = {};
-      tasksList.forEach(t => {
-        if (t.assignee && t.status !== 'completed') {
-          assigneeCounts[t.assignee] = (assigneeCounts[t.assignee] || 0) + 1;
-        }
-      });
-      Object.entries(assigneeCounts).forEach(([name, count]) => {
-        if (count > 5) {
-          list.push({
-            id: `overload-${name}`,
-            type: 'warning',
-            title: `Developer Overload Alert`,
-            desc: `${name} has ${count} active tasks in progress`,
-          });
-        }
-      });
-
-      // 3. P1 Critical Alerts (overall_score >= 8.5)
-      tasksList.forEach(t => {
-        if (t.urgency === 'critical' || t.urgency === 'high') {
-          list.push({
-            id: `p1-${t.id}`,
-            type: 'critical',
-            title: `P1 Critical Escalation`,
-            desc: t.title,
-          });
-        }
-      });
-
-      // 4. Custom Remind Me alerts from localStorage
-      try {
-        const storedReminders = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
-        storedReminders.forEach(reminderId => {
-          const task = tasksList.find(t => t.id === Number(reminderId) || t.id === reminderId);
-          if (task) {
-            list.push({
-              id: `reminder-${task.id}`,
-              type: 'reminder',
-              title: `Task Reminder Set`,
-              desc: task.title,
-            });
-          }
-        });
-      } catch (e) {
-        console.error('Failed to parse reminders from localStorage', e);
-      }
-
-      setNotifications(list);
+      const tasksRes = await getTasks();
+      tasksList = tasksRes.data || [];
     } catch (err) {
-      console.error('Failed to load notifications in Header', err);
+      console.error('Header failed to fetch tasks:', err);
     }
+
+    try {
+      const runRes = await getLatestPipelineRun();
+      runInfo = runRes.data || null;
+    } catch (err) {
+      console.error('Header failed to fetch latest run:', err);
+    }
+
+    const list = [];
+
+    // 1. Pipeline Status notification
+    if (runInfo?.latest_run) {
+      list.push({
+        id: 'pipeline',
+        type: runInfo.latest_run.status === 'completed' ? 'success' : 'error',
+        title: `Pipeline ${runInfo.latest_run.status === 'completed' ? 'Completed' : 'Failed'}`,
+        desc: `Run ID: ${runInfo.latest_run.id.substring(0, 8)}`,
+      });
+    }
+
+    // 2. Overload warnings (tasks per assignee count > 5)
+    const assigneeCounts = {};
+    tasksList.forEach(t => {
+      if (t.assignee && t.status !== 'completed') {
+        assigneeCounts[t.assignee] = (assigneeCounts[t.assignee] || 0) + 1;
+      }
+    });
+    Object.entries(assigneeCounts).forEach(([name, count]) => {
+      if (count > 5) {
+        list.push({
+          id: `overload-${name}`,
+          type: 'warning',
+          title: `Developer Overload Alert`,
+          desc: `${name} has ${count} active tasks in progress`,
+        });
+      }
+    });
+
+    // 3. P1 Critical Alerts (overall_score >= 8.5)
+    tasksList.forEach(t => {
+      if (t.urgency === 'critical' || t.urgency === 'high') {
+        list.push({
+          id: `p1-${t.id}`,
+          type: 'critical',
+          title: `P1 Critical Escalation`,
+          desc: t.title,
+        });
+      }
+    });
+
+    setNotifications(list);
   };
 
   useEffect(() => {
     loadNotifications();
-    window.addEventListener('tp-reminders-updated', loadNotifications);
     const interval = setInterval(loadNotifications, 15000);
-    return () => {
-      window.removeEventListener('tp-reminders-updated', loadNotifications);
-      clearInterval(interval);
-    };
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -325,7 +309,6 @@ export default function Header({ onMenuClick }) {
                       let badgeColor = '#ef4444'; // critical
                       if (n.type === 'warning') badgeColor = '#f59e0b';
                       if (n.type === 'success') badgeColor = '#4caf8e';
-                      if (n.type === 'reminder') badgeColor = '#8ecdff'; // Blue color for custom reminders
 
                       return (
                         <div
