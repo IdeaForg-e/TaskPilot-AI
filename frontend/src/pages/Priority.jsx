@@ -4,7 +4,7 @@ import { getRankedTasks, getApiErrorMessage } from '../services/api';
 import PriorityList from '../components/priority/PriorityList';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import ErrorMessage from '../components/common/ErrorMessage';
-import { AlertTriangle, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, Sparkles, X, Bell } from 'lucide-react';
 
 export default function Priority() {
   const [tasks, setTasks] = useState([]);
@@ -172,12 +172,49 @@ export default function Priority() {
 }
 
 function EvaluationModal({ task, rank, onClose }) {
+  const taskId = task.master_task_id || task.task_id || task.id;
   const score = task.priority_score || task.overall_score || 0;
   const urgencyLabel = score >= 8.0 ? 'CRITICAL ALERT' : score >= 6.0 ? 'HIGH URGENCY' : 'MODERATE URGENCY';
   const urgencyColor = score >= 8.0 ? '#ef4444' : score >= 6.0 ? '#f59e0b' : 'var(--outline)';
   const urgencyBg = score >= 8.0 ? 'rgba(239,68,68,0.06)' : score >= 6.0 ? 'rgba(245,158,11,0.06)' : 'rgba(255,255,255,0.04)';
   const urgencyBorder = score >= 8.0 ? 'rgba(239,68,68,0.15)' : score >= 6.0 ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.08)';
   const platforms = task.platforms || (task.source ? [task.source] : []);
+
+  const [isReminded, setIsReminded] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
+      return stored.includes(taskId);
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleReminder = () => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
+      let updated;
+      if (stored.includes(taskId)) {
+        updated = stored.filter(id => id !== taskId);
+        setIsReminded(false);
+      } else {
+        updated = [...stored, taskId];
+        setIsReminded(true);
+      }
+      localStorage.setItem('tp-reminders', JSON.stringify(updated));
+      window.dispatchEvent(new Event('tp-reminders-updated'));
+    } catch (e) {
+      console.error('Failed to update reminders storage', e);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
+      setIsReminded(stored.includes(taskId));
+    } catch {
+      setIsReminded(false);
+    }
+  }, [taskId]);
 
   return createPortal(
     <div 
@@ -211,12 +248,27 @@ function EvaluationModal({ task, rank, onClose }) {
               </div>
             </div>
             
-            <button 
-              onClick={onClose} 
-              className="text-slate-400 hover:text-white rounded-lg p-1.5 cursor-pointer hover:bg-slate-800 transition-colors shrink-0"
-            >
-              <X className="h-4.5 w-4.5" />
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleReminder}
+                className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider transition-all flex items-center gap-1 cursor-pointer border ${
+                  isReminded
+                    ? 'bg-primary/10 text-primary border-primary/20 hover:bg-primary/20'
+                    : 'bg-slate-950 text-slate-400 border-slate-800 hover:text-white hover:border-slate-700'
+                }`}
+                title={isReminded ? "Remove Reminder" : "Remind Me"}
+              >
+                <Bell className="h-3.5 w-3.5" />
+                <span>{isReminded ? 'Reminded' : 'Remind Me'}</span>
+              </button>
+
+              <button 
+                onClick={onClose} 
+                className="text-slate-400 hover:text-white rounded-lg p-1.5 cursor-pointer hover:bg-slate-800 transition-colors shrink-0"
+              >
+                <X className="h-4.5 w-4.5" />
+              </button>
+            </div>
           </div>
 
           {/* Title */}

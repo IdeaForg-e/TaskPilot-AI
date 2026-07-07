@@ -92,6 +92,24 @@ export default function Header({ onMenuClick }) {
         }
       });
 
+      // 4. Custom Remind Me alerts from localStorage
+      try {
+        const storedReminders = JSON.parse(localStorage.getItem('tp-reminders') || '[]');
+        storedReminders.forEach(reminderId => {
+          const task = tasksList.find(t => t.id === Number(reminderId) || t.id === reminderId);
+          if (task) {
+            list.push({
+              id: `reminder-${task.id}`,
+              type: 'reminder',
+              title: `Task Reminder Set`,
+              desc: task.title,
+            });
+          }
+        });
+      } catch (e) {
+        console.error('Failed to parse reminders from localStorage', e);
+      }
+
       setNotifications(list);
     } catch (err) {
       console.error('Failed to load notifications in Header', err);
@@ -100,8 +118,12 @@ export default function Header({ onMenuClick }) {
 
   useEffect(() => {
     loadNotifications();
+    window.addEventListener('tp-reminders-updated', loadNotifications);
     const interval = setInterval(loadNotifications, 15000);
-    return () => clearInterval(interval);
+    return () => {
+      window.removeEventListener('tp-reminders-updated', loadNotifications);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -303,6 +325,7 @@ export default function Header({ onMenuClick }) {
                       let badgeColor = '#ef4444'; // critical
                       if (n.type === 'warning') badgeColor = '#f59e0b';
                       if (n.type === 'success') badgeColor = '#4caf8e';
+                      if (n.type === 'reminder') badgeColor = '#8ecdff'; // Blue color for custom reminders
 
                       return (
                         <div
