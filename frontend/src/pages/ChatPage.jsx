@@ -449,7 +449,7 @@ export default function ChatPage() {
                               Mark Done
                             </button>
                             <button
-                              onClick={() => handleSend(`How is the progress on the task: "${slot.title}"?`)}
+                              onClick={() => setInput(`How is the progress on the task: "${slot.title}"?`)}
                               className="flex-1 rounded-lg py-1 text-[0.6rem] font-semibold font-body transition-colors"
                               style={{ background: 'rgba(142,205,255,0.08)', border: '0.5px solid rgba(142,205,255,0.15)', color: 'var(--primary)' }}
                             >
