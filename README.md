@@ -403,7 +403,7 @@ Uses a **hybrid approach** — critical tasks get LLM reasoning, others use a fa
 
 ## 🖥 Frontend Dashboard
 
-The React dashboard provides **6 purpose-built views** with a premium dark glassmorphism design:
+The React dashboard provides **8 purpose-built views** with a premium dark glassmorphism design:
 
 | Page | Purpose | Key Features |
 |:---|:---|:---|
@@ -413,6 +413,8 @@ The React dashboard provides **6 purpose-built views** with a premium dark glass
 | 🏆 **Priority** | Priority leaderboard | Ranked cards with **inline rank numbers (#1, #2…)**, clickable rows opening dedicated **EvaluationModal** with AI explanation text and multi-factor score breakdown |
 | 📅 **Planner** | Daily schedule view | Time-blocked timeline, meeting protection, top-3 agenda, overflow detection, **clickable tasks opening TaskDetail**, **Optimizer Rules modal** |
 | 💬 **Chat** | AI copilot assistant | Real-time chat interface, P1 injection, **prompt suggestion chips**, **task injection quick actions**, **paperclip file attachment**, markdown rendering |
+| ⚙️ **Settings** | System configurations | Primary LLM engine selectors, temperature controls, backup failover toggle, compliance logs switcher |
+| 💬 **Support** | Help & FAQ Support | Interactive FAQs accordion search, help desk contact ticket submission form |
 
 ### Smart Notification System (Bell Icon)
 

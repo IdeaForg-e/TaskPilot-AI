@@ -14,6 +14,8 @@ const PAGE_TITLES = {
   '/priority': 'Leaderboard',
   '/planner':  'AI Planner',
   '/chat':     'Copilot Chat',
+  '/settings': 'System Settings',
+  '/support':  'Help & Support',
 };
 
 export default function Header({ onMenuClick }) {

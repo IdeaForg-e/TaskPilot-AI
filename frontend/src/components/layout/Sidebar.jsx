@@ -145,11 +145,13 @@ export default function Sidebar({ open, onClose }) {
           {/* Bottom links */}
           <div className="flex flex-col gap-0.5 pt-1">
             {[
-              { label: 'Settings', icon: Settings },
-              { label: 'Support',  icon: HelpCircle },
-            ].map(({ label, icon: Icon }) => (
-              <button
+              { label: 'Settings', icon: Settings, to: '/settings' },
+              { label: 'Support',  icon: HelpCircle, to: '/support' },
+            ].map(({ label, icon: Icon, to }) => (
+              <Link
                 key={label}
+                to={to}
+                onClick={onClose}
                 className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-colors"
                 style={{ color: 'var(--outline)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; }}
@@ -157,7 +159,7 @@ export default function Sidebar({ open, onClose }) {
               >
                 <Icon className="h-3.5 w-3.5" />
                 <span className="font-body" style={{ fontWeight: 500 }}>{label}</span>
-              </button>
+              </Link>
             ))}
           </div>
         </div>
