@@ -112,7 +112,7 @@ export default function ChatPage() {
       </div>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start" style={{ height: 'calc(100vh - 14rem)' }}>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start" style={{ height: 'calc(100vh - 10rem)' }}>
         
         {/* ── Chat Panel ── */}
         <div className="lg:col-span-8 flex flex-col h-full glass-card overflow-hidden relative">
