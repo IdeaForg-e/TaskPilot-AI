@@ -94,24 +94,29 @@ export default function PriorityCard({ task, rank }) {
 
             {/* Meta row */}
             <div className="flex flex-wrap items-center gap-6">
-              {task.assignee && (
-                <div>
-                  <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                    Assigned Lead
-                  </p>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="h-6 w-6 rounded-full flex items-center justify-center text-[0.5rem] font-bold text-white uppercase"
-                      style={{ background: SOURCE_COLORS[platforms[0]] || 'var(--primary-container)' }}
-                    >
-                      {task.assignee.substring(0, 2)}
+              {(() => {
+                const isUnassigned = !task.assignee || task.assignee === 'null' || task.assignee === 'None' || task.assignee === 'undefined';
+                const name = isUnassigned ? 'Unassigned' : task.assignee;
+                const initials = isUnassigned ? 'UN' : task.assignee.substring(0, 2);
+                return (
+                  <div>
+                    <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                      Assigned Lead
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <div
+                        className={`h-6 w-6 rounded-full flex items-center justify-center text-[0.5rem] font-bold uppercase ${isUnassigned ? 'text-slate-400 bg-slate-800 border border-slate-700/50' : 'text-white'}`}
+                        style={isUnassigned ? {} : { background: SOURCE_COLORS[platforms[0]] || 'var(--primary-container)' }}
+                      >
+                        {initials}
+                      </div>
+                      <span className="font-body text-sm font-semibold" style={{ color: isUnassigned ? 'var(--outline)' : 'var(--on-surface)' }}>
+                        {name}
+                      </span>
                     </div>
-                    <span className="font-body text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
-                      {task.assignee}
-                    </span>
                   </div>
-                </div>
-              )}
+                );
+              })()}
               <div>
                 <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
                   Priority Score
@@ -201,19 +206,24 @@ export default function PriorityCard({ task, rank }) {
         style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}
       >
         <div className="flex items-center gap-2">
-          {task.assignee && (
-            <>
-              <div
-                className="h-5 w-5 rounded-full flex items-center justify-center text-[0.45rem] font-bold text-white uppercase"
-                style={{ background: 'var(--primary-container)' }}
-              >
-                {task.assignee.substring(0, 2)}
-              </div>
-              <span className="font-body text-[0.65rem]" style={{ color: 'var(--outline)' }}>
-                {task.assignee}
-              </span>
-            </>
-          )}
+          {(() => {
+            const isUnassigned = !task.assignee || task.assignee === 'null' || task.assignee === 'None' || task.assignee === 'undefined';
+            const name = isUnassigned ? 'Unassigned' : task.assignee;
+            const initials = isUnassigned ? 'UN' : task.assignee.substring(0, 2);
+            return (
+              <>
+                <div
+                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[0.45rem] font-bold uppercase ${isUnassigned ? 'text-slate-400 bg-slate-800 border border-slate-700/50' : 'text-white'}`}
+                  style={isUnassigned ? {} : { background: 'var(--primary-container)' }}
+                >
+                  {initials}
+                </div>
+                <span className="font-body text-[0.65rem]" style={{ color: 'var(--outline)' }}>
+                  {name}
+                </span>
+              </>
+            );
+          })()}
         </div>
         <div className="flex items-center gap-3">
           <span

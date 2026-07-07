@@ -112,19 +112,24 @@ export default function TaskCard({ task, onClick, selected }) {
             </span>
           </span>
         )}
-        {task.assignee && (
-          <span className="flex items-center gap-1.5 ml-auto">
-            <div
-              className="h-5 w-5 rounded-full flex items-center justify-center font-body text-[0.5rem] font-bold text-white uppercase"
-              style={{ background: 'var(--primary-container)' }}
-            >
-              {task.assignee.substring(0, 2)}
-            </div>
-            <span className="font-body text-[0.65rem]" style={{ color: 'var(--on-surface-variant)' }}>
-              {task.assignee}
+        {(() => {
+          const isUnassigned = !task.assignee || task.assignee === 'null' || task.assignee === 'None' || task.assignee === 'undefined';
+          const name = isUnassigned ? 'Unassigned' : task.assignee;
+          const initials = isUnassigned ? 'UN' : task.assignee.substring(0, 2);
+          return (
+            <span className="flex items-center gap-1.5 ml-auto">
+              <div
+                className={`h-5 w-5 rounded-full flex items-center justify-center font-body text-[0.5rem] font-bold uppercase ${isUnassigned ? 'text-slate-400 bg-slate-800 border border-slate-700/50' : 'text-white'}`}
+                style={isUnassigned ? {} : { background: 'var(--primary-container)' }}
+              >
+                {initials}
+              </div>
+              <span className="font-body text-[0.65rem]" style={{ color: isUnassigned ? 'var(--outline)' : 'var(--on-surface-variant)' }}>
+                {name}
+              </span>
             </span>
-          </span>
-        )}
+          );
+        })()}
       </div>
     </button>
   );

@@ -20,6 +20,8 @@ export default function Tasks() {
   const [assigneeFilter, setAssigneeFilter] = useState('all');
   const [sourceFilter, setSourceFilter] = useState('all');
 
+  const [openDropdown, setOpenDropdown] = useState(null);
+
   const loadTasks = async () => {
     setLoading(true); setError(null);
     try { const res = await getTasks(); setTasks(res.data || []); }
@@ -29,16 +31,38 @@ export default function Tasks() {
 
   useEffect(() => { loadTasks(); }, []);
 
+  // Auto close dropdowns on click outside
+  useEffect(() => {
+    const handleClose = () => setOpenDropdown(null);
+    window.addEventListener('click', handleClose);
+    return () => window.removeEventListener('click', handleClose);
+  }, []);
+
   const statuses  = useMemo(() => ['all', ...new Set(tasks.map((t) => t.status).filter(Boolean))], [tasks]);
   const types     = useMemo(() => ['all', ...new Set(tasks.map((t) => t.type || t.source).filter(Boolean))], [tasks]);
-  const assignees = useMemo(() => ['all', ...new Set(tasks.map((t) => t.assignee).filter(Boolean))], [tasks]);
+  const assignees = useMemo(() => {
+    const list = tasks.map((t) => {
+      const a = t.assignee;
+      if (!a || a === 'null' || a === 'None' || a === 'undefined') {
+        return 'Unassigned';
+      }
+      return a;
+    }).filter(Boolean);
+    return ['all', ...new Set(list)];
+  }, [tasks]);
   const sources   = useMemo(() => ['all', ...new Set(tasks.flatMap((t) => t.source_platforms || []).filter(Boolean))], [tasks]);
 
   const filteredTasks = useMemo(() =>
     tasks.filter((t) => {
       if (statusFilter !== 'all' && t.status !== statusFilter) return false;
       if (typeFilter !== 'all' && t.type !== typeFilter && t.source !== typeFilter) return false;
-      if (assigneeFilter !== 'all' && t.assignee !== assigneeFilter) return false;
+      
+      if (assigneeFilter !== 'all') {
+        const val = t.assignee;
+        const mappedVal = (!val || val === 'null' || val === 'None' || val === 'undefined') ? 'Unassigned' : val;
+        if (mappedVal !== assigneeFilter) return false;
+      }
+      
       if (sourceFilter !== 'all' && !(t.source_platforms || []).includes(sourceFilter)) return false;
       
       if (searchQuery) {
@@ -99,21 +123,58 @@ export default function Tasks() {
           { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'All Types' },
           { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'All Assignees' },
           { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'All Platforms' },
-        ].map(({ value, set, options, placeholder }, idx) => (
-          <select
-            key={idx}
-            value={value}
-            onChange={(e) => set(e.target.value)}
-            className="glass-select px-3 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[130px]"
-            style={{ color: 'var(--on-surface)' }}
-          >
-            {options.map((o) => (
-              <option key={o} value={o}>
-                {o === 'all' ? placeholder : o}
-              </option>
-            ))}
-          </select>
-        ))}
+        ].map(({ value, set, options, placeholder }, idx) => {
+          const isOpen = openDropdown === idx;
+          const displayLabel = value === 'all' ? placeholder : value;
+
+          return (
+            <div key={idx} className="relative select-none">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setOpenDropdown(isOpen ? null : idx);
+                }}
+                className="glass-card flex items-center justify-between gap-2 px-3.5 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[140px] text-left transition-colors hover:border-white/10"
+                style={{
+                  color: 'var(--on-surface)',
+                  background: 'rgba(255,255,255,0.03)',
+                  border: '0.5px solid rgba(255,255,255,0.07)',
+                }}
+              >
+                <span className="truncate pr-1">{displayLabel}</span>
+                <span className="text-[8px] opacity-40 shrink-0">▼</span>
+              </button>
+
+              {isOpen && (
+                <div
+                  className="absolute left-0 mt-1.5 min-w-[170px] max-h-60 overflow-y-auto rounded-xl p-1 shadow-2xl z-40 animate-scale-in"
+                  style={{
+                    background: 'rgba(17,19,24,0.98)',
+                    backdropFilter: 'blur(30px)',
+                    border: '0.5px solid rgba(255,255,255,0.09)',
+                  }}
+                >
+                  {options.map((option) => (
+                    <button
+                      key={option}
+                      onClick={() => {
+                        set(option);
+                        setOpenDropdown(null);
+                      }}
+                      className="w-full text-left px-3 py-2 text-xs font-body rounded-lg transition-colors hover:bg-white/5 cursor-pointer block truncate"
+                      style={{
+                        color: option === value ? 'var(--primary)' : 'var(--on-surface-variant)',
+                        background: option === value ? 'rgba(142,205,255,0.05)' : 'transparent',
+                      }}
+                    >
+                      {option === 'all' ? placeholder : option}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* Task list + detail panel */}
