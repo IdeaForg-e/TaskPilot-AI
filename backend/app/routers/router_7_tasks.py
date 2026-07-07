@@ -55,6 +55,7 @@ async def get_tasks(
                 "source_platforms": platforms,
                 "context_count": context_counts.get(t.id, 0),
                 "agent_summary": _agent_summary(t.source_count, platforms),
+                "created_at": t.created_at.isoformat() if t.created_at else None,
             })
         return APIResponse(success=True, data={"total": len(result), "tasks": result}, message="OK")
     except Exception as exc:
@@ -95,6 +96,7 @@ async def get_task_detail(task_id: str, db: Session = Depends(get_db)):
                 "source_platforms": platforms,
                 "context_count": _context_count(db, task.id),
                 "agent_summary": _agent_summary(task.source_count, platforms),
+                "created_at": task.created_at.isoformat() if task.created_at else None,
             },
             "quality": {
                 "overall_score": quality.overall_score,

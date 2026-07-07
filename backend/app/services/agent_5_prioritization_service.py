@@ -167,4 +167,5 @@ class PrioritizationService:
                 f"Priority agent scored this from {task.source_count if task else 0} fused signal(s), "
                 "balancing impact, deadline, blockers, and issue quality."
             ),
+            "created_at": task.created_at.isoformat() if (task and task.created_at) else None,
         }

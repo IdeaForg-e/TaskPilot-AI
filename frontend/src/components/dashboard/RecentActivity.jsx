@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { Clock, PlusCircle, CheckCircle } from 'lucide-react';
 import EmptyState from '../common/EmptyState';
 
@@ -49,12 +50,13 @@ export default function RecentActivity({ tasks = [] }) {
             Recent Assessment Reports
           </h3>
         </div>
-        <span
+        <Link
+          to="/tasks"
           className="font-body text-xs font-semibold cursor-pointer transition-colors"
-          style={{ color: 'var(--primary)' }}
+          style={{ color: 'var(--primary)', textDecoration: 'none' }}
         >
           View All
-        </span>
+        </Link>
       </div>
 
       {recent.length === 0 ? (

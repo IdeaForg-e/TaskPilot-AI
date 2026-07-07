@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { getTasks, getApiErrorMessage } from '../services/api';
 import TaskList from '../components/tasks/TaskList';
 import TaskDetail from '../components/tasks/TaskDetail';
@@ -7,6 +8,9 @@ import ErrorMessage from '../components/common/ErrorMessage';
 import { Filter } from 'lucide-react';
 
 export default function Tasks() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') || '';
+
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -36,9 +40,16 @@ export default function Tasks() {
       if (typeFilter !== 'all' && t.type !== typeFilter && t.source !== typeFilter) return false;
       if (assigneeFilter !== 'all' && t.assignee !== assigneeFilter) return false;
       if (sourceFilter !== 'all' && !(t.source_platforms || []).includes(sourceFilter)) return false;
+      
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchTitle = (t.title || '').toLowerCase().includes(query);
+        const matchDesc = (t.description || '').toLowerCase().includes(query);
+        if (!matchTitle && !matchDesc) return false;
+      }
       return true;
     }),
-    [tasks, statusFilter, typeFilter, assigneeFilter, sourceFilter]
+    [tasks, statusFilter, typeFilter, assigneeFilter, sourceFilter, searchQuery]
   );
 
   const handleSelectTask = (task) => {
