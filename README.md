@@ -116,11 +116,11 @@ flowchart TB
     subgraph PIPELINE["⚡ Multi-Agent Processing Pipeline"]
         direction LR
         A1["🔄 Agent 1\nIngestion\n7 Sources → SourceEvents"] 
-        A2["🔍 Agent 2\nExtraction\nLLM NLP · Hidden Tasks"]
-        A3["🔗 Agent 3\nFusion\nDedup · Correlation"]
-        A4["✅ Agent 4\nQuality\n7-Dim Scoring"]
-        A5["📊 Agent 5\nPrioritization\n8-Factor Ranking"]
-        A6["📅 Agent 6\nPlanning\nCalendar-Aware Schedule"]
+        A2["🔍 Agent 2\nExtraction\nRegex / LLM Hybrid\nToken Optimization"]
+        A3["🔗 Agent 3\nFusion\nFuzzy Duplication\nBorderline Reason LLM"]
+        A4["✅ Agent 4\nQuality\n7-Dim Matrix Check\nCritical LLM Audit"]
+        A5["📊 Agent 5\nPrioritization\n8-Factor Formula\nHybrid Local/LLM"]
+        A6["📅 Agent 6\nPlanning\nReasoning LLM / Fallback\nCalendar Protection"]
         
         A1 --> A2 --> A3 --> A4 --> A5 --> A6
     end
@@ -130,7 +130,7 @@ flowchart TB
     end
 
     subgraph DB["🗄️ Shared Database Layer"]
-        SQL[("SQLite\nSourceEvents · MasterTasks\nPriorityScores · DailyPlans")]
+        SQL[("SQLite\nSourceEvents · TaskCandidates\nMasterTasks · TaskContextLinks\nQualityReports · PriorityScores\nDailyPlans · TimeSlots · WorkflowRuns")]
     end
 
     subgraph FE["📊 React Dashboard"]
@@ -141,6 +141,8 @@ flowchart TB
         P4["🏆 Priority"]
         P5["📅 Planner"]
         P6["💬 Chat"]
+        P7["⚙️ Settings"]
+        P8["🙋 Support"]
     end
 
     DS --> ORCH
@@ -171,23 +173,23 @@ flowchart LR
     end
 
     subgraph STAGE2["Stage 2"]
-        EXT["Extraction Agent\nExplicit + Hidden tasks\nThreadPoolExecutor x4"]
+        EXT["Extraction Agent\nRegex Heuristics (Slack)\nThreadPoolExecutor x4 (Email/Meeting)"]
     end
 
     subgraph STAGE3["Stage 3"]
-        FUS["Fusion Agent\nSemantic dedup via LLM\nDynamic confidence thresholds"]
+        FUS["Fusion Agent\nFuzzy SequenceMatcher\nReasoning LLM (Borderline)\nPersistent Cache"]
     end
 
     subgraph STAGE4["Stage 4"]
-        QUA["Quality Agent\n7-dimension scoring\nActionability classification"]
+        QUA["Quality Agent\n7-Dimension QA Matrix\nLocal Fallbacks\nCritical LLM (Thread Pool)"]
     end
 
     subgraph STAGE5["Stage 5"]
-        PRI["Priority Agent\n8-factor weighted model\nHybrid LLM + algorithmic"]
+        PRI["Priority Agent\n8-Factor Scoring\nLocal Heuristic Fallbacks\nBatched Critical LLM"]
     end
 
     subgraph STAGE6["Stage 6"]
-        PLN["Planning Agent\nCalendar-aware scheduling\nOverflow & blocking detection"]
+        PLN["Planning Agent\nCalendar Slot Protection\nReasoning LLM / Fallback\nBuffer Break Injection"]
     end
 
     subgraph OUTPUT["Outputs"]
@@ -569,8 +571,8 @@ flowchart TB
 
     subgraph HOSTING["☁️ Hosting & CI/CD"]
         direction LR
-        VER["▲ Vercel\nFrontend CDN"]
-        REN["🟢 Render\nBackend Docker"]
+        REN_FE["🟢 Render\nFrontend App"]
+        REN_BE["🟢 Render\nBackend API"]
         GIT["🐙 GitHub\nSource + Auto-deploy"]
     end
 
@@ -585,8 +587,8 @@ flowchart TB
     subgraph AGENTS["🤖 Agent Layer"]
         direction LR
         LLM["🧠 LLM Client\nMulti-provider failover"]
-        GROQ["⚡ Groq Cloud\nLlama 3.1 8B / 3.3 70B"]
-        NV["🟢 NVIDIA NIM\nFallback Provider"]
+        GROQ["⚡ Groq Cloud\nGPT-OSS 20B / Qwen 27B"]
+        NV["🟢 NVIDIA NIM\nLlama 8B / 70B Fallback"]
         TP["🧵 ThreadPoolExecutor\nParallel LLM calls"]
     end
 
