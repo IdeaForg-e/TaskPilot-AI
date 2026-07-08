@@ -291,113 +291,91 @@ Explore our research, design documents, and conceptual POC documentation on Noti
 ## 🤖 Multi-Agent Pipeline Deep-Dive
 
 ### Agent 0 — Orchestrator Service
-> **Role:** Central coordinator that manages the entire pipeline lifecycle
+> **Role:** Central pipeline workflow coordinator and self-healing execution manager
 
-- Executes all 6 pipeline stages sequentially with **atomic error handling**
-- Tracks `WorkflowRun` state in database (running → completed/failed)
-- Detects **stale pipelines** (>5 min running = auto-marked as failed)
-- Reports **LLM diagnostics** for transparency and debugging
-- Supports both full pipeline runs and individual stage triggers
+- **Strict Pipeline Execution:** Orchestrates and triggers the 6 sequential stages: Ingestion $\rightarrow$ Extraction $\rightarrow$ Fusion $\rightarrow$ Quality $\rightarrow$ Prioritization $\rightarrow$ Planning.
+- **State Monitoring:** Tracks execution details (`WorkflowRun` table in SQLite) updating statuses dynamically from `running` to `completed` or `failed`.
+- **Self-Healing Run Recovery:** Scans for stale workflows (runs stuck in `running` status $> 5$ minutes due to server restarts or process halts) and automatically transitions them to `failed` with descriptive diagnostic logs.
+- **Dynamic System Analytics:** Consolidates LLM metrics (latencies, token counts, engine configurations) and dynamically computes system accuracy by averaging quality scores from all evaluated task records.
 
 ### Agent 1 — Ingestion Service
-> **Role:** Multi-source data aggregation and normalization
+> **Role:** Bulk parser and normalizer for heterogeneous developer data
 
-Ingests raw data from **7 heterogeneous sources** and normalizes them into a unified `SourceEvent` schema:
+- **7 Source Streams:** Ingests raw developer events from **7 distinct sources**:
+  - 📋 **Jira** (`jira_data.json`): Sprint items, bugs, and backlog tickets
+  - 🐙 **GitHub** (`github_data.json`): Repository issues and pull requests
+  - 💬 **Slack** (`slack_data.json`): Channels, conversations, and direct messages
+  - 📧 **Email** (`emails.json`): Inbox communications and customer threads
+  - 📅 **Calendar** (`calendar.json`): Schedule blocks and meeting windows
+  - 🗒 **Meetings** (`meeting_notes.json`): Live conversation summaries and action checklists
+  - 🚨 **Incidents** (`incidents.json`): Server alerts and production P1 escalations
+- **Data Cleanliness Guarantee:** Clears all database tables (source events, candidates, master tasks, planning schedules) at the beginning of each pipeline invocation to prevent stale context drift.
+- **Event Normalization:** Maps raw payloads to a standardized database-level `SourceEvent` schema featuring parsed ISO-8601 timestamps and serialized JSON metadata.
 
-| Source | Data Type | Example Items |
-|:---|:---|:---|
-| 📋 Jira | Sprint tickets, stories, bugs | `PROJ-1234: API latency degradation` |
-| 🐙 GitHub | Issues, pull requests | `PR #42: Fix memory leak in worker pool` |
-| 💬 Slack | Channel messages, DMs | `@dev: can someone look at the upload bug?` |
-| 📧 Email | Inbox threads | `VP escalation: Customer data export failing` |
-| 📅 Calendar | Meetings, events | `Sprint Review - 10:00 AM` |
-| 🗒 Meetings | Transcripts, action items | `Action: Follow up on auth migration by EOW` |
-| 🚨 Incidents | Production alerts, P1s | `INC-5001: Payment gateway timeout - P1` |
+### Agent 2 — Extraction Agent (LLM-Powered / Hybrid)
+> **Role:** Hidden task extractor and candidate task parser
 
-### Agent 2 — Extraction Agent (LLM-Powered)
-> **Role:** Discover hidden work and extract actionable tasks from unstructured text
+- **Explicit Mapping:** Direct mapping of structured systems (Jira, GitHub, Incidents) using deterministic fallback heuristics without querying the LLM, reducing latency.
+- **Concurrent LLM Extraction:** Parses unstructured systems (Emails, Meetings) in parallel using a concurrent `ThreadPoolExecutor` (4 workers) for high-performance extraction.
+- **Smart Token Optimization:** Bypasses LLM queries for Slack messages by utilizing deterministic regular expressions (checking for key action prefixes like *please, need to, don't forget, fix, review*) to isolate tasks for free.
+- **Confidence Filter:** Evaluates extraction confidence; candidates with confidence score $< 0.5$ are auto-discarded to prevent clutter.
 
-- **Explicit extraction:** Structured sources (Jira, GitHub, Incidents) → direct task mapping
-- **Hidden task extraction:** Uses LLM to parse **emails, Slack, and meeting transcripts** for buried action items
-- Employs **concurrent ThreadPoolExecutor** for parallel LLM calls (4 workers)
-- Applies **confidence scoring** — only tasks above 0.5 confidence threshold are retained
-- Captures task metadata: assignee, deadline, urgency, task type
+### Agent 3 — Fusion Agent (LLM-Powered / Hybrid)
+> **Role:** Semantic deduplicator and cross-platform context aggregator
 
-### Agent 3 — Fusion Agent (LLM-Powered)
-> **Role:** Cross-source deduplication and semantic correlation
+- **Fuzzy Correlation Engine:** Compares candidate details using local deterministic metrics (fuzzy `SequenceMatcher` ratio + set token overlaps) to find potential duplicates.
+- **Immediate Auto-Merge (Token-Saver):**
+  - If title/description correlation score is $\ge 0.68$, tasks are merged automatically without calling the LLM.
+  - If correlation score is $< 0.60$, they are marked unique immediately.
+  - Only borderline cases between $0.60$ and $0.68$ query a reasoning LLM (`qwen/qwen3.6-27b`) to verify.
+- **Dynamic Threshold Adjustments:** Subtracts similarity thresholds when metadata diverges: different assignee ($-0.15$), different platform ($-0.05$), or different deadline ($-0.10$).
+- **Structured Fusion Layout:** Combines duplicate candidates into a single `MasterTask` featuring a Markdown-formatted Unified Task Overview with full traceability links (`TaskContextLink`).
+- **Persistent Fusion Cache:** Implements a project-level file cache (`fusion_cache.json`) to skip redundant duplicate check calls.
 
-- Uses LLM to **detect semantic duplicates** across different platforms
-- Dynamic **confidence thresholds** that adjust based on:
-  - Different assignees → threshold **+0.15** (harder to merge)
-  - Different source platforms → threshold **+0.05**
-  - Different deadlines → threshold **+0.10**
-- Produces **MasterTask** records with fused descriptions from multiple signals
-- Tracks `source_count` — tasks from 3+ sources get priority boosts
-- Creates `TaskContextLink` entries for full traceability
+### Agent 4 — Quality Agent (LLM-Powered / Hybrid)
+> **Role:** Completeness auditor and actionability classifier
 
-### Agent 4 — Quality Agent (LLM-Powered)
-> **Role:** Evaluate task completeness and actionability
+- **7-Dimension QA Score:** Evaluates all master tasks across 7 criteria: Title clarity, Reproduction steps, Error logs, Environment specification, Expected behavior, Urgency classification, and Assignee presence.
+- **Cost-Optimized Evaluation Flow:**
+  - Tasks that are *not* critical are graded using local heuristic logic (0 token cost). The agent creates context-aware, realistic follow-up questions (e.g., asking for database connection pool stack traces on timeout issues, or target domain names for SSL renewals).
+  - Critical tasks (`urgency == "critical"`) call the LLM (`openai/gpt-oss-20b`) in parallel via `ThreadPoolExecutor` (4 workers).
+- **Actionability States:** Classifies task statuses into `actionable`, `blocked`, or `needs_info` (for tasks with an overall quality score $< 55$).
 
-Scores each task across **7 quality dimensions:**
+### Agent 5 — Prioritization Agent (LLM-Powered / Hybrid)
+> **Role:** Explaining priority evaluator and multi-factor rank scheduler
 
-| Dimension | What It Measures |
-|:---|:---|
-| 📝 Clear Title | Is the title descriptive and specific? |
-| 🔄 Reproduction Steps | Are steps to reproduce included? |
-| 📋 Error Logs | Are logs/stack traces attached? |
-| 🖥 Environment | Is the environment specified? |
-| ✅ Expected Behavior | Is the desired outcome documented? |
-| ⚡ Severity | Is severity properly classified? |
-| 👤 Assignee | Is an owner assigned? |
+- **8-Factor Weighted Formula:** Dynamically computes priority based on:
+  - Technical Severity (25%)
+  - Production Outage Risk (20%)
+  - User/Customer Impact (18%)
+  - SLA/Deadline Proximity (12%)
+  - Blocker Status (10%)
+  - Business Impact (10%)
+  - Quality Score (5%)
+- **Anti-Noise Demotion Modifiers:** Applies strict multipliers: demotes vague titles under 12 characters by **0.55x**; demotes administrative/reporting requests (e.g., retrospectives, demo coordination) by **0.72x**.
+- **Hybrid Performance Batching:** Run local heuristics first; only critical tasks (urgency "critical", score $\ge 8.0$, or crash/outage words) are sent to the LLM. It processes them in batches of 8 tasks per prompt to minimize token counts.
+- **Explainability Engine:** Generates bulleted priority reasons and narrative paragraphs dynamically from numerical scores to prevent LLM hallucinations or drift.
 
-Outputs: `overall_score`, `actionability` (actionable/needs_info), `missing_info`, and `clarification_questions`
+### Agent 6 — Daily Planning Agent (LLM-Powered / Hybrid)
+> **Role:** Calendar-aware scheduler and workload balancing optimizer
 
-### Agent 5 — Prioritization Agent (Hybrid LLM + Algorithmic)
-> **Role:** Multi-dimensional priority scoring with explainable rationale
+- **Meeting Block Protection:** Parses active calendar items and treats them as locked slots to protect deep focus blocks.
+- **Capacity Balancing:** Computes focus limits daily ($8\text{ hours} - \text{meetings} - \text{buffers}$).
+- **Context Reduction:** Truncates description context to 150 characters and selects only the top 12 prioritized tasks to prevent LLM token limits.
+- **Calendar Allocation:** Generates the plan using a reasoning LLM or fallback deterministic scheduler.
+- **Decompression Breaks:** Automatically schedules custom buffers (e.g. "Mid-Morning Coffee Break", "Afternoon Decompression Break") post deep focus blocks to keep cognitive fatigue low.
+- **Capacity Warnings:** Highlights calendar status as `healthy`, `moderate`, or `overloaded` (when tasks overflow daily capacity).
 
-Uses a **hybrid approach** — critical tasks get LLM reasoning, others use a fast local algorithm:
+### Agent 7 — Conversational Chat Interface (LLM-Powered)
+> **Role:** Interactive copilot and autonomous P1 task injector
 
-**8-Factor Scoring Model:**
-
-| Factor | Weight | Description |
-|:---|:---:|:---|
-| 🔴 Severity | 25% | Technical severity and urgency classification |
-| 💥 Production Impact | 20% | Risk of production outage or degradation |
-| 👥 Customer Impact | 18% | Direct impact on end-users and customers |
-| ⏰ Deadline Urgency | 12% | Proximity to deadline and SLA expiration |
-| 🚧 Blocker Score | 10% | Whether it blocks other engineers/pipelines |
-| 💼 Business Impact | 10% | Revenue and business operations impact |
-| 📊 Quality Factor | 5% | How well-documented the task is |
-| 🔗 Dependency Score | 0% (Metadata) | Evaluates complexity and source link density (e.g., number of overlapping event signals) |
-
-**Intelligence features:**
-- **Blocker detection** via keyword analysis (escalates blocking tasks by +2.0)
-- **Vague title demotion** — poorly titled tasks get a 0.55x multiplier
-- **Administrative work demotion** — reporting/meeting tasks get 0.72x multiplier
-- **Developer overload alerts** — warns if any engineer has >3 active tasks
-- **Fully explainable** — every score comes with a human-readable paragraph explaining *why*
-
-### Agent 6 — Daily Planning Agent (LLM-Powered)
-> **Role:** Calendar-aware, intelligent daily schedule generation
-
-- Reads the engineer's **real calendar** and protects meeting blocks
-- Calculates **available focus hours** = 8h − meetings − buffer
-- Schedules tasks in **priority order** into the earliest available focus blocks
-- Detects **overflow** — tasks that can't fit are deferred to next day
-- Prevents **cross-day duplication** using `_locked_task_ids()` logic
-- Generates **top 3 agenda focus items** for the morning briefing
-- Produces **agent reasoning** for every time slot explaining *why* it's there
-
-### Agent 7 — Conversational Chat Interface
-> **Role:** Natural language interaction and mid-day P1 injection
-
-- **Context-aware responses** — retrieves all tasks, priorities, and plans from DB as context
-- **P1 Task Injection** — say "inject a P1 payment gateway timeout" and the agent:
-  1. Uses LLM to extract structured task data from natural language
-  2. Writes the raw event to the appropriate source JSON file
-  3. **Autonomously re-runs the entire pipeline** (Ingestion → Planning)
-  4. Reports the new task's priority rank and score
-- Supports queries like: *"What's my top priority?"*, *"Summarize my emails"*, *"Why is the upload bug ranked #1?"*
+- **Live Context Retrieval:** Injects real-time task records, priority standings, and daily schedules directly from SQLite as system prompt context.
+- **LLM Connectivity Guard:** Checks LLM keys on boot; if missing, displays helpful Markdown instructions to guide developers on configuring their env parameters while keeping offline systems alive.
+- **Autonomous P1 Injection Flow:** Intercepts natural language triggers like "inject a P1 defect...":
+  1. Uses the LLM to extract JSON parameters (Title, Description, Source, Urgency).
+  2. Synthesizes a raw source item matching the target platform format and appends it to the project JSON data storage files.
+  3. Autonomously re-runs the entire pipeline orchestrator (`OrchestratorService.run_full_pipeline()`).
+  4. Queries database scores to output the newly calculated priority score and leaderboard rank back in the chat reply.
 
 ---
 
