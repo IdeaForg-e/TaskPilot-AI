@@ -667,10 +667,11 @@ DATABASE_URL=sqlite:///./taskpilot.db
 
 | Component | URL |
 |:---|:---|
-| 🖥 **Frontend** (Render) | [taskpilot-ai.render.app](https://taskpilot-ai-frontend-1.onrender.com/) |
+| 🖥 **Frontend** (Render) | [taskpilot-ai-frontend-1.onrender.com](https://taskpilot-ai-frontend-1.onrender.com/) |
 | ⚡ **Backend API** (Render) | [taskpilot-ai-4.onrender.com](https://taskpilot-ai-4.onrender.com) |
-| 📖 **API Docs** (Swagger) | [/docs](https://taskpilot-ai-4.onrender.com/docs) |
-| 💚 **Health Check** | [/health](https://taskpilot-ai-4.onrender.com/health) |
+| 📖 **API Docs** (Swagger) | [taskpilot-ai-4.onrender.com/docs](https://taskpilot-ai-4.onrender.com/docs) |
+| 💚 **Health Check** | [taskpilot-ai-4.onrender.com/health](https://taskpilot-ai-4.onrender.com/health) |
+
 
 ---
 
