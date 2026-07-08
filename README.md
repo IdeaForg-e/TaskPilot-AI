@@ -232,6 +232,20 @@ erDiagram
         json metadata_json
     }
 
+    TaskCandidate {
+        string id PK
+        string title
+        text description
+        string source_event_id FK
+        string task_type
+        boolean is_hidden
+        string assignee
+        string deadline
+        string urgency
+        float confidence
+        string extraction_run_id
+    }
+
     MasterTask {
         string id PK
         string title
@@ -244,6 +258,30 @@ erDiagram
         int source_count
     }
 
+    TaskContextLink {
+        string id PK
+        string master_task_id FK
+        string source_event_id FK
+        string link_type
+        float similarity_score
+    }
+
+    QualityReport {
+        string id PK
+        string master_task_id FK
+        float overall_score
+        float clear_title_score
+        float reproduction_steps_score
+        float error_logs_score
+        float environment_score
+        float expected_behavior_score
+        float severity_score
+        float assignee_score
+        json missing_info
+        json clarification_questions
+        string actionability
+    }
+
     PriorityScore {
         string id PK
         string master_task_id FK
@@ -252,9 +290,13 @@ erDiagram
         float deadline_score
         float production_impact_score
         float customer_impact_score
+        float dependency_score
         float blocker_score
+        float business_impact_score
+        float quality_factor_score
         int rank
         text explanation
+        json priority_reason
     }
 
     DailyPlan {
@@ -263,7 +305,10 @@ erDiagram
         string plan_date
         float available_hours
         float planned_hours
+        float buffer_hours
         string load_status
+        json recommendations
+        json overflow_tasks
     }
 
     TimeSlot {
@@ -273,7 +318,18 @@ erDiagram
         string start_time
         string end_time
         string slot_type
+        string priority_level
         string title
+    }
+
+    WorkflowRun {
+        string id PK
+        string status
+        datetime started_at
+        datetime completed_at
+        json agents_completed
+        string current_agent
+        text error_log
     }
 ```
 
