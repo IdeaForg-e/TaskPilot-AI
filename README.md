@@ -517,7 +517,8 @@ One-click **"Download Report"** button on the Dashboard generates a comprehensiv
 **🤖 AI / LLM**
 
 ![Groq](https://img.shields.io/badge/Groq-LPU_Cloud-F55036?style=flat-square&logo=groq&logoColor=white)
-![Meta Llama](https://img.shields.io/badge/Llama_3.3-70B-0467DF?style=flat-square&logo=meta&logoColor=white)
+![GPT-OSS](https://img.shields.io/badge/GPT--OSS-20B-black?style=flat-square)
+![Qwen](https://img.shields.io/badge/Qwen_3.6-27B-515A6B?style=flat-square)
 ![NVIDIA](https://img.shields.io/badge/NVIDIA_NIM-Fallback-76B900?style=flat-square&logo=nvidia&logoColor=white)
 ![httpx](https://img.shields.io/badge/httpx-0.27+-2D3748?style=flat-square)
 
@@ -528,7 +529,7 @@ One-click **"Download Report"** button on the Dashboard generates a comprehensiv
 
 **☁️ Infrastructure**
 
-![Vercel](https://img.shields.io/badge/Vercel-Frontend-000000?style=flat-square&logo=vercel&logoColor=white)
+![Render](https://img.shields.io/badge/Render-Frontend-46E3B7?style=flat-square&logo=render&logoColor=white)
 ![Render](https://img.shields.io/badge/Render-Backend-46E3B7?style=flat-square&logo=render&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-CI/CD-181717?style=flat-square&logo=github&logoColor=white)
 
