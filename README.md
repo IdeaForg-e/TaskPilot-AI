@@ -743,6 +743,7 @@ Follow this sequence to see TaskPilot AI in action (maps to hackathon acceptance
 2. Click **"Run Pipeline"** — watch the 6-stage stepper animate in real-time
 3. Each agent stage lights up as it completes: Ingestion → Extraction → Fusion → Quality → Prioritization → Planning
 4. Click notification bell to see Pipeline Status, Developer Overload, P1 Critical Escalation, P1 upcoming task
+5. Search your required tasks in 'search operations' bar. 
 
 ### Step 2: Explore Ingested Tasks
 4. Navigate to **Tasks** page — see all 30+ tasks aggregated from 7 sources
