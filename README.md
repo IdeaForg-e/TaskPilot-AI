@@ -783,11 +783,13 @@ TaskPilot-AI/
 │   │   ├── agent_4_quality_agent.py
 │   │   ├── agent_5_prioritization_agent.py
 │   │   ├── agent_6_planning_agent.py
+│   │   ├── llm_client.py
 │   │   └── 📂 prompts/              # LLM prompt templates per agent
 │   ├── 📂 app/
 │   │   ├── main.py                   # FastAPI app entry point
 │   │   ├── config.py                 # Environment config loader
 │   │   ├── database.py               # SQLAlchemy engine + sessions
+│   │   ├── logging_config.py
 │   │   ├── 📂 models/               # SQLAlchemy ORM models
 │   │   │   ├── source_event.py       # Raw ingested events
 │   │   │   ├── task.py               # TaskCandidate + MasterTask + ContextLink
@@ -828,6 +830,8 @@ TaskPilot-AI/
 │       │   ├── Priority.jsx           # Priority leaderboard + EvaluationModal
 │       │   ├── Planner.jsx            # Daily schedule timeline + Optimizer Rules modal
 │       │   └── ChatPage.jsx           # AI copilot with prompt chips + file attachment
+│       │   └── Settings.jsx
+│       │   └── Support.jsx
 │       ├── 📂 components/            # Reusable UI components
 │       │   ├── 📂 dashboard/         # StatsCard, PipelineStatus, RecentActivity
 │       │   ├── 📂 layout/            # Sidebar, Layout, Header (notifications + theme toggle)
@@ -850,6 +854,8 @@ TaskPilot-AI/
 ├── render.yaml                        # Render.com deployment Blueprint
 ├── start.bat                          # One-click Windows launcher
 └── README.md
+└── testing_commands.md
+└── research.txt
 ```
 
 ---
