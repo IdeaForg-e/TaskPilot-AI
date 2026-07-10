@@ -726,10 +726,10 @@ DATABASE_URL=sqlite:///./taskpilot.db
 
 | Component | URL |
 |:---|:---|
-| 🖥 **Frontend** (Render) | [taskpilot-ai-frontend-1.onrender.com](https://taskpilot-ai-frontend-1.onrender.com/) |
-| ⚡ **Backend API** (Render) | [taskpilot-ai-4.onrender.com](https://taskpilot-ai-4.onrender.com) |
-| 📖 **API Docs** (Swagger) | [taskpilot-ai-4.onrender.com/docs](https://taskpilot-ai-4.onrender.com/docs) |
-| 💚 **Health Check** | [taskpilot-ai-4.onrender.com/health](https://taskpilot-ai-4.onrender.com/health) |
+| 🖥 **Frontend** (Render) | [taskpilot-ai-frontend-1.onrender.com](https://taskpilot-ai-app.onrender.com) |
+| ⚡ **Backend API** (Render) | [taskpilot-ai-4.onrender.com](https://taskpilot-ai-xrnr.onrender.com/) |
+| 📖 **API Docs** (Swagger) | [taskpilot-ai-4.onrender.com/docs](https://taskpilot-ai-xrnr.onrender.com/docs) |
+| 💚 **Health Check** | [taskpilot-ai-4.onrender.com/health](https://taskpilot-ai-xrnr.onrender.com/health) |
 
 
 ---
@@ -742,6 +742,7 @@ Follow this sequence to see TaskPilot AI in action (maps to hackathon acceptance
 1. Open the **Dashboard** page
 2. Click **"Run Pipeline"** — watch the 6-stage stepper animate in real-time
 3. Each agent stage lights up as it completes: Ingestion → Extraction → Fusion → Quality → Prioritization → Planning
+4. Click notification bell to see Pipeline Status, Developer Overload, P1 Critical Escalation, P1 upcoming task
 
 ### Step 2: Explore Ingested Tasks
 4. Navigate to **Tasks** page — see all 30+ tasks aggregated from 7 sources
@@ -768,6 +769,7 @@ Follow this sequence to see TaskPilot AI in action (maps to hackathon acceptance
 17. Ask: *"What's my top priority?"* → AI responds with context-aware answer
 18. Type: *"Inject P1 — Payment gateway is timing out, affecting all checkout flows"*
 19. Watch the **entire pipeline re-run autonomously** — the new incident appears in Priority leaderboard with a high rank
+20. Attach documents and ask questions about it  → AI responds with context-aware answer
 
 ---
 
