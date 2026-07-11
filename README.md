@@ -91,7 +91,7 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
   <img src="docs/images/architecture.jpg" alt="TaskPilot AI Architecture" width="100%" />
 </p>
 
-TaskPilot AI employs a **cooperative multi-agent architecture** where 6 specialized AI agents work in a sequential pipeline, orchestrated by a central controller. Each agent has a single responsibility, communicates through a shared SQLite database, and uses LLM-powered reasoning for complex decisions.
+TaskPilot AI employs a **cooperative multi-agent architecture** where 8 specialized AI agents work in coordination (stages 1-6 in a sequential pipeline, stage 7 as a chat interface, all orchestrated by Agent 0). Each agent has a single responsibility, communicates through a shared SQLite database, and uses LLM-powered reasoning for complex decisions.
 
 ### High-Level System Flow
 
@@ -809,7 +809,6 @@ TaskPilot-AI/
 │   │   ├── agent_4_quality_agent.py
 │   │   ├── agent_5_prioritization_agent.py
 │   │   ├── agent_6_planning_agent.py
-│   │   ├── llm_client.py
 │   │   └── 📂 prompts/              # LLM prompt templates per agent
 │   ├── 📂 app/
 │   │   ├── main.py                   # FastAPI app entry point
@@ -855,9 +854,9 @@ TaskPilot-AI/
 │       │   ├── Quality.jsx            # QA analytics dashboard with SVG gauge + tabs
 │       │   ├── Priority.jsx           # Priority leaderboard + EvaluationModal
 │       │   ├── Planner.jsx            # Daily schedule timeline + Optimizer Rules modal
-│       │   └── ChatPage.jsx           # AI copilot with prompt chips + file attachment
-│       │   └── Settings.jsx
-│       │   └── Support.jsx
+│       │   ├── ChatPage.jsx           # AI copilot with prompt chips + file attachment
+│       │   ├── Settings.jsx           # System configuration page
+│       │   └── Support.jsx            # Accordion FAQ & support page
 │       ├── 📂 components/            # Reusable UI components
 │       │   ├── 📂 dashboard/         # StatsCard, PipelineStatus, RecentActivity
 │       │   ├── 📂 layout/            # Sidebar, Layout, Header (notifications + theme toggle)
@@ -879,9 +878,9 @@ TaskPilot-AI/
 │   └── users.json                     # Engineer profiles
 ├── render.yaml                        # Render.com deployment Blueprint
 ├── start.bat                          # One-click Windows launcher
-└── README.md
-└── testing_commands.md
-└── research.txt
+├── README.md                          # Documentation entry point
+├── testing_commands.md                # Sandbox testing commands guide
+└── research.txt                       # Research and concepts notes
 ```
 
 ---
@@ -927,7 +926,7 @@ All endpoints are prefixed with `/api/v1`.
 | Conversational interface (5+ queries) | ✅ | Context-aware LLM chat with full DB context injection |
 | Agentic behavior (autonomous reasoning) | ✅ | Pipeline auto-runs, P1 injection triggers full re-prioritization |
 | Dynamic re-prioritization | ✅ | Chat P1 injection → full pipeline re-run → new rankings |
-| Multi-agent architecture | ✅ | 7 specialized agents with orchestrator coordination |
+| Multi-agent architecture | ✅ | 8 specialized agents (7 core agents + Orchestrator) |
 | Proactive alerting | ✅ | Developer overload warnings, stale pipeline detection, **smart notification bell with next task tracking** |
 | Calendar-aware planning | ✅ | Meeting block protection, available hours calculation |
 | Exportable reports | ✅ | **One-click Dashboard report download** — system health, QA metrics, priority leaderboard, workload status |
