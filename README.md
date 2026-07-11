@@ -435,6 +435,12 @@ Explore our research, design documents, and conceptual POC documentation on Noti
   3. Autonomously re-runs the entire pipeline orchestrator (`OrchestratorService.run_full_pipeline()`).
   4. Queries database scores to output the newly calculated priority score and leaderboard rank back in the chat reply.
 
+#### 📎 Document Attachment & Browser-Side Parsing Flow:
+1. **Client-Side File Capture:** When clicking the attachment paperclip icon, the browser triggers a hidden `<input type="file">` selector accepting `.txt`, `.py`, `.js`, `.log`, and other text-based files.
+2. **HTML5 FileReader Ingestion:** Upon selecting a file, the frontend runs the native HTML5 `FileReader` API (`reader.readAsText(file)`) locally to parse the file's plain-text contents into React state variables (`fileContent`).
+3. **Token-Cost Truncation Control:** To prevent excessive token consumption, protect LLM contexts, and bypass Groq API rate limits (TPM 429), the content is truncated to its first **3,000 characters** (`fileContent.substring(0, 3000)`) in the query builder.
+4. **Context Injection & LLM Dispatch:** The truncated text is appended within code tags (` ``` `) to the user's message payload. The `/api/v1/chat` endpoint forwards this payload to the LLM along with the active database tables context, enabling the assistant to answer questions about the file.
+
 ---
 
 ## 🖥 Frontend Dashboard
@@ -463,7 +469,19 @@ The header **notification bell** dropdown automatically tracks and surfaces:
 | 🔥 **P1 Critical Escalation** | 🔴 Red | Tasks with `critical` or `high` urgency |
 | 🟣 **Next Upcoming Task** | 🟣 Purple | Next scheduled task from today's AI plan, or highest-priority backlog task as fallback |
 
-> Notifications auto-refresh every **15 seconds** in the background.
+#### ⚙️ How the Notification System Works:
+1. **API Initialization & Background Polling:** On application startup, the frontend `Header` component triggers parallel asynchronous fetches querying:
+   - `/api/v1/tasks` (to compile the active tasks list).
+   - `/api/v1/orchestrate/latest` (to read the latest orchestrator pipeline status).
+   - `/api/v1/daily-plan/{date}` (to fetch today's plan calendar slots).
+   - The panel sets up a client-side timer that auto-polls these endpoints every **15 seconds** to refresh the alerts.
+2. **Pipeline Status Verification:** Reads the status field of the workflow run; if it is `completed`, sets a success badge; if `failed`, sets an error badge containing the run ID.
+3. **Developer Overload Calculation:** Groups active, uncompleted tasks by assignee; if the active task count for any engineer exceeds **5**, an overload warning banner is generated.
+4. **P1 Critical Escalation Detection:** Scans backlog items, matching any tasks flagged with `critical` or `high` urgency levels to immediately trigger red alert cards.
+5. **Next Upcoming Task Scheduling Logic:** 
+   - Compares the client's current system hours and minutes against the scheduled focus slots (`slot_type: 'task'`).
+   - Identifies the earliest upcoming slots whose start times exceed the current time, or displays the current active task slot.
+   - If no plan is generated for today or all tasks are finished, it falls back to the highest priority backlog task using priority rankings.
 
 ### Download Report
 
