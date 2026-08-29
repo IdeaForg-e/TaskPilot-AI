@@ -20,6 +20,37 @@ class LLMClient:
     pipeline_mode = False
     _shared_client = None
 
+    # Circuit breaker: after N consecutive failures a provider is skipped for
+    # CIRCUIT_COOLDOWN seconds, then given one retry (half-open). Replaces the
+    # old permanent per-run ban so transient rate-limits self-heal.
+    _circuit = {}  # provider name -> {"failures": int, "opened_at": float}
+    CIRCUIT_THRESHOLD = 2
+    CIRCUIT_COOLDOWN = 60  # seconds
+
+    @classmethod
+    def _circuit_open(cls, name: str) -> bool:
+        import time
+        state = cls._circuit.get(name)
+        if not state or state["failures"] < cls.CIRCUIT_THRESHOLD:
+            return False
+        if time.time() - state["opened_at"] > cls.CIRCUIT_COOLDOWN:
+            cls._circuit.pop(name, None)  # half-open: allow one retry
+            return False
+        return True
+
+    @classmethod
+    def _record_failure(cls, name: str):
+        import time
+        state = cls._circuit.setdefault(name, {"failures": 0, "opened_at": 0.0})
+        state["failures"] += 1
+        state["opened_at"] = time.time()
+        cls.failed_providers.add(name)  # kept for diagnostics compat
+
+    @classmethod
+    def _record_success(cls, name: str):
+        cls._circuit.pop(name, None)
+        cls.failed_providers.discard(name)
+
     @classmethod
     def get_shared_client(cls) -> httpx.Client:
         if cls._shared_client is None:
@@ -91,23 +122,25 @@ class LLMClient:
             return fallback
 
         for provider in self.providers:
-            if provider["name"] in self.failed_providers:
+            if self._circuit_open(provider["name"]):
                 continue
 
             try:
                 if provider["name"] == "groq":
                     content = self._complete_groq(provider, prompt, temperature)
+                    self._record_success(provider["name"])
                     return parse_json(content)
 
                 elif provider["name"] == "nvidia":
                     content = self._complete_nvidia(provider, prompt, temperature)
+                    self._record_success(provider["name"])
                     return parse_json(content)
 
             except Exception as exc:
                 message = f"LLM provider {provider['name']} failed: {self._safe_error(exc)}"
                 logger.error(message)
                 self._add_diagnostic("warning", message)
-                self.failed_providers.add(provider["name"])
+                self._record_failure(provider["name"])
 
         self._add_diagnostic(
             "warning",
@@ -134,21 +167,25 @@ class LLMClient:
             return "No LLM provider is configured for this environment."
 
         for provider in self.providers:
-            if provider["name"] in self.failed_providers:
+            if self._circuit_open(provider["name"]):
                 continue
 
             try:
                 if provider["name"] == "groq":
-                    return self._complete_groq(provider, prompt, temperature)
+                    result = self._complete_groq(provider, prompt, temperature)
+                    self._record_success(provider["name"])
+                    return result
 
                 elif provider["name"] == "nvidia":
-                    return self._complete_nvidia(provider, prompt, temperature)
+                    result = self._complete_nvidia(provider, prompt, temperature)
+                    self._record_success(provider["name"])
+                    return result
 
             except Exception as exc:
                 message = f"LLM provider {provider['name']} text completion failed: {self._safe_error(exc)}"
                 logger.error(message)
                 self._add_diagnostic("warning", message)
-                self.failed_providers.add(provider["name"])
+                self._record_failure(provider["name"])
 
         self._add_diagnostic(
             "warning",

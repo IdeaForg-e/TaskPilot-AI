@@ -235,13 +235,13 @@ class PrioritizationAgent:
         
         overall = round(
             (
-                severity * 0.25
-                + production * 0.2
-                + customer * 0.18
+                severity * 0.24
+                + production * 0.18
+                + customer * 0.16
                 + deadline * 0.12
-                + blocker * 0.1
-                + business * 0.1
-                + quality_factor * 0.05
+                + blocker * 0.10
+                + business * 0.10
+                + quality_factor * 0.10
             )
             * title_quality_multiplier
             * work_type_multiplier,

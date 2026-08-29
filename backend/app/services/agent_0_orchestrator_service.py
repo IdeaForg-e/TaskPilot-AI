@@ -16,7 +16,10 @@ class OrchestratorService:
     def __init__(self, db):
         self.db = db
 
-    def run_full_pipeline(self, existing_run_id: str = None):
+    # Demo data sources ingested by the pipeline (jira/incidents disabled)
+    PIPELINE_SOURCES = ["github", "slack", "email", "calendar", "meetings"]
+
+    def run_full_pipeline(self, existing_run_id: str = None, incremental: bool = False):
         logger = logging.getLogger("taskpilot.orchestrator")
         LLMClient.pipeline_mode = True
         LLMClient.reset_diagnostics()
@@ -34,9 +37,19 @@ class OrchestratorService:
             results = {}
             completed = []
 
-            steps = [
-                ("ingestion", lambda: IngestionService(self.db).ingest_all(["jira", "github", "slack", "email", "calendar", "meetings", "incidents"])),
-                ("extraction", lambda: ExtractionService(self.db).extract_all(True, 0.5)),
+            if incremental:
+                # Incremental run: ingest only new events and extract only
+                # events without candidates — keeps prior fused context intact.
+                steps = [
+                    ("ingestion", lambda: IngestionService(self.db).ingest_all(self.PIPELINE_SOURCES, clear=False)),
+                    ("extraction", lambda: ExtractionService(self.db).extract_all(True, 0.5, incremental=True)),
+                ]
+            else:
+                steps = [
+                    ("ingestion", lambda: IngestionService(self.db).ingest_all(self.PIPELINE_SOURCES, clear=True)),
+                    ("extraction", lambda: ExtractionService(self.db).extract_all(True, 0.5)),
+                ]
+            steps += [
                 ("fusion", lambda: FusionService(self.db).fuse_all()),
                 ("quality", lambda: QualityService(self.db).evaluate_all()),
                 ("prioritization", lambda: PrioritizationService(self.db).prioritize_all()),

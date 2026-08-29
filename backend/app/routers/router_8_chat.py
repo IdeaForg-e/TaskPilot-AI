@@ -38,7 +38,7 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
             {{
                 "title": "Short title",
                 "description": "Longer description of problem",
-                "source": "Jira / Github / Email / Incident",
+                "source": "Github / Slack / Email / Meeting / Calendar",
                 "urgency": "high / normal"
             }}
             """
@@ -51,9 +51,9 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
             
             title_val = data.get("title", "Simulated Urgent Defect")
             desc_val = data.get("description", "P1 Production error occurred")
-            source_raw = str(data.get("source", "incident")).strip().lower()
-            if source_raw not in ["jira", "github", "slack", "email", "calendar", "meeting", "incident"]:
-                source_raw = "incident"
+            source_raw = str(data.get("source", "email")).strip().lower()
+            if source_raw not in ["github", "slack", "email", "calendar", "meeting"]:
+                source_raw = "email"
                 
             import os
             import json
@@ -62,8 +62,8 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
             from app.services.agent_1_ingestion_service import SOURCE_FILES
             
             # Map normalized source names
-            source_key = "meetings" if source_raw == "meeting" else "incidents" if source_raw == "incident" else source_raw
-            filename = SOURCE_FILES.get(source_key, "incidents.json")
+            source_key = "meetings" if source_raw == "meeting" else source_raw
+            filename = SOURCE_FILES.get(source_key, "emails.json")
             path = os.path.join(settings.DATA_DIR, filename)
             
             # Load existing items
@@ -78,19 +78,7 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
 
             # Structure the raw event based on its source type
             num = random.randint(1000, 9999)
-            if source_raw == "jira":
-                new_item = {
-                    "id": f"jira-{num}",
-                    "key": f"PROJ-{num}",
-                    "title": title_val,
-                    "description": desc_val,
-                    "type": "Bug",
-                    "status": "To Do",
-                    "priority": "High",
-                    "created_at": datetime.utcnow().isoformat() + "Z",
-                    "updated_at": datetime.utcnow().isoformat() + "Z",
-                }
-            elif source_raw == "github":
+            if source_raw == "github":
                 new_item = {
                     "id": f"gh-{num}",
                     "number": num,
@@ -118,17 +106,15 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
                     "to": "user-001@company.com",
                     "date": datetime.utcnow().strftime("%Y-%m-%d")
                 }
-            else:  # incident / default
+            else:  # calendar / meeting / default
                 new_item = {
-                    "id": f"inc-{num}",
-                    "key": f"INC-{num}",
+                    "id": f"event-{num}",
                     "title": title_val,
                     "description": desc_val,
-                    "severity": "P1",
-                    "status": "Open",
-                    "reporter": "user-001",
+                    "type": "one-time",
+                    "date": datetime.utcnow().strftime("%Y-%m-%d"),
+                    "organizer": "user-001",
                     "created_at": datetime.utcnow().isoformat() + "Z",
-                    "updated_at": datetime.utcnow().isoformat() + "Z",
                 }
 
             file_items.append(new_item)
@@ -137,9 +123,10 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
 
             logger.info(f"Chat appended new event to {filename}: {title_val}")
             
-            # Re-run the full pipeline to ingest, extract, fuse, score quality, prioritize, and plan
+            # Re-run pipeline incrementally: only the new event is ingested and
+            # extracted — existing fused tasks keep their context (fast path).
             orchestrator = OrchestratorService(db)
-            result = orchestrator.run_full_pipeline()
+            result = orchestrator.run_full_pipeline(incremental=True)
             
             # Query the newly prioritized task to find its priority rank and score
             priority_info = ""

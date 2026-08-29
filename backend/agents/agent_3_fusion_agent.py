@@ -68,11 +68,23 @@ class FusionAgent:
     def _fallback(self, task_a: dict, task_b: dict) -> dict:
         title_a = task_a.get("title", "")
         title_b = task_b.get("title", "")
+        desc_a_full = (task_a.get("description") or "")
+        desc_b_full = (task_b.get("description") or "")
+
+        # Title similarity: character ratio + token overlap
         ratio = SequenceMatcher(None, title_a.lower(), title_b.lower()).ratio()
         tokens_a = set(title_a.lower().replace("#", "").split())
         tokens_b = set(title_b.lower().replace("#", "").split())
         overlap = len(tokens_a & tokens_b) / max(len(tokens_a | tokens_b), 1)
-        confidence = max(ratio, overlap)
+
+        # Description similarity: catches same-issue tasks with differently worded titles
+        # Only meaningful when both descriptions are substantial
+        desc_sim = 0.0
+        if len(desc_a_full) > 60 and len(desc_b_full) > 60:
+            desc_sim = SequenceMatcher(None, desc_a_full.lower()[:900], desc_b_full.lower()[:900]).ratio()
+
+        # Weighted composite: titles matter most, description adds corroborating evidence
+        confidence = 0.45 * ratio + 0.35 * overlap + 0.20 * desc_sim
 
         assignee_a = task_a.get("assignee")
         assignee_b = task_b.get("assignee")

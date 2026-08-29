@@ -12,15 +12,12 @@ from app.models.task import MasterTask, TaskCandidate, TaskContextLink
 
 
 SOURCE_FILES = {
-    "jira": "jira_data.json",
     "github": "github_data.json",
     "slack": "slack_data.json",
     "email": "emails.json",
     "calendar": "calendar.json",
     "meetings": "meeting_notes.json",
     "meeting": "meeting_notes.json",
-    "incidents": "incidents.json",
-    "incident": "incidents.json",
 }
 
 
@@ -28,11 +25,19 @@ class IngestionService:
     def __init__(self, db):
         self.db = db
 
-    def ingest_all(self, sources):
+    def ingest_all(self, sources, clear=True):
         selected_sources = sources or list(SOURCE_FILES.keys())
-        self._clear_pipeline_data()
+        if clear:
+            self._clear_pipeline_data()
+        # In incremental mode, skip events that were already ingested
+        existing_keys = set()
+        if not clear:
+            for src, sid in self.db.query(SourceEvent.source, SourceEvent.source_id).all():
+                existing_keys.add((src, str(sid)))
+
         per_source = {}
         total = 0
+        skipped = 0
 
         for source in selected_sources:
             filename = SOURCE_FILES.get(source)
@@ -45,14 +50,27 @@ class IngestionService:
             with open(path, "r", encoding="utf-8") as handle:
                 items = json.load(handle)
 
-            normalized_source = "meeting" if source == "meetings" else "incident" if source == "incidents" else source
-            per_source[normalized_source] = len(items)
-            total += len(items)
+            normalized_source = "meeting" if source == "meetings" else source
+            added = 0
             for item in items:
+                event_key = (normalized_source, str(item.get("id") or item.get("key") or item.get("number")))
+                if not clear and event_key in existing_keys:
+                    skipped += 1
+                    continue
                 self.db.add(self._to_event(normalized_source, item))
+                added += 1
+
+            per_source[normalized_source] = added
+            total += added
 
         self.db.commit()
-        return {"total_events": total, "per_source": per_source, "new_events": total}
+        return {
+            "total_events": total,
+            "per_source": per_source,
+            "new_events": total,
+            "skipped_existing": skipped,
+            "incremental": not clear,
+        }
 
     def get_event_count(self):
         return self.db.query(SourceEvent).count()

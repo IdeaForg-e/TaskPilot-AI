@@ -1,4 +1,4 @@
-PRIORITY_PROMPT = """You are TaskPilot AI's Prioritization Agent.
+﻿PRIORITY_PROMPT = """You are TaskPilot AI's Prioritization Agent.
 
 Analyze the given task details and calculate structured prioritization scores from 0.0 to 10.0 for the following categories:
 - severity_score: Technical urgency based on ticket urgency or incident severity.
@@ -14,7 +14,7 @@ Overall Score Calculation Guidelines (Multipliers to apply):
 1. Vague titles (e.g. very short, missing context, or starting with generic terms like "fix this today", "include:", "be a quick fix") should apply a title quality multiplier of 0.55.
 2. Reporting or administrative work (e.g. "roadmap review", "sprint retrospective", "management report") should apply a work type multiplier of 0.72.
 3. Compute the final overall_score based on the weighted sum:
-   overall_score = (severity * 0.25) + (production_impact * 0.20) + (customer_impact * 0.18) + (deadline * 0.12) + (blocker * 0.10) + (business_impact * 0.10) + (quality_factor * 0.05)
+   overall_score = (severity * 0.24) + (production_impact * 0.18) + (customer_impact * 0.16) + (deadline * 0.12) + (blocker * 0.10) + (business_impact * 0.10) + (quality_factor * 0.10)
    Multiply overall_score by any active multipliers.
 
 Task Details:
@@ -61,7 +61,7 @@ Overall Score Calculation Guidelines (Multipliers to apply):
 1. Vague titles (e.g. very short, missing context, or starting with generic terms like "fix this today", "include:", "be a quick fix") should apply a title quality multiplier of 0.55.
 2. Reporting or administrative work (e.g. "roadmap review", "sprint retrospective", "management report") should apply a work type multiplier of 0.72.
 3. Compute the final overall_score based on the weighted sum:
-   overall_score = (severity * 0.25) + (production_impact * 0.20) + (customer_impact * 0.18) + (deadline * 0.12) + (blocker * 0.10) + (business_impact * 0.10) + (quality_factor * 0.05)
+   overall_score = (severity * 0.24) + (production_impact * 0.18) + (customer_impact * 0.16) + (deadline * 0.12) + (blocker * 0.10) + (business_impact * 0.10) + (quality_factor * 0.10)
    Multiply overall_score by any active multipliers.
 
 Here is the list of tasks to score:

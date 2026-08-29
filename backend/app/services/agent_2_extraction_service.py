@@ -13,15 +13,34 @@ class ExtractionService:
         self.db = db
         self.agent = ExtractionAgent()
 
-    def extract_all(self, include_hidden=True, min_confidence=0.5):
-        self.db.query(TimeSlot).delete()
-        self.db.query(DailyPlan).delete()
-        self.db.query(PriorityScore).delete()
-        self.db.query(QualityReport).delete()
-        self.db.query(TaskContextLink).delete()
-        self.db.query(MasterTask).delete()
-        self.db.query(TaskCandidate).delete()
-        events = self.db.query(SourceEvent).all()
+    def extract_all(self, include_hidden=True, min_confidence=0.5, incremental=False):
+        if incremental:
+            # Incremental: keep existing candidates, clear only downstream tables,
+            # and extract only events that don't have candidates yet.
+            self.db.query(TimeSlot).delete()
+            self.db.query(DailyPlan).delete()
+            self.db.query(PriorityScore).delete()
+            self.db.query(QualityReport).delete()
+            self.db.query(TaskContextLink).delete()
+            self.db.query(MasterTask).delete()
+            existing_event_ids = {
+                row[0]
+                for row in self.db.query(TaskCandidate.source_event_id).all()
+                if row[0]
+            }
+            events = [
+                e for e in self.db.query(SourceEvent).all()
+                if e.id not in existing_event_ids
+            ]
+        else:
+            self.db.query(TimeSlot).delete()
+            self.db.query(DailyPlan).delete()
+            self.db.query(PriorityScore).delete()
+            self.db.query(QualityReport).delete()
+            self.db.query(TaskContextLink).delete()
+            self.db.query(MasterTask).delete()
+            self.db.query(TaskCandidate).delete()
+            events = self.db.query(SourceEvent).all()
         explicit_count = 0
         hidden_count = 0
         tasks = []
@@ -64,6 +83,7 @@ class ExtractionService:
             "total_tasks": explicit_count + hidden_count,
             "explicit_tasks": explicit_count,
             "hidden_tasks": hidden_count,
+            "incremental": incremental,
             "tasks": [self._candidate_out(task) for task in tasks],
         }
 

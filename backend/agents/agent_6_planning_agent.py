@@ -41,8 +41,49 @@ class PlanningAgent:
         if result == fallback:
             logger.warning("PlanningAgent: LLM call failed or timed out. Deterministic fallback plan will be returned.")
         else:
-            logger.info("PlanningAgent: Successfully generated plan from LLM.")
+            # Guardrail: never trust an LLM plan that violates hard constraints
+            is_valid, reason = self._validate_plan(result, available_hours, meetings)
+            if not is_valid:
+                logger.warning(f"PlanningAgent: LLM plan rejected ({reason}). Using deterministic fallback.")
+                result = fallback
+            else:
+                logger.info("PlanningAgent: Successfully generated and validated plan from LLM.")
         return result if isinstance(result, dict) else fallback
+
+    def _validate_plan(self, result, available_hours, meetings) -> tuple[bool, str]:
+        if not isinstance(result, dict) or not isinstance(result.get("time_slots"), list):
+            return False, "missing time_slots list"
+
+        task_slots = [s for s in result["time_slots"] if s.get("slot_type") == "task"]
+        if not task_slots:
+            return False, "no task slots scheduled"
+
+        total = 0.0
+        task_meetings = [(m.get("start_time"), m.get("end_time")) for m in meetings]
+        for slot in task_slots:
+            if not slot.get("start_time") or not slot.get("end_time") or not slot.get("task_id"):
+                return False, "task slot missing start/end/task_id"
+            try:
+                start = datetime.strptime(slot["start_time"], "%H:%M")
+                end = datetime.strptime(slot["end_time"], "%H:%M")
+            except (ValueError, TypeError):
+                return False, f"invalid time format: {slot.get('start_time')}-{slot.get('end_time')}"
+            if end <= start:
+                return False, "task slot ends before it starts"
+            total += (end - start).total_seconds() / 3600.0
+            # Task work must not overlap fixed meetings
+            for m_start, m_end in task_meetings:
+                try:
+                    ms, me = datetime.strptime(m_start, "%H:%M"), datetime.strptime(m_end, "%H:%M")
+                    if start < me and end > ms:
+                        return False, f"task slot overlaps meeting {m_start}-{m_end}"
+                except (ValueError, TypeError):
+                    continue
+
+        if total > max(0.5, available_hours + 0.5):
+            return False, f"planned {round(total, 1)}h exceeds availability {available_hours}h"
+
+        return True, "ok"
  
     def _fallback(self, date, available_hours, meetings, ranked_tasks, buffer_hours) -> dict:
         slots = []

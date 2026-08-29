@@ -54,13 +54,21 @@ class QualityAgent:
     def _fallback(self, title: str, description: str, task_type: str, assignee: str, deadline: str) -> dict:
         desc = description or ""
         lower = f"{title} {desc}".lower()
-        clear_title = 90 if len(title or "") > 18 and "this issue" not in lower else 35
-        reproduction = 80 if any(w in lower for w in ("steps", "symptoms", "error", "timeline")) else 25
-        error_logs = 85 if any(w in lower for w in ("error", "stack", "logs", "alert")) else 30
-        environment = 80 if any(w in lower for w in ("production", "staging", "ios", "android", "ci/cd")) else 35
-        expected = 80 if any(w in lower for w in ("expected", "actual", "acceptance", "criteria")) else 35
-        severity = 90 if any(w in lower for w in ("critical", "p0", "p1", "high", "urgent")) else 55
+        # Recalibrated: high scores only on strong, specific evidence
+        clear_title = 85 if len(title or "") > 30 and "this issue" not in lower else (65 if len(title or "") > 18 else 35)
+        reproduction = 80 if any(w in lower for w in ("steps to reproduce", "step 1", "repro")) else (
+            55 if any(w in lower for w in ("steps", "symptoms", "timeline")) else 25
+        )
+        error_logs = 85 if any(w in lower for w in ("stack trace", "stacktrace", "exception")) else (
+            60 if any(w in lower for w in ("error", "logs", "alert")) else 25
+        )
+        environment = 80 if any(w in lower for w in ("production", "staging", "ios", "android", "ci/cd", "browser", "os version")) else 35
+        expected = 80 if any(w in lower for w in ("expected", "actual", "acceptance criteria", "should")) else 35
+        severity = 90 if any(w in lower for w in ("critical", "p0", "sev1", "outage")) else (
+            70 if any(w in lower for w in ("p1", "high", "urgent")) else 45
+        )
         assignee_score = 85 if assignee else 20
+        # Deadline documented is a quality signal too
         scores = [clear_title, reproduction, error_logs, environment, expected, severity, assignee_score]
         overall = round(sum(scores) / len(scores), 1)
 

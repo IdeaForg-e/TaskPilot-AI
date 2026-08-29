@@ -73,56 +73,61 @@ class ExtractionAgent:
             for key in ("content", "body", "summary", "description", "subject", "title")
         )
         
-        # Parse lines to check for multiple distinct action points (e.g. bullets or numbered lists)
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
-        candidates = []
+        # Action markers - extended with common engineering-request verbs
         action_words = (
-            "can you",
-            "please",
-            "need to",
-            "should",
-            "don't forget",
-            "action",
-            "blocked",
-            "urgent",
-            "review",
-            "investigate",
-            "fix",
-            "prepare",
-            "update",
-            "renew",
-            "confirm",
-            "patch",
+            "can you", "could you", "please", "need to", "needs to", "should",
+            "don't forget", "action", "blocked", "urgent", "asap", "eod",
+            "review", "investigate", "fix", "patch", "deploy", "ship",
+            "prepare", "update", "renew", "confirm", "follow up", "escalate",
+            "migrate", "schedule", "send", "share", "verify", "document",
         )
+        # Strong urgency signals vs. mild ones - keeps default urgency "medium"
+        critical_words = ("p0", "p1", "critical", "outage", "production down", "sev1")
+        high_words = ("urgent", "asap", "eod", "today", "immediately", "blocker", "blocked", "deadline")
+
+        # Split into atomic lines: newlines, bullets, and sentence boundaries
+        raw_lines = re.split(r"[\n\r]+|(?=\s[-*•]\s)|(?<=[.!?])\s+(?=[A-Z])", text)
+        lines = [re.sub(r"^[\s\-*•\d\.\)\]]+", "", ln).strip() for ln in raw_lines]
+        lines = [ln for ln in lines if len(ln) > 10]
+
+        candidates = []
+        seen_titles = set()
 
         for line in lines:
             line_lower = line.lower()
-            cleaned_line = re.sub(r"^[-*•\d\.\s]+", "", line).strip()
-            if not cleaned_line:
+            if not any(marker in line_lower for marker in action_words):
                 continue
 
-            if any(marker in line_lower for marker in action_words) and len(cleaned_line) > 10:
-                title = self._title_from_text(cleaned_line, item, source_type)
-                if self._is_vague_title(title):
-                    continue
-                urgency = "critical" if any(w in line_lower for w in ("p0", "critical", "urgent", "outage")) else "high"
-                assignee = self._find_assignee(item, line)
-                deadline = self._find_deadline(line)
-                
-                desc = cleaned_line
-                if item.get("subject"):
-                    desc += f" (Context: {item['subject']})"
+            title = self._title_from_text(line, item, source_type)
+            if self._is_vague_title(title):
+                continue
+            # De-duplicate near-identical candidates from the same event
+            title_key = re.sub(r"\W+", " ", title.lower()).strip()
+            if title_key in seen_titles:
+                continue
+            seen_titles.add(title_key)
 
-                candidates.append(
-                    {
-                        "title": title,
-                        "description": desc,
-                        "assignee": assignee or self._find_assignee(item, text),
-                        "deadline": deadline or self._find_deadline(text),
-                        "urgency": urgency,
-                        "confidence": 0.85 if assignee else 0.75,
-                    }
-                )
+            urgency = "critical" if any(w in line_lower for w in critical_words) else (
+                "high" if any(w in line_lower for w in high_words) else "medium"
+            )
+            assignee = self._find_assignee(item, line)
+            deadline = self._find_deadline(line)
+
+            desc = line
+            if item.get("subject") and source_type == "email":
+                desc += f" (Context: {item['subject']})"
+
+            candidates.append(
+                {
+                    "title": title,
+                    "description": desc[:800],
+                    "assignee": assignee or self._find_assignee(item, text),
+                    "deadline": deadline or self._find_deadline(text),
+                    "urgency": urgency,
+                    # Confidence scaled by evidence: assignee + deadline + source reliability
+                    "confidence": min(0.95, 0.55 + (0.15 if assignee else 0) + (0.1 if deadline else 0) + (0.1 if source_type == "meeting" else 0)),
+                }
+            )
 
         # Fallback to single overall task extraction if no line-by-line tasks were found
         if not candidates:
@@ -133,7 +138,9 @@ class ExtractionAgent:
             title = self._title_from_text(text, item, source_type)
             if self._is_vague_title(title):
                 return []
-            urgency = "critical" if any(w in lower for w in ("p0", "critical", "urgent", "outage")) else "high"
+            urgency = "critical" if any(w in lower for w in critical_words) else (
+                "high" if any(w in lower for w in high_words) else "medium"
+            )
             assignee = self._find_assignee(item, text)
             candidates.append(
                 {
@@ -142,7 +149,7 @@ class ExtractionAgent:
                     "assignee": assignee,
                     "deadline": self._find_deadline(text),
                     "urgency": urgency,
-                    "confidence": 0.75 if assignee else 0.65,
+                    "confidence": 0.70 if assignee else 0.55,
                 }
             )
 
