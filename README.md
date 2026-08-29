@@ -58,10 +58,10 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 
 **TaskPilot AI** is an autonomous multi-agent system that acts as a **personal chief of staff** for every software engineer. It:
 
-- 🔄 **Autonomously aggregates** tasks from 7 heterogeneous data sources
+- 🔄 **Autonomously aggregates** tasks from 5 heterogeneous data sources
 - 🔍 **Extracts hidden action items** from unstructured emails, Slack messages, and meeting transcripts using LLM-powered NLP
 - 🔗 **Deduplicates and correlates** related work across systems via semantic similarity
-- 📊 **Intelligently prioritizes** using 8-dimensional scoring with explainable, auditable rationale
+- 📊 **Intelligently prioritizes** using 7-dimensional weighted scoring with explainable, auditable rationale
 - 📅 **Generates dynamic daily plans** that are calendar-aware and adapt in real-time
 - 💬 **Supports natural language interaction** — ask questions, inject P1 incidents mid-day, get instant re-prioritization
 - 🚨 **Proactively detects** overloaded developers, approaching deadlines, and blocked pipelines
@@ -79,7 +79,7 @@ Modern software engineers are **drowning in context fragmentation**. Work arrive
 |:---|:---|:---|
 | **Morning Routine** | Open 5+ tools, manually scan, mentally prioritize | Open TaskPilot → see unified, ranked daily plan |
 | **Hidden Tasks** | Buried in emails, 35% untracked | Auto-extracted by LLM agents, 0% missed |
-| **Prioritization** | Gut-feel, loudest wins | 8-factor algorithmic scoring with explanations |
+| **Prioritization** | Gut-feel, loudest wins | 7-factor algorithmic scoring with explanations |
 | **Mid-day Changes** | Manually re-triage everything | Say "Inject P1" → pipeline auto re-runs |
 | **Time Saved** | 0 | **2+ hours/day** |
 
@@ -99,13 +99,11 @@ TaskPilot AI employs a **cooperative multi-agent architecture** where 8 speciali
 flowchart TB
     subgraph DS["📂 Data Sources"]
         direction LR
-        J["📋 Jira"] 
         GH["🐙 GitHub"]
         SL["💬 Slack"]
         EM["📧 Email"]
         CA["📅 Calendar"]
         MT["🗒 Meetings"]
-        IN["🚨 Incidents"]
     end
 
     subgraph ORCH["🎯 Agent 0 — Orchestrator"]
@@ -115,7 +113,7 @@ flowchart TB
 
     subgraph PIPELINE["⚡ Multi-Agent Processing Pipeline"]
         direction LR
-        A1["🔄 Agent 1\nIngestion\n7 Sources → SourceEvents"] 
+        A1["🔄 Agent 1\nIngestion\n5 Sources → SourceEvents"] 
         A2["🔍 Agent 2\nExtraction\nRegex / LLM Hybrid\nToken Optimization"]
         A3["🔗 Agent 3\nFusion\nFuzzy Duplication\nBorderline Reason LLM"]
         A4["✅ Agent 4\nQuality\n7-Dim Matrix Check\nCritical LLM Audit"]
@@ -165,7 +163,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph INPUT["Raw Data"]
-        RAW["7 JSON Files\n~80+ raw events"]
+        RAW["5 JSON Files\n~50+ raw events"]
     end
 
     subgraph STAGE1["Stage 1"]
@@ -196,7 +194,7 @@ flowchart LR
         OUT["Daily Plan\nRanked Leaderboard\nExplainable Insights"]
     end
 
-    RAW -->|"80+ events"| ING -->|"SourceEvents"| EXT -->|"TaskCandidates"| FUS -->|"MasterTasks"| QUA -->|"QualityReports"| PRI -->|"PriorityScores"| PLN -->|"TimeSlots"| OUT
+    RAW -->|"50+ events"| ING -->|"SourceEvents"| EXT -->|"TaskCandidates"| FUS -->|"MasterTasks"| QUA -->|"QualityReports"| PRI -->|"PriorityScores"| PLN -->|"TimeSlots"| OUT
 
     style INPUT fill:#1a1a2e,stroke:#e94560,color:#fff
     style STAGE1 fill:#16213e,stroke:#0f3460,color:#fff
@@ -359,21 +357,19 @@ Explore our research, design documents, and conceptual POC documentation on Noti
 ### Agent 1 — Ingestion Service
 > **Role:** Bulk parser and normalizer for heterogeneous developer data
 
-- **7 Source Streams:** Ingests raw developer events from **7 distinct sources**:
-  - 📋 **Jira** (`jira_data.json`): Sprint items, bugs, and backlog tickets
+- **5 Source Streams:** Ingests raw developer events from **5 distinct sources**:
   - 🐙 **GitHub** (`github_data.json`): Repository issues and pull requests
   - 💬 **Slack** (`slack_data.json`): Channels, conversations, and direct messages
   - 📧 **Email** (`emails.json`): Inbox communications and customer threads
   - 📅 **Calendar** (`calendar.json`): Schedule blocks and meeting windows
   - 🗒 **Meetings** (`meeting_notes.json`): Live conversation summaries and action checklists
-  - 🚨 **Incidents** (`incidents.json`): Server alerts and production P1 escalations
 - **Data Cleanliness Guarantee:** Clears all database tables (source events, candidates, master tasks, planning schedules) at the beginning of each pipeline invocation to prevent stale context drift.
 - **Event Normalization:** Maps raw payloads to a standardized database-level `SourceEvent` schema featuring parsed ISO-8601 timestamps and serialized JSON metadata.
 
 ### Agent 2 — Extraction Agent (LLM-Powered / Hybrid)
 > **Role:** Hidden task extractor and candidate task parser
 
-- **Explicit Mapping:** Direct mapping of structured systems (Jira, GitHub, Incidents) using deterministic fallback heuristics without querying the LLM, reducing latency.
+- **Explicit Mapping:** Direct mapping of structured systems (GitHub, Calendar) using deterministic fallback heuristics without querying the LLM, reducing latency.
 - **Concurrent LLM Extraction:** Parses unstructured systems (Emails, Meetings) in parallel using a concurrent `ThreadPoolExecutor` (4 workers) for high-performance extraction.
 - **Smart Token Optimization:** Bypasses LLM queries for Slack messages by utilizing deterministic regular expressions (checking for key action prefixes like *please, need to, don't forget, fix, review*) to isolate tasks for free.
 - **Confidence Filter:** Evaluates extraction confidence; candidates with confidence score $< 0.5$ are auto-discarded to prevent clutter.
@@ -402,14 +398,14 @@ Explore our research, design documents, and conceptual POC documentation on Noti
 ### Agent 5 — Prioritization Agent (LLM-Powered / Hybrid)
 > **Role:** Explaining priority evaluator and multi-factor rank scheduler
 
-- **8-Factor Weighted Formula:** Dynamically computes priority based on:
-  - Technical Severity (25%)
-  - Production Outage Risk (20%)
-  - User/Customer Impact (18%)
+- **7-Factor Weighted Formula:** Dynamically computes priority based on:
+  - Technical Severity (24%)
+  - Production Outage Risk (18%)
+  - User/Customer Impact (16%)
   - SLA/Deadline Proximity (12%)
   - Blocker Status (10%)
   - Business Impact (10%)
-  - Quality Score (5%)
+  - Quality Score (10%)
 - **Anti-Noise Demotion Modifiers:** Applies strict multipliers: demotes vague titles under 12 characters by **0.55x**; demotes administrative/reporting requests (e.g., retrospectives, demo coordination) by **0.72x**.
 - **Hybrid Performance Batching:** Run local heuristics first; only critical tasks (urgency "critical", score $\ge 8.0$, or crash/outage words) are sent to the LLM. It processes them in batches of 8 tasks per prompt to minimize token counts.
 - **Explainability Engine:** Generates bulleted priority reasons and narrative paragraphs dynamically from numerical scores to prevent LLM hallucinations or drift.
@@ -615,7 +611,7 @@ flowchart TB
         direction LR
         SA["🏗️ SQLAlchemy 2.0"]
         DB[("📀 SQLite")]
-        JSON["📂 JSON Data Files\n7 source files"]
+        JSON["📂 JSON Data Files\n5 source files"]
         ENV["🔐 python-dotenv\nEnv Configuration"]
     end
 
@@ -777,10 +773,10 @@ Follow this sequence to see the entire TaskPilot AI system in action, verify int
 
 ### 📋 Step 3: Explore Task Ingestion & Search
 1. Navigate to the **Tasks** page (`/tasks`).
-2. Verify the consolidated task list from **7 different sources** (Jira, GitHub, Slack, Email, Calendar, Meetings, Incidents).
+2. Verify the consolidated task list from **5 different sources** (GitHub, Slack, Email, Calendar, Meetings).
 3. Test the **Search & Filtering:**
    - Type in the **Search bar** to query specific text matches.
-   - Click the **Source Filters** (e.g. Jira, Slack) to isolate events from that specific platform.
+    - Click the **Source Filters** (e.g. GitHub, Slack) to isolate events from that specific platform.
 4. Locate the **"Hidden Task"** badge on tasks extracted from Slack and emails, noting how the LLM discovered implied requests.
 5. Click a task to open the **centered Task Detail Modal (Portal)**. Verify the traceback details, including the original source timestamp and description.
 
@@ -794,7 +790,7 @@ Follow this sequence to see the entire TaskPilot AI system in action, verify int
 1. Navigate to the **Priority** page (`/priority`).
 2. Verify the ranked leaderboard. Each task displays its **absolute rank number (#1, #2...)** inline.
 3. Click any row to trigger the **Evaluation Modal**. 
-4. Review the 8-factor score breakdown (Severity, Production Impact, Customer Impact, Blocker status, deadlines, etc.) and read the narrative explanation paragraph detailing the priority decision.
+4. Review the 7-factor score breakdown (Severity, Production Impact, Customer Impact, Blocker status, deadlines, etc.) and read the narrative explanation paragraph detailing the priority decision.
 
 ### 📅 Step 6: Calendar-Aware Planner
 1. Navigate to the **Planner** page (`/planner`).
@@ -886,13 +882,11 @@ TaskPilot-AI/
 │       └── 📂 services/
 │           └── api.js                 # Axios client + error normalization
 ├── 📂 data/                           # Simulated enterprise data sources
-│   ├── jira_data.json                 # 15 Jira tickets (stories, bugs, tasks)
-│   ├── github_data.json               # 10 GitHub issues + PRs
-│   ├── slack_data.json                # 8 Slack messages with hidden tasks
+│   ├── github_data.json               # 9 GitHub issues + PRs
+│   ├── slack_data.json                # 15 Slack messages with hidden tasks
 │   ├── emails.json                    # 6 email threads (VP escalations, action items)
 │   ├── calendar.json                  # Meeting schedule for daily planning
 │   ├── meeting_notes.json             # Meeting transcripts with action items
-│   ├── incidents.json                 # Production incidents (P1-P4)
 │   └── users.json                     # Engineer profiles
 ├── render.yaml                        # Render.com deployment Blueprint
 ├── start.bat                          # One-click Windows launcher
@@ -934,11 +928,11 @@ All endpoints are prefixed with `/api/v1`.
 
 | Criteria | Status | How We Address It |
 |:---|:---:|:---|
-| Multi-source ingestion (3+ sources) | ✅ | **7 sources** — Jira, GitHub, Slack, Email, Calendar, Meetings, Incidents |
+| Multi-source ingestion (3+ sources) | ✅ | **5 sources** — GitHub, Slack, Email, Calendar, Meetings |
 | Unstructured text parsing | ✅ | LLM-powered extraction from emails, Slack, meeting transcripts |
 | Extract 2+ action items from emails | ✅ | Hidden task extraction with confidence scoring |
 | Task deduplication | ✅ | Semantic similarity via LLM with dynamic confidence thresholds |
-| Intelligent prioritization (3+ factors) | ✅ | **8-factor** scoring model with weighted algorithm |
+| Intelligent prioritization (3+ factors) | ✅ | **7-factor** scoring model with weighted algorithm |
 | Explainable priority output | ✅ | Human-readable explanation paragraphs + tagged reason arrays |
 | Daily plan generation | ✅ | Calendar-aware, priority-ordered, overflow-detecting planner |
 | Conversational interface (5+ queries) | ✅ | Context-aware LLM chat with full DB context injection |
