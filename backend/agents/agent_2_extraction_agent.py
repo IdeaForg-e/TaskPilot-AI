@@ -1,7 +1,11 @@
 import re
 
 from agents.llm_client import LLMClient
-from agents.prompts.agent_2_extraction_prompts import HIDDEN_TASK_PROMPT
+from agents.prompts.agent_2_extraction_prompts import (
+    HIDDEN_TASK_PROMPT,
+    EMAIL_HIDDEN_TASK_PROMPT,
+    MEETING_HIDDEN_TASK_PROMPT,
+)
 
 
 class ExtractionAgent:
@@ -11,7 +15,28 @@ class ExtractionAgent:
 
     def extract_explicit_task(self, source_type: str, item: dict) -> dict:
         fallback = self._explicit_fallback(source_type, item)
-        return fallback
+
+        # Use LLM for structured sources (GitHub issues, Jira, etc.)
+        if source_type not in ("github", "jira"):
+            return fallback
+
+        text = " ".join(
+            str(item.get(key, ""))
+            for key in ("title", "description", "body", "labels", "type")
+        )
+        from agents.prompts.agent_2_extraction_prompts import EXPLICIT_TASK_PROMPT
+        prompt = EXPLICIT_TASK_PROMPT.format(source_type=source_type, content=text)
+        try:
+            result = self.fast_llm.complete_json(prompt, fallback=fallback)
+            if isinstance(result, dict) and result.get("title"):
+                # Validate required fields
+                for key in ("urgency", "task_type"):
+                    if key not in result or not result[key]:
+                        result[key] = fallback.get(key, "medium" if key == "urgency" else "request")
+                return result
+            return fallback
+        except Exception:
+            return fallback
 
     def extract_hidden_tasks(self, source_type: str, item: dict) -> list[dict]:
         fallback = self._hidden_fallback(source_type, item)
@@ -22,7 +47,14 @@ class ExtractionAgent:
             str(item.get(key, ""))
             for key in ("content", "body", "summary", "description", "subject", "title")
         )
-        prompt = HIDDEN_TASK_PROMPT.format(source_type=source_type, content=text)
+
+        # Use source-specific few-shot prompts for better accuracy
+        if source_type == "email":
+            prompt = EMAIL_HIDDEN_TASK_PROMPT.format(content=text)
+        elif source_type == "meeting":
+            prompt = MEETING_HIDDEN_TASK_PROMPT.format(content=text)
+        else:
+            prompt = HIDDEN_TASK_PROMPT.format(source_type=source_type, content=text)
         try:
             result = self.fast_llm.complete_json(prompt, fallback=fallback)
             if not isinstance(result, list):
@@ -124,8 +156,15 @@ class ExtractionAgent:
                     "assignee": assignee or self._find_assignee(item, text),
                     "deadline": deadline or self._find_deadline(text),
                     "urgency": urgency,
-                    # Confidence scaled by evidence: assignee + deadline + source reliability
-                    "confidence": min(0.95, 0.55 + (0.15 if assignee else 0) + (0.1 if deadline else 0) + (0.1 if source_type == "meeting" else 0)),
+                    # Calibrated confidence: weighted by evidence strength
+                    "confidence": self._calibrated_confidence(
+                        source_type=source_type,
+                        has_assignee=bool(assignee),
+                        has_deadline=bool(deadline),
+                        has_urgency_signal=urgency in ("critical", "high"),
+                        text_length=len(line),
+                        has_context=bool(item.get("subject")),
+                    ),
                 }
             )
 
@@ -149,7 +188,14 @@ class ExtractionAgent:
                     "assignee": assignee,
                     "deadline": self._find_deadline(text),
                     "urgency": urgency,
-                    "confidence": 0.70 if assignee else 0.55,
+                    "confidence": self._calibrated_confidence(
+                        source_type=source_type,
+                        has_assignee=bool(assignee),
+                        has_deadline=bool(self._find_deadline(text)),
+                        has_urgency_signal=urgency in ("critical", "high"),
+                        text_length=len(text),
+                        has_context=bool(item.get("subject")),
+                    ),
                 }
             )
 
@@ -248,3 +294,51 @@ class ExtractionAgent:
             if word in text.lower():
                 return word
         return None
+
+    def _calibrated_confidence(
+        self,
+        source_type: str,
+        has_assignee: bool,
+        has_deadline: bool,
+        has_urgency_signal: bool,
+        text_length: int,
+        has_context: bool,
+    ) -> float:
+        """Calculate calibrated confidence score based on evidence strength.
+
+        Evidence hierarchy:
+        - Source reliability: meeting > email > slack (structured > unstructured)
+        - Assignee present: strong signal of real action item
+        - Deadline present: strong signal of commitment
+        - Urgency signal: P0/P1/critical language indicates real work
+        - Text length: longer text = more context = more reliable extraction
+        - Context (subject line): email subject provides additional grounding
+        """
+        # Base score by source type
+        source_scores = {
+            "meeting": 0.70,   # Structured action items are most reliable
+            "email": 0.62,     # Email with subject/body is fairly reliable
+            "slack": 0.55,     # Slack messages are noisier
+        }
+        base = source_scores.get(source_type, 0.60)
+
+        # Evidence boosts (cumulative)
+        boost = 0.0
+        if has_assignee:
+            boost += 0.12
+        if has_deadline:
+            boost += 0.10
+        if has_urgency_signal:
+            boost += 0.08
+        if text_length > 100:
+            boost += 0.03
+        if has_context:
+            boost += 0.02
+
+        # Cap total confidence
+        confidence = min(0.95, base + boost)
+
+        # Ensure minimum confidence for validated tasks
+        confidence = max(0.45, confidence)
+
+        return round(confidence, 2)

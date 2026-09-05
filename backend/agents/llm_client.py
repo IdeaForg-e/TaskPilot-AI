@@ -70,7 +70,7 @@ class LLMClient:
         # Override with .env if provided
         self.timeout = int(os.getenv("LLM_TIMEOUT", default_timeout))
 
-        self.max_tokens = 800 if reasoning else 400
+        self.max_tokens = 1024 if reasoning else 600
 
         self.providers = self._build_providers()
         self.failed_providers = self.__class__.failed_providers if self.__class__.pipeline_mode else set()
@@ -89,16 +89,9 @@ class LLMClient:
                 }
             )
 
-        if settings.NVIDIA_API_KEY:
-            providers.append(
-                {
-                    "name": "nvidia",
-                    "api_key": settings.NVIDIA_API_KEY,
-                    "model": settings.NVIDIA_MODEL_REASONING
-                    if self.reasoning
-                    else settings.NVIDIA_MODEL_FAST,
-                }
-            )
+        # NVIDIA NIM disabled — always returns non-JSON responses, wastes time
+        # if settings.NVIDIA_API_KEY:
+        #     providers.append(...)
 
         return providers
 
@@ -121,6 +114,7 @@ class LLMClient:
             logger.debug("No LLM providers configured; using deterministic fallback")
             return fallback
 
+        # Single attempt — fallback immediately on failure for speed
         for provider in self.providers:
             if self._circuit_open(provider["name"]):
                 continue
@@ -131,14 +125,9 @@ class LLMClient:
                     self._record_success(provider["name"])
                     return parse_json(content)
 
-                elif provider["name"] == "nvidia":
-                    content = self._complete_nvidia(provider, prompt, temperature)
-                    self._record_success(provider["name"])
-                    return parse_json(content)
-
             except Exception as exc:
                 message = f"LLM provider {provider['name']} failed: {self._safe_error(exc)}"
-                logger.error(message)
+                logger.warning(message)
                 self._add_diagnostic("warning", message)
                 self._record_failure(provider["name"])
 
@@ -205,26 +194,44 @@ class LLMClient:
         )
 
         import time
-        start_time = time.time()
-        response = client.chat.completions.create(
-            model=provider["model"],
-            messages=[
-                {
-                    "role": "system",
-                    "content": self._system_prompt(),
-                },
-                {
-                    "role": "user",
-                    "content": prompt,
-                },
-            ],
-            temperature=temperature,
-            max_tokens=self.max_tokens,
-        )
-        duration = time.time() - start_time
-        self._add_diagnostic("info", f"Groq request completed in {round(duration, 2)}s", duration=duration)
+        # Single retry on rate limit (429) with short wait
+        for attempt in range(2):
+            start_time = time.time()
+            try:
+                response = client.chat.completions.create(
+                    model=provider["model"],
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": self._system_prompt(),
+                        },
+                        {
+                            "role": "user",
+                            "content": prompt,
+                        },
+                    ],
+                    temperature=temperature,
+                    max_tokens=self.max_tokens,
+                )
+                duration = time.time() - start_time
+                self._add_diagnostic("info", f"Groq request completed in {round(duration, 2)}s", duration=duration)
 
-        return response.choices[0].message.content
+                content = response.choices[0].message.content or ""
+                if not content.strip():
+                    raise ValueError("Groq returned empty response")
+                return content
+
+            except Exception as exc:
+                duration = time.time() - start_time
+                error_str = str(exc)
+                # Check for rate limit (429) — wait 1s then fallback
+                if ("429" in error_str or "rate limit" in error_str.lower()) and attempt == 0:
+                    logging.getLogger("taskpilot.llm_client").warning(
+                        "Groq rate limit hit, waiting 1s before retry"
+                    )
+                    time.sleep(1)
+                    continue
+                raise
 
     def _complete_nvidia(self, provider: dict, prompt: str, temperature: float) -> str:
         headers = {
@@ -265,19 +272,24 @@ class LLMClient:
 
         res_data = response.json()
 
-        return res_data["choices"][0]["message"]["content"]
+        content = res_data["choices"][0]["message"]["content"] or ""
+        # Strip leading/trailing whitespace, stray tokens, and <think> blocks
+        content = content.strip()
+        content = re.sub(r"^[^{\[\"]*", "", content).strip()
+        content = re.sub(r"<think>[\s\S]*?</think>", "", content).strip()
+        return content
 
     def _system_prompt(self) -> str:
         if self.reasoning:
             return (
                 "You are a precise TaskPilot reasoning agent. "
-                "Output the final JSON structure directly without extra commentary."
+                "Output ONLY valid JSON directly. No markdown code blocks, no commentary, no thinking tags."
             )
 
         return (
             "You are a precise TaskPilot extraction agent. "
-            "Be concise, preserve source facts, avoid hallucination, "
-            "and return only the requested JSON or answer."
+            "Output ONLY valid JSON. No markdown, no commentary, no thinking tags. "
+            "Be concise, preserve source facts, avoid hallucination."
         )
 
     @classmethod
@@ -345,10 +357,61 @@ def clean_json_lines(json_str: str) -> str:
     return "\n".join(lines)
 
 
+def _repair_truncated_json(text: str) -> str | None:
+    """Attempt to repair truncated JSON by closing open structures.
+
+    Models sometimes hit max_tokens mid-JSON.  This tries to salvage the
+    response by closing open strings, objects, and arrays so that
+    ``json.loads`` can still parse the (now incomplete) result.
+    """
+    s = text.rstrip()
+    if not s:
+        return None
+
+    # Quick win: strip trailing comma before a closing brace/bracket
+    s = re.sub(r",\s*([}\]])", r"\1", s)
+
+    # Count open braces / brackets (ignoring those inside strings)
+    in_string = False
+    escape_next = False
+    opens = []  # stack of opening chars
+    for ch in s:
+        if escape_next:
+            escape_next = False
+            continue
+        if ch == "\\":
+            escape_next = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch in "{[":
+            opens.append(ch)
+        elif ch in "}]":
+            if opens and ((ch == "}" and opens[-1] == "{") or (ch == "]" and opens[-1] == "[")):
+                opens.pop()
+
+    # If we're inside a string, close it
+    if in_string:
+        s += '"'
+
+    # Close any remaining open structures (innermost first)
+    for opener in reversed(opens):
+        s += "}" if opener == "{" else "]"
+
+    return s
+
+
 def parse_json(text: str) -> Any:
     cleaned = (text or "").strip()
     
-    # 1. Strip any reasoning `<think> ... </think>` blocks (highly common in open-source reasoning models)
+    # 0. Strip leading/trailing whitespace and stray characters that break parsing
+    #    (NVIDIA models sometimes prepend a newline or thinking token)
+    cleaned = re.sub(r"^[^{\[\"]*", "", cleaned).strip()
+
+    # 1. Strip any reasoning `<think> ... </think>` blocks (common in open-source reasoning models)
     cleaned = re.sub(r"<think>[\s\S]*?</think>", "", cleaned).strip()
 
     # 2. Try to extract JSON from markdown code blocks
@@ -374,46 +437,65 @@ def parse_json(text: str) -> Any:
             if end_idx != -1 and end_idx > start_idx:
                 cleaned = cleaned[start_idx:end_idx + 1].strip()
 
+    # 3. Try direct parse
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
+        pass
+
+    # 4. Attempt truncated-JSON repair (close open strings/objects/arrays)
+    repaired_truncated = _repair_truncated_json(cleaned)
+    if repaired_truncated and repaired_truncated != cleaned:
         try:
-            # Try to fix unquoted keys, single quotes, and trailing commas
-            repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', cleaned)
-            repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
-            repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
-            repaired = re.sub(r",\s*\}", "}", repaired)
-            repaired = re.sub(r",\s*\]", "]", repaired)
-            return json.loads(repaired)
-        except Exception:
+            return json.loads(repaired_truncated)
+        except json.JSONDecodeError:
             pass
 
-        try:
-            repaired = clean_json_lines(cleaned)
-            return json.loads(repaired)
-        except Exception:
-            pass
+    # 5. Try to fix unquoted keys, single quotes, and trailing commas
+    try:
+        repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', cleaned)
+        repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
+        repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
+        repaired = re.sub(r",\s*\}", "}", repaired)
+        repaired = re.sub(r",\s*\]", "]", repaired)
+        return json.loads(repaired)
+    except Exception:
+        pass
 
-        # Final regex match attempt using a greedy multiline block finder on parsed bounds
-        match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", cleaned)
-        if match:
-            matched_text = match.group(1).strip()
+    # 6. clean_json_lines heuristic
+    try:
+        repaired = clean_json_lines(cleaned)
+        return json.loads(repaired)
+    except Exception:
+        pass
+
+    # 7. Final regex match attempt using a greedy multiline block finder
+    match = re.search(r"(\{[\s\S]*\}|\[[\s\S]*\])", cleaned)
+    if match:
+        matched_text = match.group(1).strip()
+        try:
+            return json.loads(matched_text)
+        except json.JSONDecodeError:
             try:
-                return json.loads(matched_text)
-            except json.JSONDecodeError:
+                repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', matched_text)
+                repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
+                repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
+                repaired = re.sub(r",\s*\}", "}", repaired)
+                repaired = re.sub(r",\s*\]", "]", repaired)
+                return json.loads(repaired)
+            except Exception:
+                pass
+            try:
+                repaired = clean_json_lines(matched_text)
+                return json.loads(repaired)
+            except Exception:
+                pass
+            # Try truncated repair on the matched block
+            repaired_t = _repair_truncated_json(matched_text)
+            if repaired_t:
                 try:
-                    repaired = re.sub(r"([{,]\s*)'([^']+)'(\s*:)", r'\1"\2"\3', matched_text)
-                    repaired = re.sub(r"([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)(\s*:)", r'\1"\2"\3', repaired)
-                    repaired = re.sub(r"(:\s*)'([^']*)'", r'\1"\2"', repaired)
-                    repaired = re.sub(r",\s*\}", "}", repaired)
-                    repaired = re.sub(r",\s*\]", "]", repaired)
-                    return json.loads(repaired)
+                    return json.loads(repaired_t)
                 except Exception:
                     pass
-                try:
-                    repaired = clean_json_lines(matched_text)
-                    return json.loads(repaired)
-                except Exception:
-                    pass
-        raise
+    raise ValueError(f"Could not parse JSON from LLM response ({len(text)} chars)")
 

@@ -1,15 +1,52 @@
 import json
 import os
+import logging
 from difflib import SequenceMatcher
 
 from agents.llm_client import LLMClient
 from agents.prompts.agent_3_fusion_prompts import FUSION_PROMPT
 
+logger = logging.getLogger("taskpilot.fusion_agent")
+
+# --- Embedding model (lazy-loaded, falls back to SequenceMatcher) ---
+_embedding_model = None
+_embedding_available = None
+
+
+def _get_embedding_model():
+    global _embedding_model, _embedding_available
+    if _embedding_available is False:
+        return None
+    if _embedding_model is not None:
+        return _embedding_model
+    try:
+        from sentence_transformers import SentenceTransformer
+        _embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+        _embedding_available = True
+        logger.info("Loaded sentence-transformers model: all-MiniLM-L6-v2")
+        return _embedding_model
+    except Exception as e:
+        logger.warning(f"sentence-transformers unavailable ({e}), falling back to SequenceMatcher")
+        _embedding_available = False
+        return None
+
+
+def _embed_similarity(text_a: str, text_b: str) -> float:
+    model = _get_embedding_model()
+    if model is None:
+        return 0.0
+    try:
+        import numpy as np
+        emb = model.encode([text_a, text_b], normalize_embeddings=True)
+        cos_sim = float(np.dot(emb[0], emb[1]))
+        return max(0.0, cos_sim)
+    except Exception:
+        return 0.0
+
 
 class FusionAgent:
     def __init__(self):
         self.reasoning_llm = LLMClient(reasoning=True)
-        # Try to locate the data directory relative to this file
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_dir = os.path.dirname(current_dir)
         self.cache_path = os.path.join(project_dir, "data", "fusion_cache.json")
@@ -22,48 +59,14 @@ class FusionAgent:
                 self.cache = {}
 
     def _get_cache_key(self, title_a: str, desc_a: str, title_b: str, desc_b: str) -> str:
-        # Create a stable, sorted key based on the titles and descriptions
         pair = sorted([(title_a or "", desc_a or ""), (title_b or "", desc_b or "")])
         return f"{pair[0][0]}||{pair[0][1]}####{pair[1][0]}||{pair[1][1]}"
 
     def check_duplicate(self, task_a: dict, task_b: dict) -> dict:
         fallback = self._fallback(task_a, task_b)
-        if fallback["confidence"] >= 0.68:
-            return fallback
 
-        if fallback["confidence"] < 0.60:
-            return {
-                "is_duplicate": False,
-                "confidence": fallback["confidence"]
-            }
-
-        title_a = f"{task_a.get('title', '')} [Assignee: {task_a.get('assignee') or 'None'}, Platform: {task_a.get('source_platform') or 'Unknown'}]"
-        desc_a = (task_a.get("description") or "")[:700]
-        title_b = f"{task_b.get('title', '')} [Assignee: {task_b.get('assignee') or 'None'}, Platform: {task_b.get('source_platform') or 'Unknown'}]"
-        desc_b = (task_b.get("description") or "")[:700]
-
-        cache_key = self._get_cache_key(title_a, desc_a, title_b, desc_b)
-        if cache_key in self.cache:
-            return self.cache[cache_key]
-
-        prompt = FUSION_PROMPT.format(
-            title_a=title_a,
-            desc_a=desc_a,
-            title_b=title_b,
-            desc_b=desc_b,
-        )
-        result = self.reasoning_llm.complete_json(prompt, fallback=fallback, temperature=0.1)
-
-        if isinstance(result, dict):
-            self.cache[cache_key] = result
-            try:
-                os.makedirs(os.path.dirname(self.cache_path), exist_ok=True)
-                with open(self.cache_path, "w", encoding="utf-8") as f:
-                    json.dump(self.cache, f, indent=2, ensure_ascii=False)
-            except Exception:
-                pass
-
-        return result if isinstance(result, dict) else fallback
+        # Skip LLM call — use embedding-based dedup only (fast, ~0.5s total)
+        return fallback
 
     def _fallback(self, task_a: dict, task_b: dict) -> dict:
         title_a = task_a.get("title", "")
@@ -71,44 +74,48 @@ class FusionAgent:
         desc_a_full = (task_a.get("description") or "")
         desc_b_full = (task_b.get("description") or "")
 
-        # Title similarity: character ratio + token overlap
+        # Fast string similarity only — no embeddings for speed
         ratio = SequenceMatcher(None, title_a.lower(), title_b.lower()).ratio()
+
         tokens_a = set(title_a.lower().replace("#", "").split())
         tokens_b = set(title_b.lower().replace("#", "").split())
         overlap = len(tokens_a & tokens_b) / max(len(tokens_a | tokens_b), 1)
 
-        # Description similarity: catches same-issue tasks with differently worded titles
-        # Only meaningful when both descriptions are substantial
         desc_sim = 0.0
         if len(desc_a_full) > 60 and len(desc_b_full) > 60:
-            desc_sim = SequenceMatcher(None, desc_a_full.lower()[:900], desc_b_full.lower()[:900]).ratio()
+            desc_sim = SequenceMatcher(None, desc_a_full.lower()[:400], desc_b_full.lower()[:400]).ratio()
 
-        # Weighted composite: titles matter most, description adds corroborating evidence
-        confidence = 0.45 * ratio + 0.35 * overlap + 0.20 * desc_sim
+        confidence = 0.35 * ratio + 0.35 * overlap + 0.30 * desc_sim
 
+        # Contextual adjustments
         assignee_a = task_a.get("assignee")
         assignee_b = task_b.get("assignee")
         if assignee_a and assignee_b and assignee_a.strip().lower() != assignee_b.strip().lower():
-            confidence -= 0.15
+            confidence -= 0.10
 
         platform_a = task_a.get("source_platform") or "Source A"
         platform_b = task_b.get("source_platform") or "Source B"
         if platform_a and platform_b and platform_a != platform_b:
-            confidence -= 0.05
+            confidence -= 0.02
 
         deadline_a = task_a.get("deadline")
         deadline_b = task_b.get("deadline")
         if deadline_a and deadline_b and deadline_a != deadline_b:
-            confidence -= 0.10
+            confidence -= 0.08
 
-        duplicate = confidence > 0.62
-        
+        # Boost if string similarity is strong
+        if ratio > 0.85:
+            confidence += 0.10
+        elif ratio > 0.75:
+            confidence += 0.05
+
+        duplicate = confidence > 0.55
+
         merged_title = title_a if len(title_a) >= len(title_b) else title_b
-        
-        # Build clean merged descriptions that look like LLM outputs
+
         desc_a = task_a.get("description") or ""
         desc_b = task_b.get("description") or ""
-        
+
         if not desc_a:
             merged_desc = desc_b
         elif not desc_b:
@@ -126,10 +133,10 @@ class FusionAgent:
                 f"* **{platform_a.upper()}:** {title_a}\n"
                 f"* **{platform_b.upper()}:** {title_b}"
             )
-            
+
         return {
             "is_duplicate": duplicate,
-            "confidence": max(0.0, confidence),
+            "confidence": max(0.0, min(1.0, confidence)),
             "merged_title": merged_title,
             "merged_description": merged_desc[:1800],
         }

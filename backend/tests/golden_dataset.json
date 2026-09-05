@@ -1,0 +1,273 @@
+[
+  {
+    "id": "gold-001",
+    "source": "email",
+    "input": {
+      "id": "email-test-001",
+      "from": "support@acmecorp.com",
+      "to": "support@techflow.io",
+      "subject": "URGENT: Login failures affecting our entire team",
+      "body": "Hi TechFlow Support,\n\nSince this morning, our entire team of 45 users is unable to log in to the platform from mobile devices. We're getting 'Authentication token validation failed' errors.\n\nThis is critical for us as we rely on the mobile app for field operations. Please treat this as P0.\n\nWe need an immediate fix or a workaround.\n\nRegards,\nJohn Davis\nCTO, Acme Corp",
+      "priority": "high",
+      "labels": ["customer-escalation", "login", "mobile", "p0"]
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "login",
+        "urgency": "critical",
+        "min_confidence": 0.7
+      }
+    ],
+    "expected_hidden_count_min": 1,
+    "description": "Customer P0 escalation - should extract urgent login fix task"
+  },
+  {
+    "id": "gold-002",
+    "source": "email",
+    "input": {
+      "id": "email-test-002",
+      "from": "security@github.com",
+      "to": "devops@techflow.io",
+      "subject": "[Dependabot] Critical security vulnerabilities detected",
+      "body": "Dependabot has detected 3 critical security vulnerabilities in your repository:\n\n1. CVE-2026-1234: Remote code execution in lodash (CVSS 9.8)\n2. CVE-2026-5678: SQL injection in mysql2 (CVSS 9.1)\n3. CVE-2026-9012: Authentication bypass in jsonwebtoken (CVSS 8.9)\n\nAll public exploits are available. Patch immediately.",
+      "priority": "critical",
+      "labels": ["security", "dependabot", "critical"]
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "patch",
+        "urgency": "critical",
+        "min_confidence": 0.7
+      }
+    ],
+    "expected_hidden_count_min": 1,
+    "description": "Security advisory - should extract patching task"
+  },
+  {
+    "id": "gold-003",
+    "source": "email",
+    "input": {
+      "id": "email-test-003",
+      "from": "ops@techflow.io",
+      "to": "devops@techflow.io",
+      "subject": "SSL Certificate Expiration Warning",
+      "body": "Team,\n\nOur SSL certificate for api.techflow.io expires on 2026-07-20. That's 6 days from now.\n\nIf not renewed, all API traffic will be interrupted. Please initiate renewal process immediately.\n\nCC: @user-005 (DevOps lead)",
+      "priority": "high",
+      "labels": ["ssl", "certificate", "infrastructure"]
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "SSL",
+        "urgency": "high",
+        "min_confidence": 0.6
+      }
+    ],
+    "expected_hidden_count_min": 1,
+    "description": "SSL cert expiry - should extract renewal task"
+  },
+  {
+    "id": "gold-004",
+    "source": "meeting",
+    "input": {
+      "id": "meet-test-001",
+      "title": "Backend Team Standup",
+      "date": "2026-07-14",
+      "start_time": "09:30",
+      "end_time": "09:45",
+      "attendees": ["user-001", "user-002", "user-003"],
+      "summary": "Daily standup covering critical items and blockers.",
+      "discussion_points": [
+        "OAuth PR #212 needs final review",
+        "Payment integration blocked on Razorpay credentials"
+      ],
+      "action_items": [
+        {
+          "description": "Review and approve OAuth PR #212",
+          "assignee": "user-002",
+          "due_date": "2026-07-14",
+          "status": "pending"
+        },
+        {
+          "description": "Escalate Razorpay credentials with vendor account manager",
+          "assignee": "user-001",
+          "due_date": "2026-07-14",
+          "status": "pending"
+        }
+      ],
+      "decisions": ["Will deploy API latency fix to production if staging stable"]
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "OAuth",
+        "urgency": "medium",
+        "min_confidence": 0.8
+      },
+      {
+        "title_contains": "Razorpay",
+        "urgency": "high",
+        "min_confidence": 0.8
+      }
+    ],
+    "expected_hidden_count_min": 2,
+    "description": "Standup meeting - should extract 2 action items"
+  },
+  {
+    "id": "gold-005",
+    "source": "meeting",
+    "input": {
+      "id": "meet-test-002",
+      "title": "Sprint Planning",
+      "date": "2026-07-14",
+      "start_time": "10:00",
+      "end_time": "11:00",
+      "attendees": ["user-001", "user-002", "user-003", "user-004"],
+      "summary": "Sprint 24 planning session.",
+      "discussion_points": [
+        "XSS vulnerability patch ready for security review",
+        "Password reset PR approved, pending merge"
+      ],
+      "action_items": [
+        {
+          "description": "Merge password reset PR to main branch",
+          "assignee": "user-003",
+          "due_date": "2026-07-15",
+          "status": "pending"
+        },
+        {
+          "description": "Run security review on XSS vulnerability patch",
+          "assignee": "user-004",
+          "due_date": "2026-07-16",
+          "status": "pending"
+        }
+      ],
+      "decisions": ["Sprint 24 scope confirmed"]
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "password reset",
+        "urgency": "medium",
+        "min_confidence": 0.8
+      },
+      {
+        "title_contains": "XSS",
+        "urgency": "high",
+        "min_confidence": 0.8
+      }
+    ],
+    "expected_hidden_count_min": 2,
+    "description": "Sprint planning - should extract merge and security review tasks"
+  },
+  {
+    "id": "gold-006",
+    "source": "email",
+    "input": {
+      "id": "email-test-004",
+      "from": "sarah.chen@globaltech.com",
+      "to": "sunita.malhotra@techflow.io",
+      "subject": "SSO Integration Requirements - Contract Signed",
+      "body": "Dear Sunita,\n\nFollowing our contract signing, we need to discuss the SSO integration timeline. Our requirements:\n\n1. SAML 2.0 support\n2. Azure AD integration\n3. Role mapping from our directory\n4. MFA enforcement\n5. Session management\n\nWe expect this to be completed within 2 weeks as per our agreement. Can we schedule a kickoff meeting this week?\n\nBest regards,\nSarah Chen\nVP Engineering, GlobalTech"
+    },
+    "expected_tasks": [
+      {
+        "title_contains": "SSO",
+        "urgency": "high",
+        "min_confidence": 0.6
+      }
+    ],
+    "expected_hidden_count_min": 1,
+    "description": "Enterprise SSO request - should extract integration task"
+  },
+  {
+    "id": "gold-007",
+    "source": "email",
+    "input": {
+      "id": "email-test-005",
+      "from": "pm@techflow.io",
+      "to": "anil.pradhan@techflow.io",
+      "subject": "Weekly Status Summary",
+      "body": "Hi Anil,\n\nThis is a summary of what the team accomplished this week. No action items here, just FYI.\n\n- Completed 12 story points\n- 3 PRs merged\n- 1 bug carried over\n\nHave a good weekend!"
+    },
+    "expected_tasks": [],
+    "expected_hidden_count_min": 0,
+    "description": "FYI email - should NOT extract any tasks (no action items)"
+  },
+  {
+    "id": "gold-008",
+    "source": "meeting",
+    "input": {
+      "id": "meet-test-003",
+      "title": "Architecture Review",
+      "date": "2026-07-14",
+      "start_time": "14:00",
+      "end_time": "15:00",
+      "attendees": ["user-001", "user-005"],
+      "summary": "Discussed microservices migration timeline. No action items assigned.",
+      "discussion_points": [
+        "Reviewed current monolith architecture",
+        "Discussed potential breaking points for services"
+      ],
+      "action_items": [],
+      "decisions": ["Will revisit migration plan in next quarter"]
+    },
+    "expected_tasks": [],
+    "expected_hidden_count_min": 0,
+    "description": "Discussion-only meeting - should NOT extract tasks (no action items)"
+  },
+  {
+    "id": "gold-dedup-001",
+    "type": "deduplication",
+    "task_a": {
+      "title": "Fix mobile login failures for Acme Corp",
+      "description": "Acme Corp reports 45 users unable to login since this morning. Authentication token validation failed.",
+      "source_platform": "email",
+      "assignee": null
+    },
+    "task_b": {
+      "title": "Resolve authentication token issue on mobile",
+      "description": "Mobile authentication is broken. Users getting token validation errors when trying to login.",
+      "source_platform": "slack",
+      "assignee": "user-002"
+    },
+    "expected_is_duplicate": true,
+    "expected_min_confidence": 0.55,
+    "description": "Same issue reported via email and Slack - should be merged"
+  },
+  {
+    "id": "gold-dedup-002",
+    "type": "deduplication",
+    "task_a": {
+      "title": "Renew SSL certificates before expiration",
+      "description": "SSL cert for api.techflow.io expires next Tuesday. Must renew to avoid production outage.",
+      "source_platform": "email",
+      "assignee": "user-005"
+    },
+    "task_b": {
+      "title": "Patch Dependabot security alerts",
+      "description": "3 critical CVEs detected in npm dependencies. Need immediate patching.",
+      "source_platform": "github",
+      "assignee": null
+    },
+    "expected_is_duplicate": false,
+    "expected_max_confidence": 0.45,
+    "description": "Different security issues (SSL vs npm) - should NOT be merged"
+  },
+  {
+    "id": "gold-dedup-003",
+    "type": "deduplication",
+    "task_a": {
+      "title": "Deploy API latency fix to production",
+      "description": "API latency fix deployed to staging, monitoring for 24 hours before production deploy.",
+      "source_platform": "meeting",
+      "assignee": "user-002"
+    },
+    "task_b": {
+      "title": "Monitor API latency in staging",
+      "description": "Track API latency metrics in staging environment for 24 hours before production rollout.",
+      "source_platform": "slack",
+      "assignee": "user-002"
+    },
+    "expected_is_duplicate": true,
+    "expected_min_confidence": 0.50,
+    "description": "Related tasks about same latency fix - should be merged"
+  }
+]

@@ -1,11 +1,15 @@
 import uuid
+import logging
 
 from agents.agent_2_extraction_agent import ExtractionAgent
+from agents.agent_2_validation import TaskValidator
 from app.models.daily_plan import DailyPlan, TimeSlot
 from app.models.priority_score import PriorityScore
 from app.models.quality_report import QualityReport
 from app.models.source_event import SourceEvent
 from app.models.task import MasterTask, TaskCandidate, TaskContextLink
+
+logger = logging.getLogger("taskpilot.extraction_service")
 
 
 class ExtractionService:
@@ -13,7 +17,7 @@ class ExtractionService:
         self.db = db
         self.agent = ExtractionAgent()
 
-    def extract_all(self, include_hidden=True, min_confidence=0.5, incremental=False):
+    def extract_all(self, include_hidden=True, min_confidence=0.65, incremental=False):
         if incremental:
             # Incremental: keep existing candidates, clear only downstream tables,
             # and extract only events that don't have candidates yet.
@@ -43,7 +47,10 @@ class ExtractionService:
             events = self.db.query(SourceEvent).all()
         explicit_count = 0
         hidden_count = 0
+        filtered_count = 0
         tasks = []
+        validator = TaskValidator()
+        validator.reset()
 
         from concurrent.futures import ThreadPoolExecutor
 
@@ -52,7 +59,11 @@ class ExtractionService:
             item = event.metadata_json or {}
             if event.source in ("jira", "github", "incident"):
                 result = self.agent.extract_explicit_task(event.source, item)
-                candidate = self._create_candidate(event, result, is_hidden=False)
+                validated = validator.validate(result, event.source)
+                if validated is None:
+                    filtered_count += 1
+                    continue
+                candidate = self._create_candidate(event, validated, is_hidden=False)
                 self.db.add(candidate)
                 explicit_count += 1
                 tasks.append(candidate)
@@ -69,9 +80,11 @@ class ExtractionService:
                 hidden_results = list(executor.map(process_hidden, hidden_events))
             
             for event, results in hidden_results:
-                for hidden in results:
+                validated_results = validator.validate_batch(results, event.source)
+                for hidden in validated_results:
                     confidence = float(hidden.get("confidence", 0.7) or 0.7)
                     if confidence < min_confidence:
+                        filtered_count += 1
                         continue
                     candidate = self._create_candidate(event, hidden, is_hidden=True, confidence=confidence)
                     self.db.add(candidate)
@@ -79,10 +92,18 @@ class ExtractionService:
                     tasks.append(candidate)
 
         self.db.commit()
+        validation_stats = validator.get_stats()
+        logger.info(
+            f"Extraction complete: {explicit_count} explicit + {hidden_count} hidden = "
+            f"{explicit_count + hidden_count} tasks ({filtered_count} filtered out). "
+            f"Validation: {validation_stats}"
+        )
         return {
             "total_tasks": explicit_count + hidden_count,
             "explicit_tasks": explicit_count,
             "hidden_tasks": hidden_count,
+            "filtered_out": filtered_count,
+            "validation_stats": validation_stats,
             "incremental": incremental,
             "tasks": [self._candidate_out(task) for task in tasks],
         }

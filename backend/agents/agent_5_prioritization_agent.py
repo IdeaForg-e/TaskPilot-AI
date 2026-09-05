@@ -210,21 +210,42 @@ class PrioritizationAgent:
             )
         )
 
-        production = 9.8 if any(w in text for w in ("outage", "down", "broken", "critical error")) else (8.4 if "production" in text or "prod" in text else 4.0)
-        customer = 9.5 if any(w in text for w in ("acme", "globaltech")) else (8.2 if any(w in text for w in ("customer", "client", "user", "enterprise")) else 3.8)
+        # Production impact: expanded signal detection
+        production = 9.8 if any(w in text for w in (
+            "outage", "down", "broken", "critical error",
+            "500 error", "503", "service unavailable", "api down",
+            "production error", "server error", "connection pool",
+        )) else (8.4 if any(w in text for w in ("production", "prod", "staging")) else 4.0)
+
+        # Customer impact: expanded signal detection
+        customer = 9.5 if any(w in text for w in (
+            "acme", "globaltech", "enterprise",
+        )) else (8.2 if any(w in text for w in (
+            "customer", "client", "user", "users",
+            "team of", "entire team", "affecting",
+        )) else 3.8)
         
         if is_reporting_work and task.get("task_type") == "request":
             production = min(production, 4.8)
             customer = min(customer, 4.8)
             severity = min(severity, 5.5)
 
-        blocker = 9.2 if "blocker" in text or "blocked" in text else (7.8 if any(w in text for w in ("credentials", "certificate", "expired", "pipeline")) else 3.0)
+        # Blocker: expanded signal detection
+        blocker = 9.2 if any(w in text for w in (
+            "blocker", "blocked", "blocking",
+        )) else (7.8 if any(w in text for w in (
+            "credentials", "certificate", "expired", "pipeline",
+            "waiting on", "依赖", "stuck",
+        )) else 3.0)
+
         deadline = 8.5 if task.get("deadline") else 4.0
         
-        if any(w in text for w in ("today", "eod", "expires", "due date", "within 24 hours")):
+        if any(w in text for w in ("today", "eod", "expires", "due date", "within 24 hours", "immediately")):
             deadline = max(deadline, 9.6)
         elif any(w in text for w in ("tomorrow", "next day")):
             deadline = max(deadline, 8.8)
+        elif any(w in text for w in ("this week", "friday", "end of week")):
+            deadline = max(deadline, 7.5)
 
         dependency = min(10.0, 3.2 + float(task.get("source_count") or 1) * 0.8)
         business = round(max(customer, production) * 0.95 + 0.4, 1)
@@ -280,6 +301,11 @@ class PrioritizationAgent:
             "be indexed",
             "fix this today",
             "ensure these are tracked",
+            "misc",
+            "todo",
+            "update",
+            "check this",
+            "see above",
         )
         return len(normalized) < 12 or normalized.startswith(vague_titles)
 
