@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TaskPilot AI - Multi-Agent Architecture",
+    "output": "docs/agent-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "pipeline-flow",
+        "label": "Pipeline Flow",
+        "focus": ["ingest", "extract", "fuse", "quality", "prioritize", "planner"],
+        "note": "Autonomous 6-stage pipeline from raw sources to scheduled daily plan."
+      },
+      {
+        "id": "coordination",
+        "label": "Orchestrator & LLM",
+        "focus": ["orchestrator", "extract", "groq", "chat"],
+        "note": "Agent 0 coordinates workflow runs while Agent 2 and Agent 7 leverage Groq LPU models."
+      },
+      {
+        "id": "copilot-p1",
+        "label": "Chat Copilot & Database",
+        "focus": ["ui", "chat", "db", "groq"],
+        "note": "Agent 7 acts as copilot reading shared state and handling incident inquiries."
+      }
+    ]
+  },
+  "components": [
+    { "id": "ui", "type": "frontend", "label": "React Dashboard", "sublabel": "6 Interactive Views", "pos": [220, 70], "size": [140, 60] },
+    { "id": "orchestrator", "type": "backend", "label": "Agent 0: Orchestrator", "sublabel": "Workflow Manager", "tag": "Controller", "pos": [410, 70], "size": [140, 60] },
+    { "id": "groq", "type": "cloud", "label": "Groq LPU Cloud", "sublabel": "gpt-oss-20b & 120b", "tag": "LLM Engine", "pos": [600, 70], "size": [140, 60] },
+    { "id": "chat", "type": "backend", "label": "Agent 7: Chat", "sublabel": "Contextual Copilot", "tag": "Copilot", "pos": [790, 70], "size": [140, 60] },
+    { "id": "sources", "type": "external", "label": "Data Sources", "sublabel": "5 JSON Files", "pos": [40, 220], "size": [130, 60] },
+    { "id": "ingest", "type": "backend", "label": "Agent 1: Ingestion", "sublabel": "Normalize Events", "pos": [220, 220], "size": [140, 60] },
+    { "id": "extract", "type": "backend", "label": "Agent 2: Extraction", "sublabel": "Few-Shot Parser", "pos": [410, 220], "size": [140, 60] },
+    { "id": "fuse", "type": "backend", "label": "Agent 3: Fusion", "sublabel": "Semantic Dedup", "pos": [600, 220], "size": [140, 60] },
+    { "id": "quality", "type": "backend", "label": "Agent 4: Quality", "sublabel": "7-Dimension QA", "pos": [790, 220], "size": [140, 60] },
+    { "id": "db", "type": "database", "label": "SQLite Database", "sublabel": "WAL Mode State", "tag": "8 Tables", "pos": [220, 370], "size": [140, 60] },
+    { "id": "planner", "type": "backend", "label": "Agent 6: Planner", "sublabel": "Calendar Schedule", "pos": [410, 370], "size": [140, 60] },
+    { "id": "prioritize", "type": "backend", "label": "Agent 5: Prioritize", "sublabel": "7-Factor Ranker", "pos": [790, 370], "size": [140, 60] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "ui", "to": "orchestrator", "label": "Trigger", "fromSide": "right", "toSide": "left" },
+    { "id": "c2", "from": "orchestrator", "to": "ingest", "label": "Run", "fromSide": "bottom", "toSide": "top" },
+    { "id": "c3", "from": "sources", "to": "ingest", "label": "5 Files", "fromSide": "right", "toSide": "left" },
+    { "id": "c4", "from": "ingest", "to": "extract", "label": "Events", "fromSide": "right", "toSide": "left" },
+    { "id": "c5", "from": "extract", "to": "groq", "label": "Few-Shot", "fromSide": "top", "toSide": "bottom" },
+    { "id": "c6", "from": "extract", "to": "fuse", "label": "Tasks", "fromSide": "right", "toSide": "left" },
+    { "id": "c7", "from": "fuse", "to": "quality", "label": "Clusters", "fromSide": "right", "toSide": "left" },
+    { "id": "c8", "from": "quality", "to": "prioritize", "label": "Audit", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c9", "from": "prioritize", "to": "planner", "label": "Ranked", "fromSide": "left", "toSide": "right" },
+    { "id": "c10", "from": "planner", "to": "db", "label": "DailyPlan", "fromSide": "left", "toSide": "right" },
+    { "id": "c11", "from": "chat", "to": "groq", "label": "Inference", "fromSide": "left", "toSide": "right" },
+    { "id": "c12", "from": "ui", "to": "chat", "label": "Prompt", "variant": "dashed", "fromSide": "top", "toSide": "top", "via": [[290, 40], [860, 40]] }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Pipeline Agents (0-6)", "items": ["Agent 0 coordinates sequential runs", "Agents 1-3 ingest, extract, & dedup", "Agents 4-6 audit QA, rank, & schedule"] },
+    { "dot": "emerald", "title": "LLM & Fast Heuristics", "items": ["Groq gpt-oss-20b for extraction & chat", "Groq gpt-oss-120b for deep planning", "Deterministic fallbacks ensure zero crash"] },
+    { "dot": "amber", "title": "Shared SQLite State", "items": ["WAL mode enables concurrent UI reads", "8 relational tables with foreign keys", "TaskContextLinks preserve source lineage"] }
+  ]
+}

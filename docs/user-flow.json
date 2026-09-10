@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TaskPilot AI - User Flow Architecture",
+    "output": "docs/user-flow.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "daily-journey",
+        "label": "Daily User Journey",
+        "focus": ["user", "dashboard", "pipeline", "tasks", "quality", "priority", "planner"],
+        "note": "Standard morning workflow from landing on the dashboard to executing the day plan."
+      },
+      {
+        "id": "incident-loop",
+        "label": "P1 Incident Loop",
+        "focus": ["chat", "p1", "dashboard", "pipeline"],
+        "note": "Rapid incident escalation through natural language chat that triggers auto re-planning."
+      }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "Software Engineer", "sublabel": "TaskPilot User", "tag": "Actor", "pos": [50, 70], "size": [130, 60] },
+    { "id": "dashboard", "type": "frontend", "label": "Dashboard Page", "sublabel": "Status & Metrics", "tag": "Page /", "pos": [240, 70], "size": [140, 60] },
+    { "id": "pipeline", "type": "backend", "label": "Pipeline Runner", "sublabel": "Autonomous Agents", "tag": "Orchestrator", "pos": [440, 70], "size": [150, 60] },
+    { "id": "tasks", "type": "frontend", "label": "Tasks Page", "sublabel": "Unified Backlog", "tag": "Page /tasks", "pos": [650, 70], "size": [140, 60] },
+    { "id": "quality", "type": "frontend", "label": "Quality Page", "sublabel": "7-Dimension Audit", "tag": "Page /quality", "pos": [850, 70], "size": [140, 60] },
+    { "id": "priority", "type": "frontend", "label": "Priority Page", "sublabel": "7-Factor Ranking", "tag": "Page /priority", "pos": [850, 240], "size": [140, 60] },
+    { "id": "planner", "type": "frontend", "label": "Planner Page", "sublabel": "Calendar Schedule", "tag": "Page /planner", "pos": [650, 240], "size": [140, 60] },
+    { "id": "chat", "type": "frontend", "label": "Chat Copilot", "sublabel": "Contextual Assistant", "tag": "Page /chat", "pos": [440, 240], "size": [150, 60] },
+    { "id": "p1", "type": "backend", "label": "P1 Incident Engine", "sublabel": "Defect Injection", "tag": "Trigger", "pos": [240, 240], "size": [140, 60] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "user", "to": "dashboard", "label": "Visits", "fromSide": "right", "toSide": "left" },
+    { "id": "c2", "from": "dashboard", "to": "pipeline", "label": "Execute", "fromSide": "right", "toSide": "left" },
+    { "id": "c3", "from": "pipeline", "to": "tasks", "label": "Populates", "fromSide": "right", "toSide": "left" },
+    { "id": "c4", "from": "tasks", "to": "quality", "label": "Audits", "fromSide": "right", "toSide": "left" },
+    { "id": "c5", "from": "quality", "to": "priority", "label": "Scores", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c6", "from": "priority", "to": "planner", "label": "Ranks", "fromSide": "left", "toSide": "right" },
+    { "id": "c7", "from": "planner", "to": "chat", "label": "Schedule", "fromSide": "left", "toSide": "right" },
+    { "id": "c8", "from": "chat", "to": "p1", "label": "Injects", "variant": "security", "fromSide": "left", "toSide": "right" },
+    { "id": "c9", "from": "p1", "to": "dashboard", "label": "Auto Re-run", "variant": "security", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "Morning Routine", "items": ["View aggregated system metrics", "Execute autonomous pipeline in 1 click", "Review deduplicated cross-platform tasks"] },
+    { "dot": "emerald", "title": "Quality & Prioritization", "items": ["Inspect 7 QA dimensions and missing logs", "Explore 7-factor explainable ranking", "Verify calendar meeting locks and breaks"] },
+    { "dot": "rose", "title": "Real-Time Incident Copilot", "items": ["Chat about schedule, backlog, or attached files", "Inject critical P1 incidents via natural language", "System automatically triggers pipeline re-run"] }
+  ]
+}

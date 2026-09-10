@@ -63,3 +63,7 @@ logs/
 # Custom development scripts and Q&A logs
 z-script.txt
 Q_A.md
+
+# Agent and skills directory
+.agents/
+

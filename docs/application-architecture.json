@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "TaskPilot AI - Application Architecture",
+    "output": "docs/application-architecture.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "full-stack",
+        "label": "Full Stack Flow",
+        "focus": ["frontend", "gateway", "orchestrator_svc", "db"],
+        "note": "Complete request journey from React SPA through FastAPI to SQLite persistence."
+      },
+      {
+        "id": "ai-inference",
+        "label": "AI & LLM Pipeline",
+        "focus": ["pipeline_services", "scoring_services", "llm_client", "groq"],
+        "note": "Dual-tier LLM inference with fast heuristics and circuit breaker resiliency."
+      },
+      {
+        "id": "data-persistence",
+        "label": "Data & Persistence",
+        "focus": ["sources", "pipeline_services", "db", "chat_service"],
+        "note": "Ingestion from 5 JSON sources to normalized relational state in SQLite WAL."
+      }
+    ]
+  },
+  "components": [
+    { "id": "frontend", "type": "frontend", "label": "React 18 SPA", "sublabel": "Vite 5 + Tailwind v4", "tag": "Port 5173", "pos": [50, 70], "size": [140, 60] },
+    { "id": "sources", "type": "external", "label": "Data Sources", "sublabel": "5 JSON Files", "tag": "data/", "pos": [490, 70], "size": [150, 60] },
+    { "id": "gateway", "type": "backend", "label": "FastAPI Gateway", "sublabel": "CORS & Exception Handler", "tag": "Port 8000", "pos": [50, 200], "size": [140, 60] },
+    { "id": "orchestrator_svc", "type": "backend", "label": "Orchestrator Service", "sublabel": "Agent 0 Coordinator", "tag": "Workflow", "pos": [270, 200], "size": [150, 60] },
+    { "id": "pipeline_services", "type": "backend", "label": "Pipeline Services", "sublabel": "Ingest, Extract, Fuse", "tag": "Agents 1-3", "pos": [490, 200], "size": [150, 60] },
+    { "id": "scoring_services", "type": "backend", "label": "Decision Services", "sublabel": "Quality, Priority, Plan", "tag": "Agents 4-6", "pos": [710, 200], "size": [150, 60] },
+    { "id": "chat_service", "type": "backend", "label": "Chat Service", "sublabel": "Agent 7 Copilot & P1", "tag": "Interactive", "pos": [50, 350], "size": [140, 60] },
+    { "id": "db", "type": "database", "label": "SQLite Database", "sublabel": "WAL Mode Shared State", "tag": "8 Tables", "pos": [270, 350], "size": [150, 60] },
+    { "id": "llm_client", "type": "backend", "label": "LLM Client Engine", "sublabel": "Circuit Breaker & Fallback", "tag": "Multi-Model", "pos": [490, 350], "size": [150, 60] },
+    { "id": "groq", "type": "cloud", "label": "Groq LPU Cloud", "sublabel": "gpt-oss-20b & 120b", "tag": "Inference", "pos": [710, 350], "size": [150, 60] }
+  ],
+  "connections": [
+    { "id": "c1", "from": "frontend", "to": "gateway", "label": "HTTPS", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c2", "from": "sources", "to": "pipeline_services", "label": "5 Files", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c3", "from": "gateway", "to": "orchestrator_svc", "label": "REST", "fromSide": "right", "toSide": "left" },
+    { "id": "c4", "from": "gateway", "to": "chat_service", "label": "Chat API", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c5", "from": "orchestrator_svc", "to": "pipeline_services", "label": "Triggers", "fromSide": "right", "toSide": "left" },
+    { "id": "c6", "from": "pipeline_services", "to": "scoring_services", "label": "Tasks", "fromSide": "right", "toSide": "left" },
+    { "id": "c7", "from": "pipeline_services", "to": "llm_client", "label": "Few-Shot", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c8", "from": "orchestrator_svc", "to": "db", "label": "Run State", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "c9", "from": "chat_service", "to": "db", "label": "Context", "fromSide": "right", "toSide": "left" },
+    { "id": "c10", "from": "llm_client", "to": "groq", "label": "API Calls", "fromSide": "right", "toSide": "left" }
+  ],
+  "cards": [
+    { "dot": "cyan", "title": "FastAPI Backend", "items": ["Python 3.11+ async execution", "SQLAlchemy 2.0 ORM with WAL mode", "8 specialized autonomous agents"] },
+    { "dot": "emerald", "title": "Groq LPU Engine", "items": ["gpt-oss-20b for fast extraction & QA", "gpt-oss-120b for reasoning scheduler", "Circuit breaker & retry fallbacks"] },
+    { "dot": "rose", "title": "React Frontend", "items": ["React 18 SPA with Vite 5 bundler", "Tailwind CSS v4 modern dark/light UI", "Real-time updates & Markdown support"] },
+    { "dot": "amber", "title": "Persistence", "items": ["SQLite with 8 relational tables", "TaskContextLinks for source lineage", "Full LLM diagnostics audit log"] }
+  ]
+}

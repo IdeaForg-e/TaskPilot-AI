@@ -159,6 +159,18 @@ erDiagram
     DailyPlan ||--o{ TimeSlot : "contains"
 ```
 
+### Interactive Architecture Diagrams (Archify)
+
+Explore the interactive architecture diagrams built with [Archify](https://github.com/tt-a1i/archify):
+
+| Diagram | Description | Link |
+|:---|:---|:---|
+| **Agent Architecture** | Multi-agent pipeline with 8 specialized agents | [Open Diagram](docs/agent-architecture.html) |
+| **User Flow** | End-to-end user journey through the system | [Open Diagram](docs/user-flow.html) |
+| **Application Architecture** | Full-stack system overview with all components | [Open Diagram](docs/application-architecture.html) |
+
+> **Note:** These are self-contained HTML files with interactive features: search nodes, trace connections, toggle dark/light themes, and export to PNG/SVG.
+
 ---
 
 ## Multi-Agent Pipeline
@@ -312,7 +324,13 @@ TaskPilot-AI/
 │       ├── components/            # Reusable UI
 │       └── services/api.js        # Axios client
 ├── data/                          # JSON data sources (5 files)
-├── docs/images/                   # Architecture diagram, banner
+├── docs/
+│   ├── agent-architecture.html    # Interactive agent pipeline diagram (Archify)
+│   ├── user-flow.html             # Interactive user journey diagram (Archify)
+│   ├── application-architecture.html  # Interactive full-stack diagram (Archify)
+│   ├── agents.md                  # Agent deep-dive documentation
+│   ├── api.md                     # API reference documentation
+│   └── images/                    # Architecture diagram, banner
 ├── start.bat                      # One-click launcher
 ├── README.md
 └── LICENSE
