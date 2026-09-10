@@ -25,9 +25,14 @@ function getRelativeTimeString(dateString) {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
-const SOURCE_COLORS = {
-  jira: '#8ecdff', github: '#c0c7d2', slack: '#f59e0b',
-  email: '#ef4444', calendar: '#4caf8e', meetings: '#a78bfa', incidents: '#f97316',
+const SOURCE_TAGS = {
+  jira: { bg: 'rgba(142,205,255,0.1)', color: '#8ecdff', border: 'rgba(142,205,255,0.25)' },
+  github: { bg: 'rgba(192,199,210,0.1)', color: '#c0c7d2', border: 'rgba(192,199,210,0.25)' },
+  slack: { bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.25)' },
+  email: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.25)' },
+  calendar: { bg: 'rgba(76,175,142,0.1)', color: '#4caf8e', border: 'rgba(76,175,142,0.25)' },
+  meetings: { bg: 'rgba(167,139,250,0.1)', color: '#a78bfa', border: 'rgba(167,139,250,0.25)' },
+  incidents: { bg: 'rgba(249,115,22,0.1)', color: '#f97316', border: 'rgba(249,115,22,0.25)' },
 };
 
 export default function RecentActivity({ tasks = [] }) {
@@ -36,43 +41,56 @@ export default function RecentActivity({ tasks = [] }) {
     .slice(0, 5);
 
   return (
-    <div className="glass-card p-5 shadow-lg relative overflow-hidden">
+    <div
+      className="glass-card p-6 shadow-2xl relative overflow-hidden"
+      style={{
+        boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)',
+      }}
+    >
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2.5">
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/5">
+        <div className="flex items-center gap-3">
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg"
-            style={{ background: 'rgba(142,205,255,0.1)' }}
+            className="flex h-8 w-8 items-center justify-center rounded-xl"
+            style={{
+              background: 'rgba(142,205,255,0.08)',
+              border: '0.5px solid rgba(142,205,255,0.2)',
+            }}
           >
-            <Clock className="h-3.5 w-3.5" style={{ color: 'var(--primary)' }} />
+            <Clock className="h-4 w-4 text-cyan-400" />
           </div>
-          <h3 className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
-            Recent Assessment Reports
-          </h3>
+          <div>
+            <h3 className="font-headline text-sm font-semibold text-slate-100 tracking-tight">
+              Ingested Activity & Signals
+            </h3>
+            <p className="font-mono text-[10px] text-slate-400 tracking-wider uppercase mt-0.5">
+              Latest Parsed Event Stream
+            </p>
+          </div>
         </div>
+
         <Link
           to="/tasks"
-          className="font-body text-xs font-semibold cursor-pointer transition-colors"
-          style={{ color: 'var(--primary)', textDecoration: 'none' }}
+          className="font-mono text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 group"
         >
-          View All
+          VIEW_ALL
+          <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
         </Link>
       </div>
 
       {recent.length === 0 ? (
-        <EmptyState message="No recent system activity recorded yet." />
+        <EmptyState message="No recent activity recorded across data streams." />
       ) : (
-        <>
+        <div className="overflow-x-auto">
           {/* Table header */}
           <div
-            className="grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-3 pb-2 mb-1"
+            className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 px-3.5 pb-2.5 mb-1"
             style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}
           >
-            {['Report Name', 'Status', 'Assigned To', 'Timeline'].map((h) => (
+            {['Signal / Task Name', 'Status', 'Assignee / Platform', 'Timeline'].map((h) => (
               <span
                 key={h}
-                className="label-caps"
-                style={{ color: 'var(--outline)', fontSize: '0.55rem' }}
+                className="font-mono text-[10px] tracking-wider uppercase text-slate-400 font-semibold"
               >
                 {h}
               </span>
@@ -80,83 +98,83 @@ export default function RecentActivity({ tasks = [] }) {
           </div>
 
           {/* Rows */}
-          {recent.map((task, idx) => {
-            const sourceLabel = task.source || 'manual';
-            const sourceColor = SOURCE_COLORS[sourceLabel.toLowerCase()] || 'var(--outline)';
-            const statusKey = (task.status || 'new').toLowerCase();
-            const isNew = statusKey === 'open' || statusKey === 'todo' || statusKey === 'new';
+          <div className="space-y-1">
+            {recent.map((task, idx) => {
+              const sourceLabel = (task.source || 'manual').toLowerCase();
+              const sourceStyle = SOURCE_TAGS[sourceLabel] || {
+                bg: 'rgba(255,255,255,0.04)',
+                color: '#cbd5e1',
+                border: 'rgba(255,255,255,0.08)',
+              };
+              const statusKey = (task.status || 'new').toLowerCase();
+              const isDone = statusKey === 'completed' || statusKey === 'done';
 
-            return (
-              <div
-                key={task.id || idx}
-                className="hairline-row grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 items-center px-3 py-3 rounded-xl cursor-default transition-all"
-              >
-                {/* Name */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <div
-                    className="flex h-7 w-7 items-center justify-center rounded-lg shrink-0"
-                    style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.07)' }}
-                  >
-                    {isNew
-                      ? <PlusCircle className="h-3.5 w-3.5" style={{ color: 'var(--primary)' }} />
-                      : <CheckCircle className="h-3.5 w-3.5" style={{ color: '#4caf8e' }} />
-                    }
-                  </div>
-                  <div className="min-w-0">
-                    <p
-                      className="font-body text-xs font-semibold truncate"
-                      style={{ color: 'var(--on-surface)' }}
-                    >
-                      {task.title || `Task #${task.id}`}
-                    </p>
-                    <p
-                      className="label-caps mt-0.5"
-                      style={{ color: 'var(--outline)', fontSize: '0.5rem' }}
-                    >
-                      {task.type || sourceLabel}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status chip */}
-                <span
-                  className="chip text-[0.55rem] py-0.5 w-fit"
-                  style={
-                    isNew
-                      ? { background: 'rgba(142,205,255,0.1)', color: 'var(--primary)', border: '0.5px solid rgba(142,205,255,0.2)' }
-                      : { background: 'rgba(255,255,255,0.05)', color: 'var(--outline)', border: '0.5px solid rgba(255,255,255,0.07)' }
-                  }
+              return (
+                <div
+                  key={task.id || idx}
+                  className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 items-center px-3.5 py-3 rounded-xl transition-all duration-200 hover:bg-white/[0.03] group border border-transparent hover:border-white/5"
                 >
-                  {isNew ? 'New' : 'Archived'}
-                </span>
-
-                {/* Assignee */}
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <div
-                    className="h-5 w-5 rounded-full flex items-center justify-center shrink-0 font-body text-[0.5rem] font-bold text-white uppercase"
-                    style={{ background: sourceColor }}
-                  >
-                    {(task.assignee || sourceLabel).substring(0, 2)}
+                  {/* Name & Type */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="flex h-7 w-7 items-center justify-center rounded-xl shrink-0 transition-transform group-hover:scale-105"
+                      style={{
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '0.5px solid rgba(255,255,255,0.08)',
+                      }}
+                    >
+                      {isDone ? (
+                        <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                      ) : (
+                        <PlusCircle className="h-3.5 w-3.5 text-cyan-400" />
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-body text-xs font-semibold text-slate-200 truncate group-hover:text-cyan-300 transition-colors">
+                        {task.title || `Task #${task.id}`}
+                      </p>
+                      <p className="font-mono text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">
+                        {task.type || sourceLabel}
+                      </p>
+                    </div>
                   </div>
-                  <span
-                    className="font-body text-xs truncate"
-                    style={{ color: 'var(--on-surface-variant)' }}
-                  >
-                    {task.assignee || sourceLabel}
+
+                  {/* Status chip */}
+                  <div>
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono tracking-wider uppercase font-semibold ${
+                        isDone
+                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                          : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                      }`}
+                    >
+                      {isDone ? 'COMPLETED' : 'ACTIVE'}
+                    </span>
+                  </div>
+
+                  {/* Assignee / Platform */}
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase font-semibold tracking-wider truncate"
+                      style={{
+                        background: sourceStyle.bg,
+                        color: sourceStyle.color,
+                        border: `0.5px solid ${sourceStyle.border}`,
+                      }}
+                    >
+                      {task.assignee || sourceLabel}
+                    </span>
+                  </div>
+
+                  {/* Timeline */}
+                  <span className="font-mono text-xs text-slate-400 tabular-nums">
+                    {getRelativeTimeString(task.created_at)}
                   </span>
                 </div>
-
-                {/* Timeline */}
-                <span
-                  className="font-body text-xs"
-                  style={{ color: 'var(--outline)' }}
-                >
-                  {getRelativeTimeString(task.created_at)}
-                </span>
-              </div>
-            );
-          })}
-        </>
+              );
+            })}
+          </div>
+        </div>
       )}
     </div>
   );

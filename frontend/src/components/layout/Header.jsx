@@ -275,36 +275,47 @@ export default function Header({ onMenuClick }) {
   return (
     <>
       <header
-        className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3"
+        className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 transition-colors"
         style={{
-          background: 'rgba(17,19,24,0.75)',
+          background: 'rgba(8,11,17,0.82)',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '0.5px solid rgba(255,255,255,0.06)',
+          borderBottom: '0.5px solid rgba(255,255,255,0.07)',
         }}
       >
         {/* Mobile menu */}
         <button
           onClick={onMenuClick}
-          className="rounded-lg p-2 md:hidden transition-colors"
+          className="rounded-xl p-2 md:hidden transition-colors hover:bg-white/5 active:scale-95"
           style={{ color: 'var(--outline)' }}
+          aria-label="Toggle navigation menu"
         >
           <Menu className="h-4.5 w-4.5" />
         </button>
 
         {/* Breadcrumb / Page Context */}
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="font-body text-xs hidden sm:block" style={{ color: 'var(--outline)' }}>
-            Current Workspace
+        <div className="flex items-center gap-2.5 min-w-0">
+          <span className="font-mono text-[10px] tracking-wider uppercase text-slate-500 hidden sm:block">
+            OPS_CENTER
           </span>
-          <span className="hidden sm:block text-xs" style={{ color: 'var(--outline-variant)' }}>|</span>
-          <div className="flex items-center gap-1.5">
-            <span className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+          <span className="hidden sm:block text-slate-700 text-xs">/</span>
+          <div className="flex items-center gap-2">
+            <span className="font-headline text-sm font-semibold text-slate-100 tracking-tight">
               {pageTitle}
             </span>
-            <span className="flex items-center gap-1 chip chip-green text-[0.6rem] py-0.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#4caf8e] animate-pulse" />
-              {isPipelineRunning ? 'Running' : 'Active'}
+            <span
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono tracking-wider font-semibold uppercase ${
+                isPipelineRunning
+                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(142,205,255,0.2)]'
+                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  isPipelineRunning ? 'bg-cyan-400 animate-ping' : 'bg-emerald-400'
+                }`}
+              />
+              {isPipelineRunning ? 'Orchestrating' : 'Nominal'}
             </span>
           </div>
         </div>
@@ -312,34 +323,36 @@ export default function Header({ onMenuClick }) {
         {/* Search */}
         <form
           onSubmit={handleSearchSubmit}
-          className="hidden md:flex flex-1 max-w-xs items-center gap-2 rounded-xl px-3.5 py-1.5"
+          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-cyan-400/40 focus-within:ring-1 focus-within:ring-cyan-400/20"
           style={{
-            background: 'rgba(0,0,0,0.2)',
-            border: '0.5px solid rgba(255,255,255,0.07)',
+            background: 'rgba(15,20,30,0.6)',
+            border: '0.5px solid rgba(255,255,255,0.08)',
           }}
         >
-          <Search className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--outline)' }} />
+          <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <input
             type="text"
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
-            placeholder="Search operations..."
-            className="w-full bg-transparent border-0 outline-none text-xs font-body"
-            style={{ color: 'var(--on-surface)' }}
+            placeholder="Search tasks, agents, signals..."
+            className="w-full bg-transparent border-0 outline-none text-xs font-body text-slate-200 placeholder:text-slate-500"
           />
+          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-mono font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md">
+            ↵ Enter
+          </kbd>
         </form>
 
         {/* Right side actions */}
         <div className="ml-auto flex items-center gap-2">
           {/* Status message */}
           {status === 'success' && notice && (
-            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in" style={{ color: '#4caf8e' }}>
+            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in text-emerald-400 font-mono">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate max-w-[200px]">{notice}</span>
             </span>
           )}
           {status === 'error' && notice && (
-            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in text-red-400">
+            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in text-rose-400 font-mono">
               <XCircle className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate max-w-[180px]">{notice}</span>
             </span>
@@ -348,10 +361,9 @@ export default function Header({ onMenuClick }) {
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
-            className="rounded-xl p-2 transition-all"
+            className="rounded-xl p-2 transition-all hover:bg-white/5 text-slate-400 hover:text-slate-100 active:scale-95"
             style={{
-              color: 'var(--on-surface-variant)',
-              background: 'rgba(255,255,255,0.04)',
+              background: 'rgba(255,255,255,0.03)',
               border: '0.5px solid rgba(255,255,255,0.07)',
             }}
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
@@ -363,55 +375,84 @@ export default function Header({ onMenuClick }) {
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="rounded-xl p-2 transition-all relative cursor-pointer"
+              className="rounded-xl p-2 transition-all relative cursor-pointer hover:bg-white/5 text-slate-400 hover:text-slate-100 active:scale-95"
               style={{
-                color: 'var(--on-surface-variant)',
-                background: 'rgba(255,255,255,0.04)',
+                background: 'rgba(255,255,255,0.03)',
                 border: '0.5px solid rgba(255,255,255,0.07)',
               }}
-              title="View Alerts"
+              title="System Alerts & Telemetry"
             >
               <Bell className="h-4 w-4" />
               {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[#ef4444] animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-[#080b11] animate-pulse" />
               )}
             </button>
 
             {showNotifications && (
               <div
-                className="absolute right-0 mt-2 w-80 rounded-2xl p-4 shadow-2xl z-50 animate-scale-in"
+                className="absolute right-0 mt-2.5 w-84 rounded-2xl p-4 shadow-2xl z-50 animate-scale-in"
                 style={{
-                  background: 'rgba(17,19,24,0.95)',
-                  backdropFilter: 'blur(30px)',
-                  border: '0.5px solid rgba(255,255,255,0.08)',
+                  background: 'rgba(12,16,24,0.96)',
+                  backdropFilter: 'blur(32px)',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  boxShadow: '0 24px 48px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
                 }}
               >
-                <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
-                  <span className="font-headline text-xs font-bold text-slate-200">Alerts & Notifications</span>
-                  <span className="text-[10px] text-slate-500 font-body">{notifications.length} active</span>
+                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
+                    <span className="font-headline text-xs font-bold text-slate-200 uppercase tracking-wider">
+                      Signals & Alerts
+                    </span>
+                  </div>
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                    {notifications.length} active
+                  </span>
                 </div>
-                <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {notifications.length === 0 ? (
-                    <p className="text-xs text-slate-500 font-body text-center py-4">No active system alerts.</p>
+                    <p className="text-xs text-slate-500 font-body text-center py-6">
+                      No anomalous signals detected. All subsystems nominal.
+                    </p>
                   ) : (
                     notifications.map((n) => {
-                      let badgeColor = '#ef4444'; // critical
-                      if (n.type === 'warning') badgeColor = '#f59e0b';
-                      if (n.type === 'success') badgeColor = '#4caf8e';
-                      if (n.type === 'upcoming') badgeColor = '#a855f7'; // Purple badge color for upcoming next tasks
+                      let badgeColor = '#ef4444';
+                      let bgTint = 'rgba(239,68,68,0.08)';
+                      let borderTint = 'rgba(239,68,68,0.2)';
+                      if (n.type === 'warning') {
+                        badgeColor = '#f59e0b';
+                        bgTint = 'rgba(245,158,11,0.08)';
+                        borderTint = 'rgba(245,158,11,0.2)';
+                      } else if (n.type === 'success') {
+                        badgeColor = '#4caf8e';
+                        bgTint = 'rgba(76,175,142,0.08)';
+                        borderTint = 'rgba(76,175,142,0.2)';
+                      } else if (n.type === 'upcoming') {
+                        badgeColor = '#8ecdff';
+                        bgTint = 'rgba(142,205,255,0.08)';
+                        borderTint = 'rgba(142,205,255,0.2)';
+                      }
 
                       return (
                         <div
                           key={n.id}
-                          className="rounded-xl p-2.5 bg-white/2 hover:bg-white/5 border border-white/5 flex gap-2.5 transition-colors"
+                          className="rounded-xl p-3 flex gap-2.5 transition-all hover:translate-x-0.5"
+                          style={{
+                            background: bgTint,
+                            border: `0.5px solid ${borderTint}`,
+                          }}
                         >
                           <span
-                            className="h-2 w-2 rounded-full mt-1.5 shrink-0"
+                            className="h-2 w-2 rounded-full mt-1.5 shrink-0 ring-4 ring-black/40"
                             style={{ background: badgeColor }}
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-bold text-slate-200 truncate">{n.title}</p>
-                            <p className="text-[10px] text-slate-400 mt-0.5 leading-relaxed">{n.desc}</p>
+                            <p className="text-xs font-semibold text-slate-200 truncate font-headline">
+                              {n.title}
+                            </p>
+                            <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed font-body">
+                              {n.desc}
+                            </p>
                           </div>
                         </div>
                       );
@@ -422,23 +463,26 @@ export default function Header({ onMenuClick }) {
             )}
           </div>
 
-          
-
           {/* Run Pipeline CTA */}
           <button
             onClick={handleRunPipeline}
             disabled={status === 'loading' || isPipelineRunning}
-            className="btn-primary text-xs px-4 py-2 rounded-xl"
+            className="relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold font-headline text-slate-900 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(142,205,255,0.25)] hover:shadow-[0_0_28px_rgba(142,205,255,0.4)]"
+            style={{
+              background: 'linear-gradient(135deg, #a5d8ff 0%, #70b8ff 50%, #4da3ff 100%)',
+            }}
           >
             {status === 'loading' || isPipelineRunning ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                <span className="hidden sm:inline">Orchestrating...</span>
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-900" />
+                <span className="hidden sm:inline font-mono uppercase tracking-wider text-[11px]">
+                  Orchestrating...
+                </span>
               </>
             ) : (
               <>
-                <Play className="h-3 w-3 fill-white" />
-                <span className="hidden sm:inline">Run Pipeline</span>
+                <Play className="h-3 w-3 fill-slate-900 text-slate-900" />
+                <span className="hidden sm:inline tracking-tight">Run Pipeline</span>
               </>
             )}
           </button>
@@ -448,10 +492,13 @@ export default function Header({ onMenuClick }) {
       {/* Toast notification */}
       {notice && status !== 'loading' && (
         <div
-          className={`fixed right-4 top-20 z-50 flex max-w-[calc(100vw-2rem)] items-start gap-2 rounded-xl border px-4 py-3 text-xs shadow-2xl backdrop-blur-xl sm:max-w-md ${noticeClass}`}
+          className={`fixed right-4 top-20 z-50 flex max-w-[calc(100vw-2rem)] items-start gap-2.5 rounded-2xl border px-4 py-3 text-xs shadow-2xl backdrop-blur-2xl sm:max-w-md animate-scale-in ${noticeClass}`}
+          style={{
+            boxShadow: '0 20px 40px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)',
+          }}
         >
           <NoticeIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="leading-relaxed">{notice}</span>
+          <span className="leading-relaxed font-body text-slate-200">{notice}</span>
         </div>
       )}
     </>

@@ -77,58 +77,72 @@ export default function Tasks() {
 
   return (
     <>
-      <div className="space-y-5 animate-fade-in-up">
+      <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-white/5">
         <div>
-          <h2 className="font-headline text-3xl font-light" style={{ color: 'var(--on-surface)', letterSpacing: '-0.02em' }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            <span className="font-mono text-[10px] tracking-widest uppercase text-cyan-400 font-semibold">
+              TASK_INDEX // REPOSITORY
+            </span>
+          </div>
+          <h2 className="font-headline text-3xl font-light text-slate-100 tracking-tight">
             Task Directory
           </h2>
-          <p className="font-body text-sm mt-1" style={{ color: 'var(--on-surface-variant)' }}>
-            Filter, browse, and analyze parsed workspace tasks
+          <p className="font-body text-xs text-slate-400 mt-1 max-w-lg">
+            Filter, inspect, and trace parsed engineering tasks fused from Jira, GitHub, Slack, and Email.
           </p>
         </div>
-        <div className="flex items-center gap-2 self-start">
-          <span
-            className="glass-card px-4 py-2 font-headline text-sm font-semibold"
-            style={{ color: 'var(--on-surface)' }}
-          >
-            {filteredTasks.length}
-          </span>
-          <span className="font-body text-xs" style={{ color: 'var(--outline)' }}>
-            {filteredTasks.length === 1 ? 'Task' : 'Tasks'} Listed
-          </span>
+
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <div className="glass-card px-4 py-2 flex items-center gap-2 border-white/10 shadow-lg">
+            <span className="font-headline text-lg font-bold text-cyan-300 tabular-nums">
+              {filteredTasks.length}
+            </span>
+            <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">
+              {filteredTasks.length === 1 ? 'TASK MATCH' : 'TASKS MATCHED'}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Filter bar */}
       <div
-        className="glass-card p-3 flex flex-wrap items-center gap-3"
+        className="glass-card p-4 flex flex-wrap items-center gap-3 shadow-xl"
+        style={{
+          boxShadow: '0 12px 32px -10px rgba(0,0,0,0.5)',
+        }}
       >
         <div className="flex items-center gap-2 mr-1 pl-1">
-          <Filter className="h-3.5 w-3.5" style={{ color: 'var(--outline)' }} />
-          <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>Filters</span>
+          <Filter className="h-3.5 w-3.5 text-cyan-400" />
+          <span className="font-mono text-[10px] uppercase tracking-wider text-slate-300 font-semibold">
+            FILTERS:
+          </span>
         </div>
 
         {[
-          { value: statusFilter,   set: setStatusFilter,   options: statuses,  placeholder: 'All Statuses' },
-          { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'All Types' },
-          { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'All Assignees' },
-          { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'All Platforms' },
+          { value: statusFilter,   set: setStatusFilter,   options: statuses,  placeholder: 'Status: All' },
+          { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'Type: All' },
+          { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'Assignee: All' },
+          { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'Platform: All' },
         ].map(({ value, set, options, placeholder }, idx) => (
-          <select
-            key={idx}
-            value={value}
-            onChange={(e) => set(e.target.value)}
-            className="glass-select px-3 py-2 text-xs font-body rounded-xl cursor-pointer min-w-[130px]"
-            style={{ color: 'var(--on-surface)' }}
-          >
-            {options.map((o) => (
-              <option key={o} value={o} style={{ background: '#1e2024', color: '#e2e2e8' }}>
-                {o === 'all' ? placeholder : o}
-              </option>
-            ))}
-          </select>
+          <div key={idx} className="relative">
+            <select
+              value={value}
+              onChange={(e) => set(e.target.value)}
+              className="appearance-none bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20 px-3.5 py-2 pr-8 text-xs font-mono rounded-xl cursor-pointer min-w-[140px] text-slate-200 outline-none transition-all shadow-inner"
+            >
+              {options.map((o) => (
+                <option key={o} value={o} style={{ background: '#0d131f', color: '#e2e8f0' }}>
+                  {o === 'all' ? placeholder : o.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">
+              ▼
+            </div>
+          </div>
         ))}
       </div>
 

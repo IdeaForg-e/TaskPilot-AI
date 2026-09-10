@@ -124,54 +124,61 @@ export default function Planner() {
 
   return (
     <>
-      <div className="space-y-5 animate-fade-in-up">
+      <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-white/5">
         <div>
-          <h2 className="font-headline text-3xl font-light" style={{ color: 'var(--on-surface)', letterSpacing: '-0.02em' }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            <span className="font-mono text-[10px] tracking-widest uppercase text-cyan-400 font-semibold">
+              SCHEDULE_MATRIX // AI_OPTIMIZER
+            </span>
+          </div>
+          <h2 className="font-headline text-3xl font-light text-slate-100 tracking-tight">
             AI Planner
           </h2>
-          <p className="font-body text-sm mt-2 max-w-lg" style={{ color: 'var(--on-surface-variant)' }}>
-            Optimize your cognitive resources. AI has mapped your peak performance windows for{' '}
-            {MONTH_NAMES[currentMonth]} {currentYear}.
+          <p className="font-body text-xs text-slate-400 mt-1 max-w-lg">
+            Cognitive resource scheduling and buffer management mapped for {MONTH_NAMES[currentMonth]} {currentYear}.
           </p>
         </div>
+
         <button 
           onClick={() => setShowRules(true)}
-          className="btn-ghost self-start flex items-center gap-2 text-xs cursor-pointer hover:text-primary transition-colors"
+          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/25 hover:bg-cyan-500/20 transition-all cursor-pointer shadow-[0_0_12px_rgba(142,205,255,0.15)] active:scale-95"
         >
-          <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-          </svg>
-          Optimizer Rules
+          <Sparkles className="h-3.5 w-3.5 text-cyan-400" />
+          OPTIMIZER RULES
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-12 items-start">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
         {/* ── Calendar ── */}
-        <div className="lg:col-span-5 glass-card p-5 space-y-4">
+        <div
+          className="lg:col-span-5 glass-card p-6 space-y-4 shadow-2xl relative overflow-hidden"
+          style={{ boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)' }}
+        >
           {/* Month header */}
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pb-3 border-b border-white/5">
             <div>
-              <h3 className="font-headline text-lg font-medium" style={{ color: 'var(--on-surface)' }}>
+              <h3 className="font-headline text-base font-bold text-slate-100">
                 {MONTH_NAMES[currentMonth]} {currentYear}
               </h3>
-              <p className="label-caps mt-0.5" style={{ color: 'var(--primary)', fontSize: '0.55rem' }}>
-                Optimal Schedule Efficiency: {efficiencyPct}%
+              <p className="font-mono text-[10px] text-cyan-400 uppercase tracking-wider mt-0.5 font-semibold">
+                SCHEDULE EFFICIENCY: {efficiencyPct}%
               </p>
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               <button
                 onClick={handlePrevMonth}
-                className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
-                style={{ border: '0.5px solid rgba(255,255,255,0.08)', color: 'var(--outline)' }}
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:bg-white/5 text-slate-400 hover:text-white border border-white/8 active:scale-95"
+                title="Previous Month"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
                 onClick={handleNextMonth}
-                className="flex h-7 w-7 items-center justify-center rounded-lg transition-colors"
-                style={{ border: '0.5px solid rgba(255,255,255,0.08)', color: 'var(--outline)' }}
+                className="flex h-8 w-8 items-center justify-center rounded-xl transition-all hover:bg-white/5 text-slate-400 hover:text-white border border-white/8 active:scale-95"
+                title="Next Month"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -181,16 +188,16 @@ export default function Planner() {
           {/* Weekday labels */}
           <div className="grid grid-cols-7 gap-1 text-center">
             {DAY_NAMES.map((d) => (
-              <span key={d} className="label-caps py-1" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>
+              <span key={d} className="font-mono text-[10px] uppercase text-slate-400 font-semibold py-1">
                 {d}
               </span>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-1.5">
             {cells.map((dayNum, idx) => {
-              if (!dayNum) return <div key={`e-${idx}`} />;
+              if (!dayNum) return <div key={`e-${idx}`} className="aspect-square" />;
               const formatted = getDayFormatted(dayNum);
               const isSelected = selectedDate === formatted;
               const planned = hasPlan(dayNum);
@@ -200,46 +207,23 @@ export default function Planner() {
                 <button
                   key={`d-${dayNum}`}
                   onClick={() => handleDateClick(dayNum)}
-                  className="relative aspect-square flex flex-col items-center justify-center rounded-xl text-xs font-medium transition-all duration-200"
-                  style={
+                  className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-xs font-mono transition-all duration-200 cursor-pointer ${
                     isSelected
-                      ? {
-                          background: 'transparent',
-                          border: `1.5px solid var(--primary)`,
-                          color: 'var(--primary)',
-                          boxShadow: '0 0 10px rgba(142,205,255,0.15)',
-                        }
+                      ? 'bg-cyan-500/15 border border-cyan-400 text-cyan-300 shadow-[0_0_14px_rgba(142,205,255,0.35)] font-bold'
                       : isToday
-                      ? {
-                          background: 'rgba(142,205,255,0.08)',
-                          border: '0.5px solid rgba(142,205,255,0.2)',
-                          color: 'var(--primary)',
-                        }
+                      ? 'bg-white/5 border border-cyan-500/30 text-cyan-400 font-semibold'
                       : planned
-                      ? {
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '0.5px solid rgba(255,255,255,0.07)',
-                          color: 'var(--on-surface)',
-                        }
-                      : {
-                          background: 'transparent',
-                          border: '0.5px solid transparent',
-                          color: 'var(--on-surface-variant)',
-                        }
-                  }
+                      ? 'bg-slate-900/60 border border-white/8 text-slate-200 hover:border-white/20'
+                      : 'hover:bg-white/5 text-slate-400'
+                  }`}
                 >
-                  <span className="font-body font-medium">{dayNum}</span>
-                  {/* Color-coded underline indicator */}
-                  {planned && !isSelected && (
+                  <span className="tabular-nums">{dayNum}</span>
+                  {/* Underline indicator */}
+                  {planned && (
                     <span
-                      className="absolute bottom-1 h-0.5 w-4 rounded-full"
-                      style={{ background: 'var(--primary)' }}
-                    />
-                  )}
-                  {isSelected && (
-                    <span
-                      className="absolute bottom-1 h-0.5 w-4 rounded-full"
-                      style={{ background: 'var(--primary)' }}
+                      className={`absolute bottom-1.5 h-1 w-3 rounded-full ${
+                        isSelected ? 'bg-cyan-400 shadow-[0_0_6px_#8ecdff]' : 'bg-cyan-500/60'
+                      }`}
                     />
                   )}
                 </button>
@@ -249,37 +233,36 @@ export default function Planner() {
 
           {/* Legend */}
           <div
-            className="flex items-center gap-4 pt-2"
-            style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}
+            className="flex items-center gap-4 pt-3 border-t border-white/5 font-mono text-[10px]"
           >
             <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-4 rounded-full" style={{ background: 'var(--primary)' }} />
-              <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>Plan Scheduled</span>
+              <span className="h-1.5 w-3 rounded-full bg-cyan-400" />
+              <span className="text-slate-400 uppercase">SCHEDULED</span>
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-0.5 w-4 rounded-full" style={{ background: 'rgba(255,255,255,0.12)' }} />
-              <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>Unplanned</span>
+              <span className="h-1.5 w-3 rounded-full bg-white/20" />
+              <span className="text-slate-500 uppercase">UNPLANNED</span>
             </span>
           </div>
         </div>
 
         {/* ── Daily Flow ── */}
-        <div className="lg:col-span-7 space-y-3">
+        <div className="lg:col-span-7 space-y-4">
           {/* Selected date header */}
-          <div className="glass-card p-4 flex items-center justify-between">
+          <div className="glass-card p-4 flex items-center justify-between shadow-xl">
             <div>
-              <span className="label-caps block mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                Daily Flow
+              <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold block mb-0.5">
+                ACTIVE WORKSPACE AGENDA
               </span>
-              <h3 className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+              <h3 className="font-headline text-sm font-semibold text-slate-100">
                 {new Date(selectedDate + 'T00:00:00').toLocaleDateString(undefined, {
                   weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
                 })}
               </h3>
             </div>
-            <span className="chip chip-blue text-[0.55rem] py-0.5">
+            <span className="px-3 py-1 rounded-full text-[10px] font-mono tracking-wider font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/25">
               {selectedDate === todayStr 
-                ? `${new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }).toUpperCase()}, TODAY` 
+                ? 'TODAY' 
                 : selectedDate}
             </span>
           </div>

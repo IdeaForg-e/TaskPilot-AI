@@ -70,19 +70,26 @@ export default function Quality() {
   return (
     <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2 border-b border-white/5">
         <div>
-          <h2 className="font-headline text-3xl font-light" style={{ color: 'var(--on-surface)', letterSpacing: '-0.02em' }}>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-cyan-400" />
+            <span className="font-mono text-[10px] tracking-widest uppercase text-cyan-400 font-semibold">
+              QA_ENGINE // AUDIT_GATE
+            </span>
+          </div>
+          <h2 className="font-headline text-3xl font-light text-slate-100 tracking-tight">
             Quality Assurance
           </h2>
-          <p className="font-body text-sm mt-1" style={{ color: 'var(--on-surface-variant)' }}>
-            Automated task parsing structure and attribute completeness verification
+          <p className="font-body text-xs text-slate-400 mt-1 max-w-lg">
+            Automated schema validation, missing attribute detection, and prompt clarification audit.
           </p>
         </div>
+
         <div className="flex items-center gap-2">
-          <span className="chip chip-blue text-[0.6rem] py-1">
-            <Sparkles className="h-3 w-3 animate-pulse" />
-            AI Auditor Active
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase font-semibold text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 shadow-[0_0_12px_rgba(142,205,255,0.15)]">
+            <Sparkles className="h-3 w-3 animate-pulse text-cyan-400" />
+            AUDITOR ACTIVE
           </span>
         </div>
       </div>
@@ -93,28 +100,27 @@ export default function Quality() {
         {/* Left Side: Search, Filter Tabs and Reports list */}
         <div className="lg:col-span-2 space-y-5">
           {/* Controls Bar */}
-          <div className="glass-card p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
+          <div className="glass-card p-4 flex flex-col sm:flex-row gap-4 items-center justify-between shadow-xl">
             {/* Search Box */}
             <div
-              className="flex w-full sm:max-w-xs items-center gap-2 rounded-xl px-3.5 py-1.5"
+              className="flex w-full sm:max-w-xs items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-cyan-400/40 focus-within:ring-1 focus-within:ring-cyan-400/20"
               style={{
-                background: 'rgba(0,0,0,0.25)',
+                background: 'rgba(15,20,30,0.6)',
                 border: '0.5px solid rgba(255,255,255,0.08)',
               }}
             >
-              <Search className="h-3.5 w-3.5 shrink-0" style={{ color: 'var(--outline)' }} />
+              <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search audit reports..."
-                className="w-full bg-transparent border-0 outline-none text-xs font-body"
-                style={{ color: 'var(--on-surface)' }}
+                placeholder="Search audit reports by title or ID..."
+                className="w-full bg-transparent border-0 outline-none text-xs font-body text-slate-200 placeholder:text-slate-500"
               />
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex bg-black/20 p-1 rounded-xl border border-white/5 gap-1 shrink-0">
+            <div className="flex bg-slate-900/80 p-1 rounded-xl border border-white/8 gap-1 shrink-0">
               {[
                 { id: 'all', label: 'All Reports' },
                 { id: 'deficient', label: 'Deficient' },
@@ -123,10 +129,10 @@ export default function Quality() {
                 <button
                   key={t.id}
                   onClick={() => setStatusFilter(t.id)}
-                  className={`px-3 py-1.5 text-[10px] font-headline font-semibold rounded-lg transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider font-semibold rounded-lg transition-all cursor-pointer ${
                     statusFilter === t.id 
-                      ? 'bg-primary/10 text-primary border border-primary/20' 
-                      : 'text-outline hover:text-on-surface'
+                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-[0_0_12px_rgba(142,205,255,0.2)]' 
+                      : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
                   {t.label}
@@ -145,60 +151,69 @@ export default function Quality() {
         <div className="lg:col-span-1 space-y-5">
           {/* Circular SVG Gauge Card */}
           {totalReports > 0 && (
-            <div className="glass-card p-6 flex flex-col items-center justify-center text-center animate-fade-in-up stagger-1">
-              <span className="label-caps mb-4 block" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                Overall Quality Index
+            <div
+              className="glass-card p-6 flex flex-col items-center justify-center text-center animate-fade-in-up stagger-1 shadow-2xl relative overflow-hidden"
+              style={{ boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)' }}
+            >
+              <span className="font-mono text-[10px] tracking-wider uppercase text-slate-400 font-semibold mb-4 block">
+                COMPREHENSIVE QUALITY INDEX
               </span>
               
-              <div className="relative h-32 w-32 flex items-center justify-center mb-4">
+              <div className="relative h-36 w-36 flex items-center justify-center mb-4">
                 {/* SVG circular progress ring */}
                 <svg className="h-full w-full transform -rotate-90">
                   <circle
-                    cx="64"
-                    cy="64"
+                    cx="72"
+                    cy="72"
                     r={radius}
                     className="stroke-white/5"
                     strokeWidth="10"
                     fill="transparent"
                   />
                   <circle
-                    cx="64"
-                    cy="64"
+                    cx="72"
+                    cy="72"
                     r={radius}
                     className="transition-all duration-1000 ease-out"
-                    stroke={avgScore >= 50 ? 'var(--primary)' : '#ef4444'}
+                    stroke={avgScore >= 50 ? '#8ecdff' : '#ef4444'}
                     strokeWidth="10"
                     strokeDasharray={circumference}
                     strokeDashoffset={strokeDashoffset}
                     strokeLinecap="round"
                     fill="transparent"
+                    style={{
+                      filter: avgScore >= 50 ? 'drop-shadow(0 0 8px rgba(142,205,255,0.4))' : 'drop-shadow(0 0 8px rgba(239,68,68,0.4))'
+                    }}
                   />
                 </svg>
                 {/* Score text inside ring */}
                 <div className="absolute flex flex-col items-center">
-                  <span className="font-headline text-3xl font-extrabold" style={{ color: 'var(--on-surface)' }}>
+                  <span className="font-headline text-3xl font-extrabold text-white tabular-nums">
                     {avgScore}
                   </span>
-                  <span className="text-[9px] font-body uppercase tracking-wider text-slate-500">
-                    Score
+                  <span className="text-[9px] font-mono uppercase tracking-widest text-slate-400">
+                    PTS / 100
                   </span>
                 </div>
               </div>
 
-              <p className="font-body text-xs leading-relaxed" style={{ color: 'var(--on-surface-variant)' }}>
-                System average score based on checklist completeness of attributes.
+              <p className="font-body text-xs text-slate-400 leading-relaxed max-w-xs">
+                Aggregate quality score synthesized across completeness of criteria, scope definitions, and context linkages.
               </p>
             </div>
           )}
 
           {/* Stats Breakdown cards */}
-          <div className="grid grid-cols-1 gap-4 animate-fade-in-up stagger-2">
+          <div className="grid grid-cols-1 gap-3.5 animate-fade-in-up stagger-2">
             {[
-              { label: 'Pass Rate', value: `${passRate}% Complete`, icon: HeartPulse, color: '#4caf8e', bg: 'rgba(76,175,142,0.1)', border: 'rgba(76,175,142,0.15)' },
-              { label: 'Deficient Tasks', value: `${poorReports} Identified`, icon: Activity, color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.15)' },
-              { label: 'Total Audited', value: `${totalReports} Reports`, icon: ShieldCheck, color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.15)' },
+              { label: 'Pass Rate', value: `${passRate}% Complete`, icon: HeartPulse, color: '#4caf8e', bg: 'rgba(76,175,142,0.08)', border: 'rgba(76,175,142,0.2)' },
+              { label: 'Deficient Tasks', value: `${poorReports} Identified`, icon: Activity, color: '#f59e0b', bg: 'rgba(245,158,11,0.08)', border: 'rgba(245,158,11,0.2)' },
+              { label: 'Total Audited', value: `${totalReports} Reports`, icon: ShieldCheck, color: '#8ecdff', bg: 'rgba(142,205,255,0.08)', border: 'rgba(142,205,255,0.2)' },
             ].map(({ label, value, icon: Icon, color, bg, border }) => (
-              <div key={label} className="glass-card p-4 flex items-center gap-4 hover:translate-x-1 transition-transform">
+              <div
+                key={label}
+                className="glass-card p-4 flex items-center gap-4 transition-all duration-200 hover:-translate-y-0.5 shadow-lg"
+              >
                 <div
                   className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl"
                   style={{ background: bg, border: `0.5px solid ${border}` }}
@@ -206,10 +221,10 @@ export default function Quality() {
                   <Icon className="h-5 w-5" style={{ color }} />
                 </div>
                 <div>
-                  <span className="label-caps block mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
+                  <span className="font-mono text-[9px] tracking-wider uppercase text-slate-400 font-semibold block mb-0.5">
                     {label}
                   </span>
-                  <span className="font-headline text-sm font-semibold" style={{ color: 'var(--on-surface)' }}>
+                  <span className="font-headline text-sm font-semibold text-slate-100 tabular-nums">
                     {value}
                   </span>
                 </div>
@@ -217,31 +232,31 @@ export default function Quality() {
             ))}
           </div>
 
-          {/* Distribution Bar Chart Card */}
+          {/* Completeness Distribution Bar Card */}
           {totalReports > 0 && (
-            <div className="glass-card p-5 animate-fade-in-up stagger-4">
-              <span className="label-caps mb-3 block" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                Completeness Distribution
+            <div className="glass-card p-5 animate-fade-in-up stagger-4 shadow-xl">
+              <span className="font-mono text-[10px] tracking-wider uppercase text-slate-400 font-semibold mb-3 block">
+                COMPLETENESS SPECTRUM
               </span>
               {/* Segment Bar */}
-              <div className="h-3 w-full rounded-full flex overflow-hidden bg-white/5 mb-4">
+              <div className="h-2.5 w-full rounded-full flex overflow-hidden bg-white/5 mb-4">
                 <div className="h-full bg-[#4caf8e] transition-all" style={{ width: `${pctExcellent}%` }} title={`Excellent: ${pctExcellent}%`} />
-                <div className="h-full bg-primary/70 transition-all" style={{ width: `${pctGood}%` }} title={`Good: ${pctGood}%`} />
+                <div className="h-full bg-cyan-400/80 transition-all" style={{ width: `${pctGood}%` }} title={`Good: ${pctGood}%`} />
                 <div className="h-full bg-[#ef4444] transition-all" style={{ width: `${pctPoor}%` }} title={`Critical: ${pctPoor}%`} />
               </div>
               {/* Legends */}
               <div className="space-y-2">
                 {[
-                  { label: 'Excellent (>=80%)', count: excellentCount, pct: pctExcellent, dot: '#4caf8e' },
-                  { label: 'Good (50% - 79%)', count: goodCount, pct: pctGood, dot: 'var(--primary)' },
-                  { label: 'Critical (<50%)', count: poorCount, pct: pctPoor, dot: '#ef4444' }
+                  { label: 'Optimal (>=80%)', count: excellentCount, pct: pctExcellent, dot: '#4caf8e' },
+                  { label: 'Adequate (50-79%)', count: goodCount, pct: pctGood, dot: '#8ecdff' },
+                  { label: 'Deficient (<50%)', count: poorCount, pct: pctPoor, dot: '#ef4444' }
                 ].map(l => (
-                  <div key={l.label} className="flex items-center justify-between text-[10px]">
-                    <div className="flex items-center gap-1.5 text-slate-400">
+                  <div key={l.label} className="flex items-center justify-between text-[10px] font-mono">
+                    <div className="flex items-center gap-2 text-slate-400">
                       <span className="h-2 w-2 rounded-full" style={{ background: l.dot }} />
                       <span>{l.label}</span>
                     </div>
-                    <span className="font-semibold text-slate-200">
+                    <span className="font-semibold text-slate-200 tabular-nums">
                       {l.count} ({l.pct}%)
                     </span>
                   </div>

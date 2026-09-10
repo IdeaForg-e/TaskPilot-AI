@@ -44,23 +44,33 @@ export default function TaskDetail({ task, tasks = [], onClose }) {
   return createPortal(
     <div 
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-scale-in cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-xl p-4 animate-scale-in cursor-pointer"
     >
-      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-6 rounded-2xl shadow-2xl flex flex-col justify-between cursor-default">
+      <div
+        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6 md:p-7 shadow-2xl flex flex-col justify-between cursor-default"
+        style={{
+          background: 'rgba(11,15,23,0.97)',
+          border: '0.5px solid rgba(255,255,255,0.12)',
+          boxShadow: '0 25px 60px -15px rgba(0,0,0,0.85), 0 0 30px rgba(142,205,255,0.08)',
+        }}
+      >
         <div>
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between border-b border-slate-900 pb-4">
-            <div className="flex items-center gap-2">
-              <div className="h-6 w-6 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
-                <Layers className="h-3.5 w-3.5 text-violet-400" />
+          <div className="mb-6 flex items-center justify-between border-b border-white/8 pb-4">
+            <div className="flex items-center gap-2.5">
+              <div className="h-7 w-7 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/25">
+                <Layers className="h-3.5 w-3.5 text-cyan-400" />
               </div>
-              <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Task Telemetry</h2>
+              <h2 className="font-mono text-[10px] font-bold uppercase tracking-widest text-cyan-400">
+                TASK_TELEMETRY // INSPECTOR
+              </h2>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-900 hover:text-white transition-colors cursor-pointer"
+              className="rounded-xl p-1.5 text-slate-400 hover:bg-white/5 hover:text-white transition-colors cursor-pointer border border-transparent hover:border-white/8 active:scale-95"
+              title="Close Panel"
             >
-              <X className="h-5 w-5" />
+              <X className="h-4.5 w-4.5" />
             </button>
           </div>
 

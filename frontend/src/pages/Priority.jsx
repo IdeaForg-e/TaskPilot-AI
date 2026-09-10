@@ -36,40 +36,43 @@ export default function Priority() {
     <>
       <div className="space-y-6 animate-fade-in-up">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-white/5">
         <div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+            <span className="font-mono text-[10px] tracking-widest uppercase text-rose-400 font-semibold">
+              TRIAGE_ALGORITHM // LEADERBOARD
+            </span>
+          </div>
           <h2
-            className="font-headline text-3xl font-light"
-            style={{ color: 'var(--on-surface)', letterSpacing: '-0.02em' }}
+            className="font-headline text-3xl font-light text-slate-100 tracking-tight"
           >
             Priority Leaderboard
           </h2>
-          <p className="font-body text-sm mt-2 max-w-lg" style={{ color: 'var(--on-surface-variant)' }}>
-            Intelligent triage system ranking tasks based on real-time urgency, impact, and engineering bandwidth.
+          <p className="font-body text-xs text-slate-400 mt-1 max-w-lg">
+            Multi-dimensional triage weighting deadline urgency, engineering complexity, stakeholder impact, and bandwidth.
           </p>
         </div>
 
         {/* Stat chips */}
         <div className="flex gap-3 shrink-0 flex-wrap">
           <div
-            className="glass-card px-4 py-3 text-center"
-            style={{ minWidth: '100px' }}
+            className="glass-card px-4 py-2.5 text-center min-w-[110px] shadow-lg"
           >
-            <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-              Active Items
+            <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold mb-0.5">
+              ACTIVE QUEUE
             </p>
-            <p className="font-headline text-2xl font-semibold" style={{ color: 'var(--on-surface)' }}>
+            <p className="font-headline text-2xl font-bold text-slate-100 tabular-nums">
               {tasks.length}
             </p>
           </div>
           <div
-            className="glass-card px-4 py-3 text-center"
-            style={{ minWidth: '100px', background: 'rgba(239,68,68,0.04)' }}
+            className="glass-card px-4 py-2.5 text-center min-w-[110px] shadow-lg border-rose-500/30 bg-rose-500/5"
           >
-            <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-              Critical
+            <p className="font-mono text-[9px] uppercase tracking-wider text-rose-400 font-semibold mb-0.5">
+              P0 CRITICAL
             </p>
-            <p className="font-headline text-2xl font-semibold" style={{ color: '#ef4444' }}>
+            <p className="font-headline text-2xl font-bold text-rose-400 tabular-nums">
               {String(criticalCount).padStart(2, '0')}
             </p>
           </div>
@@ -78,56 +81,57 @@ export default function Priority() {
 
       {/* Urgency distribution */}
       {tasks.length > 0 && (
-        <div className="glass-card p-5 animate-fade-in-up stagger-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+        <div
+          className="glass-card p-6 animate-fade-in-up stagger-1 shadow-2xl relative overflow-hidden"
+          style={{ boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)' }}
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center gap-6">
             {/* System health score */}
             <div className="shrink-0">
-              <p className="label-caps mb-1" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                System Health Score
+              <p className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
+                SYSTEM TRIAGE INDEX
               </p>
-              <div className="flex items-end gap-1">
-                <span className="font-headline text-4xl font-light" style={{ color: 'var(--on-surface)' }}>
+              <div className="flex items-baseline gap-1">
+                <span className="font-headline text-4xl font-bold text-white tabular-nums">
                   {(tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1)).toFixed(1)}
                 </span>
-                <span className="font-body text-sm mb-1" style={{ color: 'var(--outline)' }}>/10</span>
+                <span className="font-mono text-xs text-slate-500">/ 10.0</span>
               </div>
-              <div className="mt-2 h-1 w-28 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+              <div className="mt-2.5 h-1.5 w-32 rounded-full bg-white/5 overflow-hidden">
                 <div
-                  className="h-full rounded-full"
+                  className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 shadow-[0_0_10px_rgba(142,205,255,0.4)] transition-all duration-1000"
                   style={{
                     width: `${Math.round((tasks.reduce((s, t) => s + (t.priority_score || 0), 0) / Math.max(tasks.length, 1)) * 10)}%`,
-                    background: 'var(--primary)',
-                    transition: 'width 1s ease',
                   }}
                 />
               </div>
             </div>
 
-            <div className="h-px sm:h-12 sm:w-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="h-px lg:h-14 lg:w-px bg-white/8" />
 
             {/* Distribution */}
             <div className="flex-1 min-w-0">
-              <p className="label-caps mb-3" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>
-                Urgency Distribution
+              <p className="font-mono text-[10px] uppercase tracking-wider text-slate-400 font-semibold mb-3">
+                URGENCY SPECTRUM BREAKDOWN
               </p>
               {[
                 { label: 'P0 - Critical', count: criticalCount,     color: '#ef4444' },
                 { label: 'P1 - High',     count: highPriorityCount, color: '#f59e0b' },
-                { label: 'P2 - Moderate', count: tasks.length - highPriorityCount, color: 'var(--outline)' },
+                { label: 'P2 - Moderate', count: Math.max(0, tasks.length - highPriorityCount), color: '#8ecdff' },
               ].map(({ label, count, color }) => {
                 const pct = tasks.length ? Math.round((count / tasks.length) * 100) : 0;
                 return (
-                  <div key={label} className="flex items-center gap-3 mb-2">
-                    <span className="font-body text-xs w-24 shrink-0" style={{ color: 'var(--on-surface-variant)' }}>
+                  <div key={label} className="flex items-center gap-3 mb-2 font-mono">
+                    <span className="text-xs w-28 shrink-0 text-slate-300">
                       {label}
                     </span>
-                    <div className="flex-1 h-1 rounded-full" style={{ background: 'rgba(255,255,255,0.06)' }}>
+                    <div className="flex-1 h-2 rounded-full bg-white/5 overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-1000"
                         style={{ width: `${pct}%`, background: color }}
                       />
                     </div>
-                    <span className="font-headline text-sm font-semibold w-8 text-right" style={{ color }}>
+                    <span className="text-xs font-bold w-12 text-right tabular-nums" style={{ color }}>
                       {pct}%
                     </span>
                   </div>
@@ -135,20 +139,20 @@ export default function Priority() {
               })}
             </div>
 
-            <div className="h-px sm:h-12 sm:w-px" style={{ background: 'rgba(255,255,255,0.06)' }} />
+            <div className="h-px lg:h-14 lg:w-px bg-white/8" />
 
             {/* Alerts */}
             <div className="shrink-0 flex flex-col gap-2">
               {highPriorityCount > 0 && (
-                <span className="chip chip-amber">
-                  <AlertTriangle className="h-3 w-3" />
-                  {highPriorityCount} High Urgency
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.15)]">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  {highPriorityCount} HIGH ESCALATIONS
                 </span>
               )}
               {tasks.length > 0 && (
-                <span className="chip chip-blue">
-                  <Sparkles className="h-3 w-3" />
-                  Rankings Complete
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-mono font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  TRIAGE NOMINAL
                 </span>
               )}
             </div>

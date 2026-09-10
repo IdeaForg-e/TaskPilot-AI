@@ -9,8 +9,9 @@ import {
   X,
   Settings,
   HelpCircle,
-  Plus,
   Cpu,
+  Sparkles,
+  Activity,
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -31,53 +32,53 @@ export default function Sidebar({ open, onClose }) {
       {open && (
         <div
           className="fixed inset-0 z-40 md:hidden"
-          style={{ background: 'rgba(17,19,24,0.7)', backdropFilter: 'blur(4px)' }}
+          style={{ background: 'rgba(8,11,17,0.8)', backdropFilter: 'blur(8px)' }}
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed z-50 inset-y-0 left-0 w-[220px] flex flex-col justify-between
+        className={`fixed z-50 inset-y-0 left-0 w-[230px] flex flex-col justify-between
           transition-transform duration-300 ease-out
           md:sticky md:top-0 md:h-screen md:translate-x-0
           ${open ? 'translate-x-0' : '-translate-x-full'}`}
         style={{
           background: 'var(--surface-container-low)',
-          borderRight: '0.5px solid rgba(255,255,255,0.06)',
+          borderRight: '1px solid var(--outline-variant)',
         }}
       >
         {/* Top Section */}
         <div className="flex flex-col gap-0">
-          {/* Logo */}
-          <div className="flex items-center justify-between px-5 pt-6 pb-7">
+          {/* Logo Brand Header */}
+          <div className="flex items-center justify-between px-5 pt-6 pb-6">
             <Link to="/" className="flex items-center gap-3 group" onClick={onClose}>
               <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0"
+                className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105"
                 style={{
-                  background: 'var(--primary-container)',
-                  boxShadow: '0 4px 12px rgba(0,125,184,0.35)',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
+                  boxShadow: '0 0 16px rgba(56,189,248,0.35)',
                 }}
               >
                 <Cpu className="h-4.5 w-4.5 text-white" />
               </div>
               <div>
                 <p
-                  className="font-headline text-sm font-semibold leading-none"
+                  className="font-headline text-sm font-bold tracking-tight leading-none"
                   style={{ color: 'var(--on-surface)' }}
                 >
                   TaskPilot AI
                 </p>
-                <p
-                  className="label-caps mt-0.5 leading-none"
-                  style={{ color: 'var(--outline)', fontSize: '0.55rem' }}
+                <span
+                  className="inline-flex items-center gap-1 font-mono text-[0.625rem] text-slate-400 mt-1 leading-none tracking-wider uppercase"
                 >
-                  Engineering Suite
-                </p>
+                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  Chief of Staff
+                </span>
               </div>
             </Link>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 md:hidden transition-colors"
+              className="rounded-lg p-1.5 md:hidden transition-colors hover:bg-white/5"
               style={{ color: 'var(--outline)' }}
             >
               <X className="h-4 w-4" />
@@ -85,7 +86,7 @@ export default function Sidebar({ open, onClose }) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex flex-col gap-0.5 px-3">
+          <nav className="flex flex-col gap-1 px-3">
             {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
               const active = location.pathname === to;
               return (
@@ -93,22 +94,24 @@ export default function Sidebar({ open, onClose }) {
                   key={to}
                   to={to}
                   onClick={onClose}
-                  className="relative flex items-center gap-3 rounded-xl px-3 py-2.5 transition-all duration-200"
+                  className="relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-all duration-150"
                   style={
                     active
                       ? {
-                          background: 'rgba(0,125,184,0.12)',
+                          background: 'rgba(56,189,248,0.1)',
                           color: 'var(--primary)',
-                          borderLeft: '2px solid var(--primary)',
+                          borderLeft: '2.5px solid var(--primary)',
+                          fontWeight: 600,
                         }
                       : {
                           color: 'var(--on-surface-variant)',
-                          borderLeft: '2px solid transparent',
+                          borderLeft: '2.5px solid transparent',
+                          fontWeight: 500,
                         }
                   }
                   onMouseEnter={(e) => {
                     if (!active) {
-                      e.currentTarget.style.background = 'rgba(142,205,255,0.05)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
                       e.currentTarget.style.color = 'var(--on-surface)';
                     }
                   }}
@@ -119,17 +122,12 @@ export default function Sidebar({ open, onClose }) {
                     }
                   }}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span
-                    className="font-body text-xs font-500 tracking-wide"
-                    style={{ fontWeight: active ? 600 : 500 }}
-                  >
-                    {label}
-                  </span>
+                  <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-sky-400' : 'text-slate-400'}`} />
+                  <span className="font-headline tracking-tight">{label}</span>
                   {active && (
                     <span
                       className="ml-auto h-1.5 w-1.5 rounded-full"
-                      style={{ background: 'var(--primary)', boxShadow: '0 0 6px var(--primary)' }}
+                      style={{ background: 'var(--primary)', boxShadow: '0 0 8px var(--primary)' }}
                     />
                   )}
                 </Link>
@@ -139,8 +137,26 @@ export default function Sidebar({ open, onClose }) {
         </div>
 
         {/* Bottom Section */}
-        <div className="flex flex-col gap-2 p-4">
-         
+        <div className="flex flex-col gap-3 p-4">
+          {/* System status pill */}
+          <div
+            className="rounded-xl p-3 border text-xs"
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              borderColor: 'var(--outline-variant)',
+            }}
+          >
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Activity className="h-3 w-3 text-sky-400" />
+                Agents Active
+              </span>
+              <span className="font-mono text-[10px] text-emerald-400 font-semibold">8/8 Nominal</span>
+            </div>
+            <p className="text-[11px] text-slate-400 font-body leading-tight">
+              Sequential pipeline & chat copilot live
+            </p>
+          </div>
 
           {/* Bottom links */}
           <div className="flex flex-col gap-0.5 pt-1">
@@ -152,13 +168,13 @@ export default function Sidebar({ open, onClose }) {
                 key={label}
                 to={to}
                 onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-colors"
+                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-colors hover:bg-white/5"
                 style={{ color: 'var(--outline)' }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--outline)'; }}
               >
                 <Icon className="h-3.5 w-3.5" />
-                <span className="font-body" style={{ fontWeight: 500 }}>{label}</span>
+                <span className="font-headline" style={{ fontWeight: 500 }}>{label}</span>
               </Link>
             ))}
           </div>
