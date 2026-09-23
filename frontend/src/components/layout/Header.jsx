@@ -277,42 +277,42 @@ export default function Header({ onMenuClick }) {
       <header
         className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 transition-colors"
         style={{
-          background: 'rgba(8,11,17,0.82)',
+          background: '#e3bd90',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '0.5px solid rgba(255,255,255,0.07)',
+          borderBottom: '1px solid rgba(108,110,54,0.2)',
         }}
       >
         {/* Mobile menu */}
         <button
           onClick={onMenuClick}
-          className="rounded-xl p-2 md:hidden transition-colors hover:bg-white/5 active:scale-95"
+          className="rounded-xl p-2 md:hidden transition-colors hover:bg-black/5 active:scale-95"
           style={{ color: 'var(--outline)' }}
           aria-label="Toggle navigation menu"
         >
-          <Menu className="h-4.5 w-4.5" />
+          <Menu className="h-4.5 w-4.5 text-[#3b3b3b]" />
         </button>
 
         {/* Breadcrumb / Page Context */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-mono text-[10px] tracking-wider uppercase text-slate-500 hidden sm:block">
+          <span className="font-mono text-[10px] tracking-wider uppercase text-[#525252] hidden sm:block">
             OPS_CENTER
           </span>
-          <span className="hidden sm:block text-slate-700 text-xs">/</span>
+          <span className="hidden sm:block text-[#6c6e36] text-xs">/</span>
           <div className="flex items-center gap-2">
-            <span className="font-headline text-sm font-semibold text-slate-100 tracking-tight">
+            <span className="font-headline text-sm font-semibold text-[#3b3b3b] tracking-tight">
               {pageTitle}
             </span>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono tracking-wider font-semibold uppercase ${
                 isPipelineRunning
-                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(142,205,255,0.2)]'
-                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                  ? 'bg-[#6c6e36]/15 text-[#6c6e36] border border-[#6c6e36]/30'
+                  : 'bg-[#6c6e36]/10 text-[#6c6e36] border border-[#6c6e36]/20'
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isPipelineRunning ? 'bg-cyan-400 animate-ping' : 'bg-emerald-400'
+                  isPipelineRunning ? 'bg-[#6c6e36] animate-ping' : 'bg-[#6c6e36]'
                 }`}
               />
               {isPipelineRunning ? 'Orchestrating' : 'Nominal'}
@@ -323,10 +323,10 @@ export default function Header({ onMenuClick }) {
         {/* Search */}
         <form
           onSubmit={handleSearchSubmit}
-          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-cyan-400/40 focus-within:ring-1 focus-within:ring-cyan-400/20"
+          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-[#6c6e36] focus-within:ring-1 focus-within:ring-[#6c6e36]"
           style={{
-            background: 'rgba(15,20,30,0.6)',
-            border: '0.5px solid rgba(255,255,255,0.08)',
+            background: '#f7ede1',
+            border: '1px solid rgba(108,110,54,0.3)',
           }}
         >
           <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
@@ -357,19 +357,6 @@ export default function Header({ onMenuClick }) {
               <span className="truncate max-w-[180px]">{notice}</span>
             </span>
           )}
-
-          {/* Theme toggle */}
-          <button
-            onClick={toggleTheme}
-            className="rounded-xl p-2 transition-all hover:bg-white/5 text-slate-400 hover:text-slate-100 active:scale-95"
-            style={{
-              background: 'rgba(255,255,255,0.03)',
-              border: '0.5px solid rgba(255,255,255,0.07)',
-            }}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-          >
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </button>
 
           {/* Notification bell */}
           <div className="relative">
