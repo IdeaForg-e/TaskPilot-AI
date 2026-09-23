@@ -9,14 +9,14 @@
 ─── */
 
 :root {
-  /* Canvas & Surface System */
-  --canvas:                  #f8f6f0;
-  --surface-dim:             #f3f0e6;
-  --surface-bright:          #ffffff;
-  --surface-container-low:   #f8f6f0;
-  --surface-container:       #ffffff;
-  --surface-container-high:  #f3f0e6;
-  --surface-container-highest: #e8e4d8;
+  /* Canvas & Surface System — Warm Parchment Tone */
+  --canvas:                  #efeee9;
+  --surface-dim:             #e7e5dc;
+  --surface-bright:          #f7f6f2;
+  --surface-container-low:   #efeee9;
+  --surface-container:       #f7f6f2;
+  --surface-container-high:  #e7e5dc;
+  --surface-container-highest: #dad7cb;
 
   /* Text & Eye-Comfort Contrast */
   --on-surface:              #2c332b;
@@ -45,11 +45,11 @@
   --error-container:         #9f1239;
   --error-bg:                rgba(244, 63, 94, 0.12);
 
-  /* Glass / Card System — Crisp White Containers */
-  --card-bg:                 #ffffff;
-  --card-border-top:         rgba(226, 223, 216, 0.8);
-  --card-border-bottom:      rgba(226, 223, 216, 0.5);
-  --card-shadow:             0 10px 25px -5px rgba(44, 51, 43, 0.06), 0 2px 4px rgba(44, 51, 43, 0.03);
+  /* Glass / Card System — Soft Warm Containers */
+  --card-bg:                 #f7f6f2;
+  --card-border-top:         rgba(218, 215, 203, 0.8);
+  --card-border-bottom:      rgba(218, 215, 203, 0.5);
+  --card-shadow:             0 10px 25px -5px rgba(44, 51, 43, 0.05), 0 2px 4px rgba(44, 51, 43, 0.02);
   --card-inner-glow:         none;
   --card-blur:               none;
 

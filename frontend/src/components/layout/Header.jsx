@@ -277,10 +277,10 @@ export default function Header({ onMenuClick }) {
       <header
         className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 transition-colors"
         style={{
-          background: '#ffffff',
+          background: '#efeee9',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid #e2dfd8',
+          borderBottom: '1px solid #dad7cb',
         }}
       >
         {/* Mobile menu */}
