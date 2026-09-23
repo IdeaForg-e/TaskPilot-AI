@@ -1,60 +1,62 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
-/* ─── STRICT SINGLE PALETTE DESIGN SYSTEM ───
-   1. Primary #E3BD90: Backgrounds, cards, headlines, logo container
-   2. Accent #6C6E36: Stand-out CTAs, primary buttons, highlights
-   3. Text #3B3B3B: All body text, headings, and labels
+/* ─── ELEGANT HIGH-CONTRAST PALETTE DESIGN SYSTEM ───
+   1. Canvas: #F8F6F0 (Soft Warm Ivory Cream)
+   2. Surfaces & Cards: #FFFFFF (Crisp White Containers with Muted Shadows)
+   3. Accent: #0284C7 (Precision Blue) & #6C6E36 (Deep Olive Green Highlights)
+   4. Text: #2C332B / #3B3B3B (Crisp Charcoal Typography)
 ─── */
 
 :root {
-  /* Primary #E3BD90 — Warm Golden Sand / Champagne Surfaces & Backgrounds */
-  --canvas:                  #f7ede1;
-  --surface-dim:             #efe0d0;
+  /* Canvas & Surface System */
+  --canvas:                  #f8f6f0;
+  --surface-dim:             #f3f0e6;
   --surface-bright:          #ffffff;
-  --surface-container-low:   #f7ede1;
-  --surface-container:       #e3bd90;
-  --surface-container-high:  #d8af7f;
-  --surface-container-highest: #c89d6c;
+  --surface-container-low:   #f8f6f0;
+  --surface-container:       #ffffff;
+  --surface-container-high:  #f3f0e6;
+  --surface-container-highest: #e8e4d8;
 
-  /* Text #3B3B3B — Charcoal Gray Typography */
-  --on-surface:              #3b3b3b;
-  --on-surface-variant:      #525252;
+  /* Text & Eye-Comfort Contrast */
+  --on-surface:              #2c332b;
+  --on-surface-variant:      #525d50;
   --outline:                 #6c6e36;
-  --outline-variant:         rgba(108, 110, 54, 0.2);
+  --outline-variant:         rgba(108, 110, 54, 0.18);
 
-  /* Accent #6C6E36 — Deep Olive Green CTAs & Highlights */
-  --primary:                 #6c6e36;
-  --primary-hover:           #56582b;
-  --primary-container:       #42431f;
+  /* Primary Accent — Precision Sky Blue CTAs */
+  --primary:                 #0284c7;
+  --primary-hover:           #0369a1;
+  --primary-container:       #0284c7;
   --on-primary:              #ffffff;
-  --on-primary-container:    #f7ede1;
+  --on-primary-container:    #f0f9ff;
 
+  /* Secondary Accent — Deep Olive Green */
   --secondary:               #6c6e36;
   --secondary-container:     #56582b;
   --on-secondary:            #ffffff;
 
   /* Semantic Status */
-  --success:                 #6c6e36;
-  --success-bg:              rgba(108, 110, 54, 0.15);
-  --warning:                 #d8af7f;
-  --warning-bg:              rgba(216, 175, 127, 0.2);
-  --error:                   #a84332;
-  --error-container:         #782d21;
-  --error-bg:                rgba(168, 67, 50, 0.15);
+  --success:                 #10b981;
+  --success-bg:              rgba(16, 185, 129, 0.12);
+  --warning:                 #f59e0b;
+  --warning-bg:              rgba(245, 158, 11, 0.12);
+  --error:                   #f43f5e;
+  --error-container:         #9f1239;
+  --error-bg:                rgba(244, 63, 94, 0.12);
 
-  /* Glass / Card System */
-  --card-bg:                 #e3bd90;
-  --card-border-top:         rgba(108, 110, 54, 0.25);
-  --card-border-bottom:      rgba(108, 110, 54, 0.15);
-  --card-shadow:             0 10px 25px -5px rgba(59, 59, 59, 0.12), 0 2px 4px rgba(59, 59, 59, 0.06);
+  /* Glass / Card System — Crisp White Containers */
+  --card-bg:                 #ffffff;
+  --card-border-top:         rgba(226, 223, 216, 0.8);
+  --card-border-bottom:      rgba(226, 223, 216, 0.5);
+  --card-shadow:             0 10px 25px -5px rgba(44, 51, 43, 0.06), 0 2px 4px rgba(44, 51, 43, 0.03);
   --card-inner-glow:         none;
   --card-blur:               none;
 
   /* Interactive CTAs */
-  --btn-primary-bg:          #6c6e36;
-  --btn-primary-hover:       #56582b;
-  --btn-ghost-border:        rgba(108, 110, 54, 0.3);
+  --btn-primary-bg:          #0284c7;
+  --btn-primary-hover:       #0369a1;
+  --btn-ghost-border:        rgba(226, 223, 216, 0.8);
 
   /* Typography */
   font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
@@ -76,8 +78,8 @@
   --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #6c6e36 0%, #56582b 100%);
-  --gradient-cool:    linear-gradient(135deg, #e3bd90 0%, #d8af7f 100%);
+  --gradient-primary: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --gradient-cool:    linear-gradient(135deg, #ffffff 0%, #f3f0e6 100%);
 }
 
 /* ─── GLOBAL RESET & BASE ─── */
@@ -98,11 +100,11 @@ body {
 
 /* ─── GLASS CARD SYSTEM ─── */
 .glass-card {
-  background-color: #e3bd90 !important;
+  background-color: #ffffff !important;
   border-radius: var(--radius-lg);
-  border: 1px solid rgba(108, 110, 54, 0.3) !important;
-  box-shadow: 0 10px 25px -5px rgba(59, 59, 59, 0.12), 0 2px 4px rgba(59, 59, 59, 0.06) !important;
-  color: #3b3b3b !important;
+  border: 1px solid #e2dfd8 !important;
+  box-shadow: 0 10px 25px -5px rgba(44, 51, 43, 0.06), 0 2px 4px rgba(44, 51, 43, 0.03) !important;
+  color: #2c332b !important;
   position: relative;
 }
 
@@ -110,12 +112,12 @@ body {
   transition: transform var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
 }
 .glass-card-hover:hover {
-  border-color: #6c6e36 !important;
-  box-shadow: 0 16px 35px -8px rgba(59, 59, 59, 0.2) !important;
+  border-color: #0284c7 !important;
+  box-shadow: 0 16px 35px -8px rgba(44, 51, 43, 0.12) !important;
   transform: translateY(-2px);
 }
 
-/* ─── TEXT #3B3B3B GLOBAL OVERRIDES ─── */
+/* ─── TEXT OVERRIDES ─── */
 h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
   color: inherit;
 }
@@ -124,21 +126,21 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
 .text-slate-200,
 .text-slate-300,
 .text-white {
-  color: #3b3b3b !important;
+  color: #2c332b !important;
 }
 
 .text-slate-400,
 .text-slate-500 {
-  color: #525252 !important;
+  color: #525d50 !important;
 }
 
 .text-transparent.bg-clip-text {
   background-image: none !important;
-  -webkit-text-fill-color: #3b3b3b !important;
-  color: #3b3b3b !important;
+  -webkit-text-fill-color: #2c332b !important;
+  color: #2c332b !important;
 }
 
-/* ─── BACKGROUND #E3BD90 & #F7EDE1 OVERRIDES ─── */
+/* ─── BACKGROUND OVERRIDES ─── */
 .bg-slate-900,
 .bg-slate-950,
 .bg-\[\#080b11\],
@@ -146,9 +148,11 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
 .bg-\[\#0d121d\],
 .bg-\[\#121826\],
 .bg-\[\#182032\],
-.bg-\[\#1f2940\] {
-  background-color: #e3bd90 !important;
-  color: #3b3b3b !important;
+.bg-\[\#1f2940\],
+.bg-\[\#e3bd90\],
+.bg-\[\#efe0d0\] {
+  background-color: #ffffff !important;
+  color: #2c332b !important;
 }
 
 .bg-slate-900\/60,
@@ -158,9 +162,9 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
 .bg-slate-900\/80,
 .bg-white\/5,
 .bg-white\/10 {
-  background-color: #efe0d0 !important;
-  border-color: rgba(108, 110, 54, 0.3) !important;
-  color: #3b3b3b !important;
+  background-color: #f3f0e6 !important;
+  border-color: #e2dfd8 !important;
+  color: #2c332b !important;
 }
 
 /* ─── BORDER OVERRIDES ─── */
@@ -169,14 +173,14 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
 .border-white\/5,
 .border-slate-800,
 .border-slate-700 {
-  border-color: rgba(108, 110, 54, 0.25) !important;
+  border-color: #e2dfd8 !important;
 }
 
-/* ─── ACCENT #6C6E36 BUTTONS & CTAS ─── */
+/* ─── BUTTONS & CTAS ─── */
 .btn-primary {
-  background: #6c6e36 !important;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
   color: #ffffff !important;
-  border: 1px solid #56582b !important;
+  border: 1px solid #0284c7 !important;
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-weight: 600;
   font-size: 0.8125rem;
@@ -185,7 +189,7 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
   padding: 0.625rem 1.25rem;
   cursor: pointer;
   transition: all var(--transition-fast);
-  box-shadow: 0 4px 14px -2px rgba(108, 110, 54, 0.4) !important;
+  box-shadow: 0 4px 14px -2px rgba(2, 132, 199, 0.35) !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -193,8 +197,8 @@ h1, h2, h3, h4, h5, h6, p, span, div, a, label, li {
 }
 
 .btn-primary:hover {
-  background: #56582b !important;
-  box-shadow: 0 6px 20px -2px rgba(108, 110, 54, 0.55) !important;
+  background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%) !important;
+  box-shadow: 0 6px 20px -2px rgba(2, 132, 199, 0.5) !important;
   transform: translateY(-1px);
 }
 
@@ -203,34 +207,34 @@ input,
 textarea,
 select {
   background-color: #ffffff !important;
-  color: #3b3b3b !important;
-  border: 1px solid rgba(108, 110, 54, 0.35) !important;
+  color: #2c332b !important;
+  border: 1px solid #e2dfd8 !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: #6e6e6e !important;
+  color: #788275 !important;
 }
 
 /* ─── HAIRLINE ROW SEPARATOR ─── */
 .hairline-row {
-  border-bottom: 1px solid rgba(108, 110, 54, 0.2);
+  border-bottom: 1px solid #e2dfd8;
   transition: background var(--transition-fast);
 }
 .hairline-row:hover {
-  background: rgba(108, 110, 54, 0.08);
+  background: #f3f0e6;
 }
 
 /* ─── SCROLLBARS ─── */
 ::-webkit-scrollbar        { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track  { background: transparent; }
 ::-webkit-scrollbar-thumb  {
-  background: rgba(108, 110, 54, 0.4);
+  background: rgba(82, 93, 80, 0.3);
   border-radius: 9999px;
 }
-::-webkit-scrollbar-thumb:hover { background: #6c6e36; }
+::-webkit-scrollbar-thumb:hover { background: #0284c7; }
 
-* { scrollbar-width: thin; scrollbar-color: rgba(108, 110, 54, 0.4) transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(82, 93, 80, 0.3) transparent; }
 
 /* ─── MESH BACKGROUND ─── */
 .mesh-bg {
@@ -239,6 +243,6 @@ textarea::placeholder {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(circle at 10% 20%, rgba(227, 189, 144, 0.3) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(108, 110, 54, 0.15) 0%, transparent 50%);
+    radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(108, 110, 54, 0.03) 0%, transparent 50%);
 }

@@ -277,10 +277,10 @@ export default function Header({ onMenuClick }) {
       <header
         className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 transition-colors"
         style={{
-          background: '#e3bd90',
+          background: '#ffffff',
           backdropFilter: 'blur(20px)',
           WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(108,110,54,0.2)',
+          borderBottom: '1px solid #e2dfd8',
         }}
       >
         {/* Mobile menu */}
@@ -290,29 +290,29 @@ export default function Header({ onMenuClick }) {
           style={{ color: 'var(--outline)' }}
           aria-label="Toggle navigation menu"
         >
-          <Menu className="h-4.5 w-4.5 text-[#3b3b3b]" />
+          <Menu className="h-4.5 w-4.5 text-[#2c332b]" />
         </button>
 
         {/* Breadcrumb / Page Context */}
         <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-mono text-[10px] tracking-wider uppercase text-[#525252] hidden sm:block">
+          <span className="font-mono text-[10px] tracking-wider uppercase text-[#525d50] hidden sm:block">
             OPS_CENTER
           </span>
           <span className="hidden sm:block text-[#6c6e36] text-xs">/</span>
           <div className="flex items-center gap-2">
-            <span className="font-headline text-sm font-semibold text-[#3b3b3b] tracking-tight">
+            <span className="font-headline text-sm font-semibold text-[#2c332b] tracking-tight">
               {pageTitle}
             </span>
             <span
               className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono tracking-wider font-semibold uppercase ${
                 isPipelineRunning
-                  ? 'bg-[#6c6e36]/15 text-[#6c6e36] border border-[#6c6e36]/30'
-                  : 'bg-[#6c6e36]/10 text-[#6c6e36] border border-[#6c6e36]/20'
+                  ? 'bg-[#0284c7]/10 text-[#0284c7] border border-[#0284c7]/30'
+                  : 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20'
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isPipelineRunning ? 'bg-[#6c6e36] animate-ping' : 'bg-[#6c6e36]'
+                  isPipelineRunning ? 'bg-[#0284c7] animate-ping' : 'bg-[#10b981]'
                 }`}
               />
               {isPipelineRunning ? 'Orchestrating' : 'Nominal'}
@@ -323,10 +323,10 @@ export default function Header({ onMenuClick }) {
         {/* Search */}
         <form
           onSubmit={handleSearchSubmit}
-          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-[#6c6e36] focus-within:ring-1 focus-within:ring-[#6c6e36]"
+          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-[#0284c7] focus-within:ring-1 focus-within:ring-[#0284c7]"
           style={{
-            background: '#f7ede1',
-            border: '1px solid rgba(108,110,54,0.3)',
+            background: '#f8f6f0',
+            border: '1px solid #e2dfd8',
           }}
         >
           <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />

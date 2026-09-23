@@ -133,11 +133,11 @@ export default function ChatPage() {
         {/* ── Chat Panel ── */}
         <div
           className="lg:col-span-8 flex flex-col h-full glass-card overflow-hidden relative shadow-md"
-          style={{ background: '#e3bd90', border: '1px solid rgba(108,110,54,0.3)' }}
+          style={{ background: '#ffffff', border: '1px solid #e2dfd8' }}
         >
           {/* Session header bar */}
           <div
-            className="flex items-center gap-3 px-5 py-3 shrink-0 bg-[#efe0d0] border-b border-[#6c6e36]/20"
+            className="flex items-center gap-3 px-5 py-3 shrink-0 bg-[#faf8f5] border-b border-[#e2dfd8]"
           >
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono tracking-wider uppercase font-semibold text-[#6c6e36] bg-[#6c6e36]/15 border border-[#6c6e36]/30">
               <span className="h-1.5 w-1.5 rounded-full bg-[#6c6e36]" />
@@ -315,7 +315,7 @@ export default function ChatPage() {
 
             {/* Attached File Preview Badge */}
             {attachedFile && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#e3bd90] border border-[#6c6e36]/30 w-fit text-xs text-[#3b3b3b] animate-scale-in">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#f0f4eb] border border-[#6c6e36]/30 w-fit text-xs text-[#2c332b] animate-scale-in">
                 <FileIcon className="h-3.5 w-3.5 text-[#6c6e36]" />
                 <span className="font-mono text-[11px] font-semibold truncate max-w-[200px]">{attachedFile.name}</span>
                 <button 
@@ -331,7 +331,7 @@ export default function ChatPage() {
               <button
                 type="button"
                 onClick={() => document.getElementById('chat-file-input')?.click()}
-                className="p-2.5 rounded-xl bg-[#f7ede1] border border-[#6c6e36]/30 text-[#525252] hover:text-[#3b3b3b] hover:bg-[#e3bd90] transition-colors cursor-pointer"
+                className="p-2.5 rounded-xl bg-[#faf8f5] border border-[#e2dfd8] text-[#525252] hover:text-[#2c332b] hover:bg-[#f0f4eb] transition-colors cursor-pointer"
                 title="Attach file (text, code, json, log)"
               >
                 <Paperclip className="h-4 w-4" />
@@ -382,11 +382,11 @@ export default function ChatPage() {
         {/* ── Active Context Panel ── */}
         <div
           className="lg:col-span-4 flex flex-col h-full glass-card overflow-hidden shadow-md"
-          style={{ background: '#e3bd90', border: '1px solid rgba(108,110,54,0.3)' }}
+          style={{ background: '#ffffff', border: '1px solid #e2dfd8' }}
         >
           {/* Panel header */}
           <div
-            className="px-5 py-3.5 shrink-0 bg-[#efe0d0] border-b border-[#6c6e36]/20 flex items-center justify-between"
+            className="px-5 py-3.5 shrink-0 bg-[#faf8f5] border-b border-[#e2dfd8] flex items-center justify-between"
           >
             <span className="font-mono text-[10px] uppercase tracking-wider text-[#525252] font-semibold">
               TELEMETRY_PANEL
