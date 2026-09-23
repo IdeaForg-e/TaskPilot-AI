@@ -327,52 +327,54 @@ export default function Planner() {
     {showRules && createPortal(
       <div 
         onClick={() => setShowRules(false)}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-scale-in cursor-pointer"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-scale-in cursor-pointer"
+        style={{ background: 'rgba(44,51,43,0.35)', backdropFilter: 'blur(8px)' }}
       >
         <div 
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-lg overflow-y-auto border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-6 rounded-2xl shadow-2xl flex flex-col justify-between cursor-default"
+          className="w-full max-w-lg overflow-y-auto rounded-2xl p-6 shadow-xl flex flex-col justify-between cursor-default"
+          style={{ background: '#f7f6f2', border: '1px solid #dad7cb', boxShadow: '0 20px 50px -10px rgba(44,51,43,0.2)' }}
         >
           <div>
-            <div className="mb-5 flex items-center justify-between border-b border-slate-800 pb-3">
+            <div className="mb-5 flex items-center justify-between border-b border-[#dad7cb] pb-3">
               <div className="flex items-center gap-2">
                 <span className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
                 </span>
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">AI Optimizer Engine Rules</h2>
+                <h2 className="text-sm font-bold uppercase tracking-wider text-[#525d50]">AI Optimizer Engine Rules</h2>
               </div>
               <button
                 onClick={() => setShowRules(false)}
-                className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors cursor-pointer"
+                className="rounded-lg p-1.5 text-[#788275] hover:bg-[#e7e5dc] hover:text-[#2c332b] transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-4 font-body text-xs text-slate-300">
-              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
-                <h4 className="font-semibold text-white mb-1">📅 Rule 1: Cognitive Peak Windowing</h4>
+            <div className="space-y-4 font-body text-xs text-[#525d50]">
+              <div className="p-3 bg-[#efeee9] border border-[#dad7cb] rounded-xl">
+                <h4 className="font-semibold text-[#2c332b] mb-1">📅 Rule 1: Cognitive Peak Windowing</h4>
                 <p className="leading-relaxed">Deep Focus agenda slots are allocated dynamically during morning hours when developer cognitive load capacity is at its peak.</p>
               </div>
-              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
-                <h4 className="font-semibold text-white mb-1">🛡️ Rule 2: DND Auto-Shielding</h4>
+              <div className="p-3 bg-[#efeee9] border border-[#dad7cb] rounded-xl">
+                <h4 className="font-semibold text-[#2c332b] mb-1">🛡️ Rule 2: DND Auto-Shielding</h4>
                 <p className="leading-relaxed">Enforces strict Do Not Disturb alerts for high-complexity coding items to prevent team workflow interruptions.</p>
               </div>
-              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
-                <h4 className="font-semibold text-white mb-1">☕ Rule 3: Fatigue Recovery Blocks</h4>
+              <div className="p-3 bg-[#efeee9] border border-[#dad7cb] rounded-xl">
+                <h4 className="font-semibold text-[#2c332b] mb-1">☕ Rule 3: Fatigue Recovery Blocks</h4>
                 <p className="leading-relaxed">AI automatically inserts mandatory 30-minute buffers after meeting sequences to alleviate cognitive fatigue.</p>
               </div>
-              <div className="p-3 bg-slate-950/40 border border-slate-950 rounded-xl">
-                <h4 className="font-semibold text-white mb-1">🔄 Rule 4: Signal Fusion Alignment</h4>
+              <div className="p-3 bg-[#efeee9] border border-[#dad7cb] rounded-xl">
+                <h4 className="font-semibold text-[#2c332b] mb-1">🔄 Rule 4: Signal Fusion Alignment</h4>
                 <p className="leading-relaxed">Cross-references backlog triage priorities between Jira issue severity metrics and GitHub activity feeds dynamically.</p>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-slate-850 mt-5 pt-4">
+          <div className="border-t border-[#dad7cb] mt-5 pt-4">
             <button
               onClick={() => setShowRules(false)}
-              className="w-full rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 py-2 text-xs font-semibold text-slate-350 transition-all cursor-pointer text-center"
+              className="w-full rounded-xl bg-[#efeee9] hover:bg-[#e7e5dc] border border-[#dad7cb] py-2 text-xs font-semibold text-[#2c332b] transition-all cursor-pointer text-center"
             >
               Acknowledge & Close
             </button>

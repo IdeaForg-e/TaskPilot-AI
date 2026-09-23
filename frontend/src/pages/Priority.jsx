@@ -186,17 +186,19 @@ function EvaluationModal({ task, rank, onClose }) {
   return createPortal(
     <div 
       onClick={(e) => e.target === e.currentTarget && onClose()}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-md p-4 animate-scale-in cursor-pointer"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 animate-scale-in cursor-pointer"
+      style={{ background: 'rgba(44,51,43,0.35)', backdropFilter: 'blur(8px)' }}
     >
       <div 
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-2xl overflow-y-auto border border-slate-800 bg-slate-900/95 backdrop-blur-xl p-6 rounded-2xl shadow-2xl flex flex-col justify-between cursor-default animate-scale-in"
+        className="w-full max-w-2xl overflow-y-auto rounded-2xl p-6 shadow-xl flex flex-col justify-between cursor-default animate-scale-in"
+        style={{ background: '#f7f6f2', border: '1px solid #dad7cb', boxShadow: '0 20px 50px -10px rgba(44,51,43,0.2)' }}
       >
         <div>
           {/* Header row */}
-          <div className="flex items-start gap-4 mb-5 pb-4 border-b border-slate-800/80">
+          <div className="flex items-start gap-4 mb-5 pb-4 border-b border-[#dad7cb]">
             <div 
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-950 border border-slate-800/60"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#efeee9] border border-[#dad7cb]"
             >
               <AlertTriangle className="h-5 w-5" style={{ color: urgencyColor }} />
             </div>
@@ -205,7 +207,7 @@ function EvaluationModal({ task, rank, onClose }) {
               <div className="flex flex-wrap items-center gap-2 mb-1.5">
                 <span
                   className="chip text-[0.55rem] py-0.5 font-headline font-semibold"
-                  style={{ background: urgencyBg, color: urgencyColor, border: `0.5px solid ${urgencyBorder}` }}
+                  style={{ background: urgencyBg, color: urgencyColor, border: `1px solid ${urgencyBorder}` }}
                 >
                   {urgencyLabel}
                 </span>
@@ -217,32 +219,32 @@ function EvaluationModal({ task, rank, onClose }) {
             
             <button 
               onClick={onClose} 
-              className="text-slate-400 hover:text-white rounded-lg p-1.5 cursor-pointer hover:bg-slate-800 transition-colors shrink-0"
+              className="text-[#788275] hover:text-[#2c332b] rounded-lg p-1.5 cursor-pointer hover:bg-[#e7e5dc] transition-colors shrink-0"
             >
               <X className="h-4.5 w-4.5" />
             </button>
           </div>
 
           {/* Title */}
-          <h3 className="font-headline text-xl font-bold leading-snug mb-4 text-white">
+          <h3 className="font-headline text-xl font-bold leading-snug mb-4 text-[#2c332b]">
             #{rank > 0 ? rank : 1}. {task.title || `Task #${task.id}`}
           </h3>
 
           {/* Explanation Text */}
-          <p className="font-body text-xs text-slate-300 leading-relaxed mb-6 bg-slate-950/40 border border-slate-950/80 p-4 rounded-xl">
+          <p className="font-body text-xs text-[#525d50] leading-relaxed mb-6 bg-[#efeee9] border border-[#dad7cb] p-4 rounded-xl">
             {task.explanation || task.reason || 'No prioritization evaluation reasoning provided.'}
           </p>
         </div>
 
         {/* Footer info strip */}
-        <div className="flex flex-wrap gap-x-8 gap-y-4 pt-4 border-t border-slate-800/60 text-xs">
+        <div className="flex flex-wrap gap-x-8 gap-y-4 pt-4 border-t border-[#dad7cb] text-xs">
           <div>
             <p className="label-caps mb-1.5" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>ASSIGNED LEAD</p>
             <div className="flex items-center gap-2">
               <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-[9px] font-bold text-primary">
                 {String(task.assignee || 'UN').substring(0, 2).toUpperCase()}
               </div>
-              <span className="font-headline font-semibold text-slate-200">{task.assignee || 'Unassigned'}</span>
+              <span className="font-headline font-semibold text-[#2c332b]">{task.assignee || 'Unassigned'}</span>
             </div>
           </div>
 
@@ -256,7 +258,7 @@ function EvaluationModal({ task, rank, onClose }) {
               <p className="label-caps mb-1.5" style={{ color: 'var(--outline)', fontSize: '0.55rem' }}>SOURCES</p>
               <div className="flex flex-wrap gap-1">
                 {platforms.map(p => (
-                  <span key={p} className="chip text-[0.5rem] py-0" style={{ background: 'rgba(255,255,255,0.04)', color: 'var(--outline)', border: '0.5px solid rgba(255,255,255,0.08)' }}>
+                  <span key={p} className="chip text-[0.5rem] py-0" style={{ background: '#efeee9', color: '#525d50', border: '1px solid #dad7cb' }}>
                     {p}
                   </span>
                 ))}

@@ -362,10 +362,10 @@ export default function Header({ onMenuClick }) {
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="rounded-xl p-2 transition-all relative cursor-pointer hover:bg-white/5 text-slate-400 hover:text-slate-100 active:scale-95"
+              className="rounded-xl p-2 transition-all relative cursor-pointer hover:bg-[#e7e5dc] text-[#525d50] hover:text-[#2c332b] active:scale-95"
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '0.5px solid rgba(255,255,255,0.07)',
+                background: '#efeee9',
+                border: '1px solid #dad7cb',
               }}
               title="System Alerts & Telemetry"
             >
@@ -377,47 +377,47 @@ export default function Header({ onMenuClick }) {
 
             {showNotifications && (
               <div
-                className="absolute right-0 mt-2.5 w-84 rounded-2xl p-4 shadow-2xl z-50 animate-scale-in"
+                className="absolute right-0 mt-2.5 w-84 rounded-2xl p-4 shadow-xl z-50 animate-scale-in"
                 style={{
-                  background: 'rgba(12,16,24,0.96)',
-                  backdropFilter: 'blur(32px)',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
-                  boxShadow: '0 24px 48px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.05)',
+                  background: '#f7f6f2',
+                  backdropFilter: 'blur(16px)',
+                  border: '1px solid #dad7cb',
+                  boxShadow: '0 16px 40px -8px rgba(44,51,43,0.15)',
                 }}
               >
-                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-white/5">
+                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-[#dad7cb]">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-cyan-400" />
-                    <span className="font-headline text-xs font-bold text-slate-200 uppercase tracking-wider">
+                    <span className="h-2 w-2 rounded-full bg-[#0284c7]" />
+                    <span className="font-headline text-xs font-bold text-[#2c332b] uppercase tracking-wider">
                       Signals & Alerts
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
+                  <span className="text-[10px] font-mono text-[#0284c7] bg-[#0284c7]/10 px-2 py-0.5 rounded-full border border-[#0284c7]/20">
                     {notifications.length} active
                   </span>
                 </div>
                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {notifications.length === 0 ? (
-                    <p className="text-xs text-slate-500 font-body text-center py-6">
+                    <p className="text-xs text-[#788275] font-body text-center py-6">
                       No anomalous signals detected. All subsystems nominal.
                     </p>
                   ) : (
                     notifications.map((n) => {
-                      let badgeColor = '#ef4444';
-                      let bgTint = 'rgba(239,68,68,0.08)';
-                      let borderTint = 'rgba(239,68,68,0.2)';
+                      let badgeColor = '#b91c1c';
+                      let bgTint = 'rgba(185,28,28,0.08)';
+                      let borderTint = 'rgba(185,28,28,0.2)';
                       if (n.type === 'warning') {
-                        badgeColor = '#f59e0b';
-                        bgTint = 'rgba(245,158,11,0.08)';
-                        borderTint = 'rgba(245,158,11,0.2)';
+                        badgeColor = '#b45309';
+                        bgTint = 'rgba(180,83,9,0.08)';
+                        borderTint = 'rgba(180,83,9,0.2)';
                       } else if (n.type === 'success') {
-                        badgeColor = '#4caf8e';
-                        bgTint = 'rgba(76,175,142,0.08)';
-                        borderTint = 'rgba(76,175,142,0.2)';
+                        badgeColor = '#2e7d55';
+                        bgTint = 'rgba(46,125,85,0.08)';
+                        borderTint = 'rgba(46,125,85,0.2)';
                       } else if (n.type === 'upcoming') {
-                        badgeColor = '#8ecdff';
-                        bgTint = 'rgba(142,205,255,0.08)';
-                        borderTint = 'rgba(142,205,255,0.2)';
+                        badgeColor = '#0284c7';
+                        bgTint = 'rgba(2,132,199,0.08)';
+                        borderTint = 'rgba(2,132,199,0.2)';
                       }
 
                       return (
@@ -426,18 +426,18 @@ export default function Header({ onMenuClick }) {
                           className="rounded-xl p-3 flex gap-2.5 transition-all hover:translate-x-0.5"
                           style={{
                             background: bgTint,
-                            border: `0.5px solid ${borderTint}`,
+                            border: `1px solid ${borderTint}`,
                           }}
                         >
                           <span
-                            className="h-2 w-2 rounded-full mt-1.5 shrink-0 ring-4 ring-black/40"
+                            className="h-2 w-2 rounded-full mt-1.5 shrink-0"
                             style={{ background: badgeColor }}
                           />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-slate-200 truncate font-headline">
+                            <p className="text-xs font-semibold text-[#2c332b] truncate font-headline">
                               {n.title}
                             </p>
-                            <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed font-body">
+                            <p className="text-[11px] text-[#525d50] mt-0.5 leading-relaxed font-body">
                               {n.desc}
                             </p>
                           </div>
