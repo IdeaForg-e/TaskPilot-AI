@@ -1,37 +1,31 @@
-import { AlertTriangle, ShieldAlert, Zap, Network, Users, Clock } from 'lucide-react';
-import EmptyState from '../common/EmptyState';
-
-const SOURCE_COLORS = {
-  jira: '#8ecdff', github: '#c0c7d2', slack: '#f59e0b',
-  email: '#ef4444', calendar: '#4caf8e', meetings: '#a78bfa', incidents: '#f97316',
-};
+import { AlertTriangle, ShieldAlert, Zap } from 'lucide-react';
 
 const getPlatformStyle = (platform) => {
   const map = {
-    jira:      { bg: 'rgba(142,205,255,0.1)',  color: '#8ecdff',  border: 'rgba(142,205,255,0.2)' },
-    github:    { bg: 'rgba(192,199,210,0.1)',  color: '#c0c7d2',  border: 'rgba(192,199,210,0.2)' },
-    slack:     { bg: 'rgba(245,158,11,0.1)',   color: '#f59e0b',  border: 'rgba(245,158,11,0.2)' },
-    email:     { bg: 'rgba(239,68,68,0.1)',    color: '#ef4444',  border: 'rgba(239,68,68,0.2)' },
-    calendar:  { bg: 'rgba(76,175,142,0.1)',   color: '#4caf8e',  border: 'rgba(76,175,142,0.2)' },
-    meetings:  { bg: 'rgba(167,139,250,0.1)',  color: '#a78bfa',  border: 'rgba(167,139,250,0.2)' },
-    incidents: { bg: 'rgba(249,115,22,0.1)',   color: '#f97316',  border: 'rgba(249,115,22,0.2)' },
+    jira:      { bg: 'rgba(0,210,255,0.08)', color: '#38bdf8', border: 'rgba(0,210,255,0.25)' },
+    github:    { bg: 'rgba(255,255,255,0.06)', color: '#e2e8f0', border: 'rgba(255,255,255,0.15)' },
+    slack:     { bg: 'rgba(245,158,11,0.08)',  color: '#fbbf24', border: 'rgba(245,158,11,0.25)' },
+    email:     { bg: 'rgba(239,68,68,0.08)',   color: '#f87171', border: 'rgba(239,68,68,0.25)' },
+    calendar:  { bg: 'rgba(16,185,129,0.08)',  color: '#34d399', border: 'rgba(16,185,129,0.25)' },
+    meetings:  { bg: 'rgba(99,102,241,0.08)',  color: '#818cf8', border: 'rgba(99,102,241,0.25)' },
+    incidents: { bg: 'rgba(249,115,22,0.08)',  color: '#fb923c', border: 'rgba(249,115,22,0.25)' },
   };
-  return map[platform?.toLowerCase()] || { bg: 'rgba(255,255,255,0.05)', color: 'var(--outline)', border: 'rgba(255,255,255,0.08)' };
+  return map[platform?.toLowerCase()] || { bg: 'rgba(255,255,255,0.04)', color: '#94a3b8', border: 'rgba(255,255,255,0.08)' };
 };
 
 const URGENCY_LEVEL = {
-  p0_critical:  { label: 'Critical Alert', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.25)' },
-  critical:     { label: 'Critical Alert', color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  border: 'rgba(239,68,68,0.25)' },
-  p1_high:      { label: 'High Urgency',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
-  high:         { label: 'High Urgency',   color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
-  optimization: { label: 'Optimization',   color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.25)' },
-  medium:       { label: 'Optimization',   color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.25)' },
+  p0_critical:  { label: 'Critical Alert', color: '#f87171', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)' },
+  critical:     { label: 'Critical Alert', color: '#f87171', bg: 'rgba(239,68,68,0.12)',  border: 'rgba(239,68,68,0.3)' },
+  p1_high:      { label: 'High Urgency',   color: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
+  high:         { label: 'High Urgency',   color: '#fbbf24', bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)' },
+  optimization: { label: 'Optimization',   color: '#38bdf8', bg: 'rgba(0,210,255,0.1)',   border: 'rgba(0,210,255,0.25)' },
+  medium:       { label: 'Optimization',   color: '#38bdf8', bg: 'rgba(0,210,255,0.1)',   border: 'rgba(0,210,255,0.25)' },
 };
 
 function getUrgencyLevel(task, rank) {
   const score = task.priority_score || 0;
-  if (rank === 1 || score >= 85) return URGENCY_LEVEL.critical;
-  if (score >= 70) return URGENCY_LEVEL.high;
+  if (rank === 1 || score >= 8.5) return URGENCY_LEVEL.critical;
+  if (score >= 7.0) return URGENCY_LEVEL.high;
   return URGENCY_LEVEL.optimization;
 }
 
@@ -45,31 +39,23 @@ export default function PriorityCard({ task, rank, onClick }) {
     return (
       <button
         onClick={onClick}
-        className="glass-card p-6 md:p-8 relative overflow-hidden text-left w-full cursor-pointer transition-all duration-300 block shadow-2xl border-rose-500/30 hover:border-rose-500/50 hover:-translate-y-0.5"
-        style={{
-          background: 'linear-gradient(135deg, rgba(239,68,68,0.06) 0%, rgba(15,23,42,0.8) 100%)',
-          boxShadow: '0 20px 40px -15px rgba(0,0,0,0.7), 0 0 30px rgba(239,68,68,0.1)',
-        }}
+        className="cockpit-card priority-featured-card p-5 md:p-6 relative overflow-hidden text-left w-full cursor-pointer transition-all duration-200 block shadow-2xl bg-gradient-to-br from-[#1c131d] via-[#111827] to-[#0a0e17] border border-rose-500/40 hover:border-rose-500 hover:-translate-y-0.5"
       >
         {/* Large stylized watermark */}
-        <div
-          className="absolute -top-2 right-6 font-mono text-8xl font-black select-none pointer-events-none opacity-5 text-white"
-        >
+        <div className="absolute top-2 right-6 font-mono text-7xl font-black select-none pointer-events-none text-rose-500/10">
           #01
         </div>
 
-        <div className="flex flex-col lg:flex-row lg:items-start gap-6 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-start gap-5 relative z-10">
           {/* Beacon icon */}
-          <div
-            className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-rose-500/15 border border-rose-500/40 shadow-[0_0_20px_rgba(239,68,68,0.3)]"
-          >
-            <AlertTriangle className="h-7 w-7 text-rose-400 animate-pulse" />
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-rose-950/60 border border-rose-500/50 shadow-[0_0_16px_rgba(239,68,68,0.35)]">
+            <AlertTriangle className="h-6 w-6 text-rose-400 animate-pulse" />
           </div>
 
           <div className="flex-1 min-w-0">
             {/* Header chip row */}
-            <div className="flex flex-wrap items-center gap-2 mb-3">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider uppercase font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40 shadow-[0_0_12px_rgba(239,68,68,0.2)]">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase font-bold bg-rose-950/60 text-rose-300 border border-rose-700/50">
                 <span className="h-1.5 w-1.5 rounded-full bg-rose-400 animate-ping" />
                 {urgency.label}
               </span>
@@ -78,16 +64,16 @@ export default function PriorityCard({ task, rank, onClick }) {
               </span>
             </div>
 
-            <h3 className="font-headline text-xl md:text-2xl font-bold leading-snug mb-3 text-white tracking-tight">
+            <h3 className="text-lg md:text-xl font-bold leading-snug mb-2 text-white tracking-tight">
               #{rank}. {task.title || `Task #${task.id}`}
             </h3>
 
-            <p className="font-body text-xs md:text-sm leading-relaxed mb-6 max-w-3xl text-slate-300 bg-slate-950/40 p-4 rounded-xl border border-white/5">
+            <p className="text-xs md:text-sm leading-relaxed mb-4 max-w-3xl text-slate-300 bg-[#090d16] p-3.5 rounded border border-[#1e293b]">
               {explanation}
             </p>
 
             {/* Meta row */}
-            <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-white/5">
+            <div className="flex flex-wrap items-center gap-6 pt-2 border-t border-[#1e293b]">
               {(() => {
                 const isUnassigned =
                   !task.assignee ||
@@ -98,20 +84,20 @@ export default function PriorityCard({ task, rank, onClick }) {
                 const initials = isUnassigned ? 'UN' : task.assignee.substring(0, 2);
                 return (
                   <div>
-                    <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
+                    <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-medium mb-1">
                       ASSIGNED LEAD
                     </p>
                     <div className="flex items-center gap-2">
                       <div
-                        className={`h-6 w-6 rounded-full flex items-center justify-center font-mono text-[9px] font-bold uppercase ${
+                        className={`h-5 w-5 rounded-full flex items-center justify-center font-mono text-[8px] font-bold uppercase ${
                           isUnassigned
-                            ? 'text-slate-500 bg-slate-800 border border-slate-700/60'
-                            : 'text-slate-900 bg-cyan-300'
+                            ? 'text-slate-500 bg-slate-800 border border-slate-700'
+                            : 'text-slate-900 bg-cyan-400'
                         }`}
                       >
                         {initials}
                       </div>
-                      <span className="font-body text-xs font-semibold text-slate-200">
+                      <span className="text-xs font-semibold text-slate-200">
                         {name}
                       </span>
                     </div>
@@ -120,11 +106,11 @@ export default function PriorityCard({ task, rank, onClick }) {
               })()}
 
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
+                <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-medium mb-1">
                   PRIORITY SCORE
                 </p>
                 <div className="flex items-baseline gap-1">
-                  <span className="font-headline text-lg font-bold text-cyan-300 tabular-nums">
+                  <span className="text-base font-bold text-cyan-400 font-mono tabular-nums">
                     {task.priority_score ?? '—'}
                   </span>
                   <span className="font-mono text-[10px] text-slate-500">/ 10.0</span>
@@ -133,20 +119,20 @@ export default function PriorityCard({ task, rank, onClick }) {
 
               {platforms.length > 0 && (
                 <div>
-                  <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
+                  <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-medium mb-1">
                     FUSED PLATFORMS
                   </p>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1">
                     {platforms.slice(0, 4).map((p) => {
                       const ps = getPlatformStyle(p);
                       return (
                         <span
                           key={p}
-                          className="px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold"
+                          className="px-1.5 py-0.2 rounded text-[9px] font-mono tracking-wider uppercase font-medium"
                           style={{
                             background: ps.bg,
                             color: ps.color,
-                            border: `0.5px solid ${ps.border}`,
+                            border: `1px solid ${ps.border}`,
                           }}
                         >
                           {p}
@@ -167,56 +153,44 @@ export default function PriorityCard({ task, rank, onClick }) {
   return (
     <button
       onClick={onClick}
-      className="glass-card glass-card-hover p-4 relative overflow-hidden text-left w-full cursor-pointer block transition-all duration-300"
+      className="cockpit-card p-4 relative overflow-hidden text-left w-full cursor-pointer block transition-all duration-150 bg-[#0f172a] border border-[#1e293b] hover:border-slate-600 hover:bg-[#162032]"
     >
       {/* Rank watermark */}
-      <div
-        className="absolute top-3 right-4 font-headline text-4xl font-light select-none pointer-events-none"
-        style={{ color: 'rgba(255,255,255,0.04)' }}
-      >
+      <div className="absolute top-2 right-3 font-mono text-3xl font-black select-none pointer-events-none text-slate-700/30">
         {rank < 10 ? `0${rank}` : rank}
       </div>
 
-      {/* Badge */}
-      <div className="flex items-start gap-3 mb-3">
+      {/* Badge & Title */}
+      <div className="flex items-start gap-2.5 mb-2">
         <div
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: urgency.bg, border: `0.5px solid ${urgency.border}` }}
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded"
+          style={{ background: urgency.bg, border: `1px solid ${urgency.border}` }}
         >
           {rank === 2 || rank === 3
-            ? <Zap className="h-4 w-4" style={{ color: urgency.color }} />
-            : <ShieldAlert className="h-4 w-4" style={{ color: urgency.color }} />
+            ? <Zap className="h-3.5 w-3.5" style={{ color: urgency.color }} />
+            : <ShieldAlert className="h-3.5 w-3.5" style={{ color: urgency.color }} />
           }
         </div>
         <div className="min-w-0 flex-1">
           <span
-            className="chip text-[0.5rem] py-0 mb-1"
-            style={{ background: urgency.bg, color: urgency.color, border: `0.5px solid ${urgency.border}` }}
+            className="inline-block text-[9px] font-mono font-semibold tracking-wider uppercase px-1.5 py-0.2 rounded mb-1"
+            style={{ background: urgency.bg, color: urgency.color, border: `1px solid ${urgency.border}` }}
           >
             {urgency.label}
           </span>
-          <h4
-            className="font-headline text-sm font-semibold leading-snug"
-            style={{ color: 'var(--on-surface)' }}
-          >
+          <h4 className="text-xs font-semibold leading-snug text-white">
             #{rank}. {task.title || `Task #${task.id}`}
           </h4>
         </div>
       </div>
 
-      <p
-        className="font-body text-xs leading-relaxed line-clamp-3 mb-3"
-        style={{ color: 'var(--on-surface-variant)' }}
-      >
+      <p className="text-[11px] leading-relaxed line-clamp-2 mb-3 text-slate-400">
         {explanation}
       </p>
 
       {/* Footer */}
-      <div
-        className="flex items-center justify-between pt-3"
-        style={{ borderTop: '0.5px solid rgba(255,255,255,0.05)' }}
-      >
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between pt-2.5 border-t border-[#1e293b]/70">
+        <div className="flex items-center gap-1.5">
           {(() => {
             const isUnassigned = !task.assignee || task.assignee === 'null' || task.assignee === 'None' || task.assignee === 'undefined';
             const name = isUnassigned ? 'Unassigned' : task.assignee;
@@ -224,26 +198,22 @@ export default function PriorityCard({ task, rank, onClick }) {
             return (
               <>
                 <div
-                  className={`h-5 w-5 rounded-full flex items-center justify-center text-[0.45rem] font-bold uppercase ${isUnassigned ? 'text-slate-400 bg-slate-800 border border-slate-700/50' : 'text-white'}`}
-                  style={isUnassigned ? {} : { background: 'var(--primary-container)' }}
+                  className={`h-4.5 w-4.5 rounded-full flex items-center justify-center text-[8px] font-mono font-bold uppercase ${isUnassigned ? 'text-slate-500 bg-slate-800 border border-slate-700' : 'text-slate-900 bg-cyan-400'}`}
                 >
                   {initials}
                 </div>
-                <span className="font-body text-[0.65rem]" style={{ color: 'var(--outline)' }}>
+                <span className="text-[10px] text-slate-400 font-mono">
                   {name}
                 </span>
               </>
             );
           })()}
         </div>
-        <div className="flex items-center gap-3">
-          <span
-            className="font-headline text-sm font-semibold"
-            style={{ color: 'var(--primary)' }}
-          >
+        <div className="flex items-center gap-1">
+          <span className="font-mono text-xs font-bold text-cyan-400">
             {task.priority_score ?? '—'}
           </span>
-          <span className="label-caps" style={{ color: 'var(--outline)', fontSize: '0.5rem' }}>/ 10</span>
+          <span className="font-mono text-[9px] text-slate-500">/ 10</span>
         </div>
       </div>
     </button>

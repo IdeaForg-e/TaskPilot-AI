@@ -36,46 +36,32 @@ export default function PipelineStatus({ latestRun }) {
     }
   }
 
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
   return (
-    <div
-      className="glass-card p-6 shadow-2xl relative overflow-hidden"
-      style={{
-        boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)',
-      }}
-    >
+    <div className="cockpit-card p-5 bg-[#0f172a] border border-[#1e293b] shadow-xl relative overflow-hidden">
       {/* Background glow behind active stage */}
       <div
-        className="absolute -left-10 -top-10 h-32 w-32 rounded-full blur-3xl opacity-20 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, #8ecdff, transparent)' }}
+        className="absolute -left-10 -top-10 h-32 w-32 rounded-full blur-3xl opacity-15 pointer-events-none"
+        style={{ background: 'radial-gradient(circle, #00d2ff, transparent)' }}
       />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-9 w-9 items-center justify-center rounded-xl"
-            style={{
-              background: 'rgba(142,205,255,0.08)',
-              border: '0.5px solid rgba(142,205,255,0.2)',
-            }}
-          >
-            <Workflow className="h-4.5 w-4.5 text-cyan-400" />
+      <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#1e293b]">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-cyan-950/60 border border-cyan-800/40 text-cyan-400">
+            <Workflow className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="font-headline text-sm font-semibold text-slate-100 tracking-tight">
+            <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono">
               Autonomous Pipeline Stepper
             </h3>
-            <p className="font-mono text-[10px] text-slate-400 tracking-wider uppercase mt-0.5">
+            <p className="font-mono text-[9px] text-slate-400 tracking-wider uppercase mt-0.5">
               Multi-Agent Orchestration Sequence
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono text-cyan-400 bg-cyan-500/10 border border-cyan-500/20">
+          <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono text-cyan-400 bg-cyan-950/60 border border-cyan-800/40">
             <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
             Polling: 4s
           </span>
@@ -84,69 +70,60 @@ export default function PipelineStatus({ latestRun }) {
 
       {/* Running banner */}
       {status === 'running' && currentAgent && (
-        <div
-          className="mb-6 rounded-2xl p-3.5 flex items-center justify-between animate-pulse-glow"
-          style={{
-            background: 'rgba(142,205,255,0.06)',
-            border: '0.5px solid rgba(142,205,255,0.25)',
-          }}
-        >
-          <div className="flex items-center gap-3">
+        <div className="mb-5 rounded p-3 flex items-center justify-between bg-cyan-950/40 border border-cyan-500/30 animate-pulse">
+          <div className="flex items-center gap-2.5">
             <Loader2 className="h-4 w-4 animate-spin text-cyan-400 shrink-0" />
             <div>
-              <p className="font-mono text-xs font-semibold text-cyan-300">
+              <p className="font-mono text-[10px] uppercase text-cyan-400 font-semibold">
                 ACTIVE AGENT EXECUTING:
               </p>
-              <p className="font-headline text-xs font-semibold text-slate-100 capitalize">
+              <p className="text-xs font-semibold text-white capitalize">
                 {currentAgent.replace('_', ' ')} Agent
               </p>
             </div>
           </div>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-400/80 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+          <span className="font-mono text-[10px] uppercase tracking-wider text-cyan-300 px-2 py-0.5 rounded bg-cyan-900/60 border border-cyan-700/50">
             Processing
           </span>
         </div>
       )}
 
-      {/* Horizontal stepper */}
+      {/* Horizontal Stepper Grid */}
       <div className="relative flex items-start justify-between pt-2 pb-1">
-        {/* Connecting track behind nodes */}
+        {/* Connecting track */}
         <div
-          className="absolute top-[22px] left-6 right-6 h-[2px]"
-          style={{
-            background: 'rgba(255,255,255,0.06)',
-            zIndex: 0,
-          }}
+          className="absolute top-[18px] left-6 right-6 h-[1.5px] bg-[#1e293b]"
+          style={{ zIndex: 0 }}
         />
 
-        {STAGES.map((stage, idx) => {
+        {STAGES.map((stage) => {
           const isCompleted = completedAgents.includes(stage.key) || status === 'completed';
           const isActive = status === 'running' && currentAgent === stage.key && !isCompleted;
           const isFailed = status === 'failed' && currentAgent === stage.key && !isCompleted;
 
-          let nodeClasses = 'bg-white/3 border-white/10 text-slate-500';
-          let nodeContent = <Hourglass className="h-3.5 w-3.5 opacity-60" />;
-          let labelColor = 'text-slate-500';
+          let nodeClasses = 'bg-[#0d121d] border-[#1e293b] text-slate-500';
+          let nodeContent = <Hourglass className="h-3 w-3 opacity-60" />;
+          let labelColor = 'text-slate-400';
           let subText = 'Pending';
-          let subColor = 'text-slate-600';
+          let subColor = 'text-slate-500';
 
           if (isCompleted) {
-            nodeClasses = 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400 shadow-[0_0_14px_rgba(76,175,142,0.2)]';
-            nodeContent = <Check className="h-3.5 w-3.5 stroke-[2.5]" />;
+            nodeClasses = 'bg-emerald-950/50 border-emerald-500/60 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.3)]';
+            nodeContent = <Check className="h-3 w-3 stroke-[2.5]" />;
             labelColor = 'text-slate-200';
             subText = 'Completed';
-            subColor = 'text-emerald-400/80';
+            subColor = 'text-emerald-400';
           }
           if (isActive) {
-            nodeClasses = 'bg-cyan-500/20 border-cyan-400 text-cyan-300 shadow-[0_0_18px_rgba(142,205,255,0.4)] animate-pulse';
-            nodeContent = <Loader2 className="h-4 w-4 animate-spin text-cyan-300" />;
+            nodeClasses = 'bg-cyan-950/70 border-cyan-400 text-cyan-300 shadow-[0_0_14px_rgba(0,210,255,0.4)] animate-pulse';
+            nodeContent = <Loader2 className="h-3.5 w-3.5 animate-spin text-cyan-300" />;
             labelColor = 'text-cyan-400';
             subText = 'Running...';
             subColor = 'text-cyan-400';
           }
           if (isFailed) {
-            nodeClasses = 'bg-rose-500/20 border-rose-500 text-rose-400 shadow-[0_0_18px_rgba(239,68,68,0.4)]';
-            nodeContent = <XCircle className="h-3.5 w-3.5" />;
+            nodeClasses = 'bg-rose-950/50 border-rose-500 text-rose-400 shadow-[0_0_12px_rgba(239,68,68,0.3)]';
+            nodeContent = <XCircle className="h-3 w-3" />;
             labelColor = 'text-rose-400';
             subText = 'Failed';
             subColor = 'text-rose-400';
@@ -155,26 +132,21 @@ export default function PipelineStatus({ latestRun }) {
           return (
             <div
               key={stage.key}
-              className="flex flex-col items-center gap-2.5 flex-1 relative"
-              style={{ zIndex: 1 }}
+              className="flex flex-col items-center gap-2 flex-1 relative z-10"
             >
               {/* Node Circle */}
               <div
-                className={`flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-300 ${nodeClasses}`}
+                className={`flex h-8 w-8 items-center justify-center rounded-md border transition-all duration-200 ${nodeClasses}`}
               >
                 {nodeContent}
               </div>
 
               {/* Label & Description */}
-              <div className="text-center px-1">
-                <p
-                  className={`font-mono text-[10px] tracking-wider uppercase font-semibold ${labelColor}`}
-                >
+              <div className="text-center px-0.5">
+                <p className={`font-mono text-[10px] tracking-wider uppercase font-semibold ${labelColor}`}>
                   {stage.name}
                 </p>
-                <p
-                  className={`font-body text-[10px] mt-0.5 tracking-tight ${subColor}`}
-                >
+                <p className={`font-mono text-[9px] mt-0.5 tracking-tight ${subColor}`}>
                   {subText}
                 </p>
               </div>

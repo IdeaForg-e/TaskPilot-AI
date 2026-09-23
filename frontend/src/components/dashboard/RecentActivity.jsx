@@ -26,13 +26,13 @@ function getRelativeTimeString(dateString) {
 }
 
 const SOURCE_TAGS = {
-  jira: { bg: 'rgba(142,205,255,0.1)', color: '#8ecdff', border: 'rgba(142,205,255,0.25)' },
-  github: { bg: 'rgba(192,199,210,0.1)', color: '#c0c7d2', border: 'rgba(192,199,210,0.25)' },
-  slack: { bg: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'rgba(245,158,11,0.25)' },
-  email: { bg: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'rgba(239,68,68,0.25)' },
-  calendar: { bg: 'rgba(76,175,142,0.1)', color: '#4caf8e', border: 'rgba(76,175,142,0.25)' },
-  meetings: { bg: 'rgba(167,139,250,0.1)', color: '#a78bfa', border: 'rgba(167,139,250,0.25)' },
-  incidents: { bg: 'rgba(249,115,22,0.1)', color: '#f97316', border: 'rgba(249,115,22,0.25)' },
+  jira: { bg: 'rgba(0,210,255,0.08)', color: '#38bdf8', border: 'rgba(0,210,255,0.2)' },
+  github: { bg: 'rgba(255,255,255,0.06)', color: '#e2e8f0', border: 'rgba(255,255,255,0.12)' },
+  slack: { bg: 'rgba(245,158,11,0.08)', color: '#fbbf24', border: 'rgba(245,158,11,0.2)' },
+  email: { bg: 'rgba(239,68,68,0.08)', color: '#f87171', border: 'rgba(239,68,68,0.2)' },
+  calendar: { bg: 'rgba(16,185,129,0.08)', color: '#34d399', border: 'rgba(16,185,129,0.2)' },
+  meetings: { bg: 'rgba(99,102,241,0.08)', color: '#818cf8', border: 'rgba(99,102,241,0.2)' },
+  incidents: { bg: 'rgba(249,115,22,0.08)', color: '#fb923c', border: 'rgba(249,115,22,0.2)' },
 };
 
 export default function RecentActivity({ tasks = [] }) {
@@ -41,29 +41,18 @@ export default function RecentActivity({ tasks = [] }) {
     .slice(0, 5);
 
   return (
-    <div
-      className="glass-card p-6 shadow-2xl relative overflow-hidden"
-      style={{
-        boxShadow: '0 20px 40px -15px rgba(0,0,0,0.6)',
-      }}
-    >
+    <div className="cockpit-card p-5 bg-[#0f172a] border border-[#1e293b] shadow-xl relative overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5 pb-3 border-b border-white/5">
-        <div className="flex items-center gap-3">
-          <div
-            className="flex h-8 w-8 items-center justify-center rounded-xl"
-            style={{
-              background: 'rgba(142,205,255,0.08)',
-              border: '0.5px solid rgba(142,205,255,0.2)',
-            }}
-          >
-            <Clock className="h-4 w-4 text-cyan-400" />
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#1e293b]">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded bg-cyan-950/60 border border-cyan-800/40 text-cyan-400">
+            <Clock className="h-3.5 w-3.5" />
           </div>
           <div>
-            <h3 className="font-headline text-sm font-semibold text-slate-100 tracking-tight">
+            <h3 className="text-xs font-semibold text-white tracking-wide uppercase font-mono">
               Ingested Activity & Signals
             </h3>
-            <p className="font-mono text-[10px] text-slate-400 tracking-wider uppercase mt-0.5">
+            <p className="font-mono text-[9px] text-slate-400 tracking-wider uppercase mt-0.5">
               Latest Parsed Event Stream
             </p>
           </div>
@@ -71,7 +60,7 @@ export default function RecentActivity({ tasks = [] }) {
 
         <Link
           to="/tasks"
-          className="font-mono text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 group"
+          className="font-mono text-[10px] font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1 group"
         >
           VIEW_ALL
           <span className="inline-block transition-transform group-hover:translate-x-0.5">→</span>
@@ -83,14 +72,11 @@ export default function RecentActivity({ tasks = [] }) {
       ) : (
         <div className="overflow-x-auto">
           {/* Table header */}
-          <div
-            className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 px-3.5 pb-2.5 mb-1"
-            style={{ borderBottom: '0.5px solid rgba(255,255,255,0.06)' }}
-          >
+          <div className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 px-3 pb-2 mb-1 border-b border-[#1e293b]">
             {['Signal / Task Name', 'Status', 'Assignee / Platform', 'Timeline'].map((h) => (
               <span
                 key={h}
-                className="font-mono text-[10px] tracking-wider uppercase text-slate-400 font-semibold"
+                className="font-mono text-[9px] tracking-wider uppercase text-slate-400 font-semibold"
               >
                 {h}
               </span>
@@ -98,7 +84,7 @@ export default function RecentActivity({ tasks = [] }) {
           </div>
 
           {/* Rows */}
-          <div className="space-y-1">
+          <div className="divide-y divide-[#1e293b]/60">
             {recent.map((task, idx) => {
               const sourceLabel = (task.source || 'manual').toLowerCase();
               const sourceStyle = SOURCE_TAGS[sourceLabel] || {
@@ -112,28 +98,22 @@ export default function RecentActivity({ tasks = [] }) {
               return (
                 <div
                   key={task.id || idx}
-                  className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 items-center px-3.5 py-3 rounded-xl transition-all duration-200 hover:bg-white/[0.03] group border border-transparent hover:border-white/5"
+                  className="grid grid-cols-[2.5fr_1fr_1.2fr_1fr] gap-4 items-center px-3 py-2.5 rounded transition-all duration-150 hover:bg-[#162032] group"
                 >
                   {/* Name & Type */}
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className="flex h-7 w-7 items-center justify-center rounded-xl shrink-0 transition-transform group-hover:scale-105"
-                      style={{
-                        background: 'rgba(255,255,255,0.03)',
-                        border: '0.5px solid rgba(255,255,255,0.08)',
-                      }}
-                    >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex h-6 w-6 items-center justify-center rounded shrink-0 bg-[#090d16] border border-[#1e293b]">
                       {isDone ? (
-                        <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                        <CheckCircle className="h-3 w-3 text-emerald-400" />
                       ) : (
-                        <PlusCircle className="h-3.5 w-3.5 text-cyan-400" />
+                        <PlusCircle className="h-3 w-3 text-cyan-400" />
                       )}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-body text-xs font-semibold text-slate-200 truncate group-hover:text-cyan-300 transition-colors">
+                      <p className="text-xs font-medium text-slate-200 truncate group-hover:text-cyan-300 transition-colors">
                         {task.title || `Task #${task.id}`}
                       </p>
-                      <p className="font-mono text-[9px] text-slate-400 uppercase tracking-wider mt-0.5">
+                      <p className="font-mono text-[9px] text-slate-400 uppercase tracking-wider">
                         {task.type || sourceLabel}
                       </p>
                     </div>
@@ -142,10 +122,10 @@ export default function RecentActivity({ tasks = [] }) {
                   {/* Status chip */}
                   <div>
                     <span
-                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono tracking-wider uppercase font-semibold ${
+                      className={`inline-flex items-center px-2 py-0.2 rounded text-[9px] font-mono tracking-wider uppercase font-semibold ${
                         isDone
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                          ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/40'
+                          : 'bg-cyan-950/60 text-cyan-400 border border-cyan-800/40'
                       }`}
                     >
                       {isDone ? 'COMPLETED' : 'ACTIVE'}
@@ -153,13 +133,13 @@ export default function RecentActivity({ tasks = [] }) {
                   </div>
 
                   {/* Assignee / Platform */}
-                  <div className="flex items-center gap-2 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0">
                     <span
-                      className="px-2 py-0.5 rounded-md text-[10px] font-mono uppercase font-semibold tracking-wider truncate"
+                      className="px-2 py-0.2 rounded text-[9px] font-mono uppercase font-medium tracking-wider truncate"
                       style={{
                         background: sourceStyle.bg,
                         color: sourceStyle.color,
-                        border: `0.5px solid ${sourceStyle.border}`,
+                        border: `1px solid ${sourceStyle.border}`,
                       }}
                     >
                       {task.assignee || sourceLabel}
@@ -167,7 +147,7 @@ export default function RecentActivity({ tasks = [] }) {
                   </div>
 
                   {/* Timeline */}
-                  <span className="font-mono text-xs text-slate-400 tabular-nums">
+                  <span className="font-mono text-[11px] text-slate-400 tabular-nums">
                     {getRelativeTimeString(task.created_at)}
                   </span>
                 </div>

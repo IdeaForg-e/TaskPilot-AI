@@ -10,17 +10,18 @@ import {
   Settings,
   HelpCircle,
   Cpu,
-  Sparkles,
   Activity,
 } from 'lucide-react';
 
+import Logo from '../common/Logo';
+
 const NAV_ITEMS = [
-  { to: '/',         label: 'Command Center', icon: LayoutDashboard },
-  { to: '/tasks',    label: 'Task Directory',  icon: ListTodo },
-  { to: '/quality',  label: 'Quality Assurance', icon: ShieldCheck },
-  { to: '/priority', label: 'Leaderboard',    icon: ArrowUpNarrowWide },
-  { to: '/planner',  label: 'AI Planner',     icon: CalendarClock },
-  { to: '/chat',     label: 'Copilot Chat',   icon: MessageSquare },
+  { to: '/',         label: 'Command Center',    icon: LayoutDashboard, tag: 'OPS' },
+  { to: '/tasks',    label: 'Task Directory',    icon: ListTodo,        tag: 'DATA' },
+  { to: '/quality',  label: 'Quality Assurance', icon: ShieldCheck,     tag: 'GATE' },
+  { to: '/priority', label: 'Leaderboard',       icon: ArrowUpNarrowWide, tag: 'RANK' },
+  { to: '/planner',  label: 'AI Planner',        icon: CalendarClock,   tag: 'PLAN' },
+  { to: '/chat',     label: 'Copilot Chat',      icon: MessageSquare,   tag: 'LLM' },
 ];
 
 export default function Sidebar({ open, onClose }) {
@@ -31,152 +32,125 @@ export default function Sidebar({ open, onClose }) {
       {/* Mobile backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-40 md:hidden"
-          style={{ background: 'rgba(8,11,17,0.8)', backdropFilter: 'blur(8px)' }}
+          className="fixed inset-0 z-40 md:hidden bg-black/70 backdrop-blur-sm transition-opacity"
           onClick={onClose}
         />
       )}
 
       <aside
-        className={`fixed z-50 inset-y-0 left-0 w-[230px] flex flex-col justify-between
+        className={`fixed z-50 inset-y-0 left-0 w-[240px] flex flex-col justify-between
           transition-transform duration-300 ease-out
           md:sticky md:top-0 md:h-screen md:translate-x-0
+          bg-[#0a0e17] border-r border-[#1e293b]
           ${open ? 'translate-x-0' : '-translate-x-full'}`}
-        style={{
-          background: 'var(--surface-container-low)',
-          borderRight: '1px solid var(--outline-variant)',
-        }}
       >
         {/* Top Section */}
-        <div className="flex flex-col gap-0">
+        <div className="flex flex-col">
           {/* Logo Brand Header */}
-          <div className="flex items-center justify-between px-5 pt-6 pb-6">
+          <div className="flex items-center justify-between px-5 py-5 border-b border-[#1e293b]/70">
             <Link to="/" className="flex items-center gap-3 group" onClick={onClose}>
-              <div
-                className="flex h-9 w-9 items-center justify-center rounded-xl shrink-0 transition-transform duration-200 group-hover:scale-105"
-                style={{
-                  background: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)',
-                  boxShadow: '0 0 16px rgba(56,189,248,0.35)',
-                }}
-              >
-                <Cpu className="h-4.5 w-4.5 text-white" />
+              <div className="relative flex h-8 w-8 items-center justify-center transition-all group-hover:scale-105">
+                <Logo size={32} />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-[#0a0e17] animate-pulse" />
               </div>
               <div>
-                <p
-                  className="font-headline text-sm font-bold tracking-tight leading-none"
-                  style={{ color: 'var(--on-surface)' }}
-                >
-                  TaskPilot AI
+                <p className="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
+                  TaskPilot <span className="text-cyan-400 font-mono text-xs font-semibold px-1 py-0.2 bg-cyan-950/60 rounded border border-cyan-800/40">AI</span>
                 </p>
-                <span
-                  className="inline-flex items-center gap-1 font-mono text-[0.625rem] text-slate-400 mt-1 leading-none tracking-wider uppercase"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  Chief of Staff
-                </span>
+                <p className="font-mono text-[9px] text-slate-400 tracking-wider uppercase">
+                  CHIEF OF STAFF
+                </p>
               </div>
             </Link>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 md:hidden transition-colors hover:bg-white/5"
-              style={{ color: 'var(--outline)' }}
+              className="rounded-md p-1 md:hidden text-slate-400 hover:text-white hover:bg-slate-800/50"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex flex-col gap-1 px-3">
-            {NAV_ITEMS.map(({ to, label, icon: Icon }) => {
-              const active = location.pathname === to;
-              return (
-                <Link
-                  key={to}
-                  to={to}
-                  onClick={onClose}
-                  className="relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-xs transition-all duration-150"
-                  style={
-                    active
-                      ? {
-                          background: 'rgba(56,189,248,0.1)',
-                          color: 'var(--primary)',
-                          borderLeft: '2.5px solid var(--primary)',
-                          fontWeight: 600,
-                        }
-                      : {
-                          color: 'var(--on-surface-variant)',
-                          borderLeft: '2.5px solid transparent',
-                          fontWeight: 500,
-                        }
-                  }
-                  onMouseEnter={(e) => {
-                    if (!active) {
-                      e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
-                      e.currentTarget.style.color = 'var(--on-surface)';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) {
-                      e.currentTarget.style.background = '';
-                      e.currentTarget.style.color = 'var(--on-surface-variant)';
-                    }
-                  }}
-                >
-                  <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-sky-400' : 'text-slate-400'}`} />
-                  <span className="font-headline tracking-tight">{label}</span>
-                  {active && (
+          {/* Navigation Section */}
+          <div className="px-3 pt-4">
+            <p className="px-2 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-medium">
+              Navigation
+            </p>
+            <nav className="flex flex-col gap-1">
+              {NAV_ITEMS.map(({ to, label, icon: Icon, tag }) => {
+                const active = location.pathname === to;
+                return (
+                  <Link
+                    key={to}
+                    to={to}
+                    onClick={onClose}
+                    className={`relative flex items-center justify-between rounded-md px-3 py-2 text-xs font-medium transition-all duration-150 ${
+                      active
+                        ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(0,210,255,0.08)]'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border border-transparent'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Icon className={`h-4 w-4 shrink-0 ${active ? 'text-cyan-400' : 'text-slate-400'}`} />
+                      <span>{label}</span>
+                    </div>
                     <span
-                      className="ml-auto h-1.5 w-1.5 rounded-full"
-                      style={{ background: 'var(--primary)', boxShadow: '0 0 8px var(--primary)' }}
-                    />
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
+                      className={`font-mono text-[9px] px-1.5 py-0.5 rounded transition-colors ${
+                        active
+                          ? 'bg-cyan-500/20 text-cyan-300 font-semibold'
+                          : 'bg-slate-800/60 text-slate-500'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
         </div>
 
         {/* Bottom Section */}
-        <div className="flex flex-col gap-3 p-4">
-          {/* System status pill */}
-          <div
-            className="rounded-xl p-3 border text-xs"
-            style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              borderColor: 'var(--outline-variant)',
-            }}
-          >
-            <div className="flex items-center justify-between mb-1.5">
+        <div className="flex flex-col gap-3 p-4 border-t border-[#1e293b]/70">
+          {/* Agent Status Pill */}
+          <div className="rounded-md p-2.5 cockpit-card border border-[#1e293b]">
+            <div className="flex items-center justify-between mb-1">
               <span className="font-mono text-[10px] uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
-                <Activity className="h-3 w-3 text-sky-400" />
+                <Activity className="h-3 w-3 text-cyan-400" />
                 Agents Active
               </span>
-              <span className="font-mono text-[10px] text-emerald-400 font-semibold">8/8 Nominal</span>
+              <span className="font-mono text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                8/8 Nominal
+              </span>
             </div>
-            <p className="text-[11px] text-slate-400 font-body leading-tight">
-              Sequential pipeline & chat copilot live
+            <p className="text-[10px] text-slate-400 font-mono">
+              Pipeline & Chat Copilot online
             </p>
           </div>
 
-          {/* Bottom links */}
-          <div className="flex flex-col gap-0.5 pt-1">
+          {/* System Links */}
+          <div className="flex flex-col gap-0.5">
             {[
               { label: 'Settings', icon: Settings, to: '/settings' },
               { label: 'Support',  icon: HelpCircle, to: '/support' },
-            ].map(({ label, icon: Icon, to }) => (
-              <Link
-                key={label}
-                to={to}
-                onClick={onClose}
-                className="flex items-center gap-3 rounded-xl px-3 py-2 text-xs transition-colors hover:bg-white/5"
-                style={{ color: 'var(--outline)' }}
-                onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--on-surface)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--outline)'; }}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                <span className="font-headline" style={{ fontWeight: 500 }}>{label}</span>
-              </Link>
-            ))}
+            ].map(({ label, icon: Icon, to }) => {
+              const active = location.pathname === to;
+              return (
+                <Link
+                  key={label}
+                  to={to}
+                  onClick={onClose}
+                  className={`flex items-center gap-2.5 rounded-md px-3 py-1.5 text-xs transition-colors ${
+                    active
+                      ? 'text-cyan-400 bg-cyan-500/10'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </aside>

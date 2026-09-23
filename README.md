@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.png" alt="TaskPilot AI Banner" width="100%" />
+  <img src="docs/images/logo.png" alt="TaskPilot AI Logo" width="180" />
 </p>
 
 <h1 align="center">TaskPilot AI</h1>

@@ -1,22 +1,22 @@
 import { Tag, Layers, GitMerge, EyeOff } from 'lucide-react';
 
 const STATUS_CONFIG = {
-  done:        { label: 'DONE',        color: '#4caf8e', bg: 'rgba(76,175,142,0.1)',  border: 'rgba(76,175,142,0.3)' },
-  completed:   { label: 'COMPLETED',   color: '#4caf8e', bg: 'rgba(76,175,142,0.1)',  border: 'rgba(76,175,142,0.3)' },
-  in_progress: { label: 'IN PROGRESS', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
-  blocked:     { label: 'BLOCKED',     color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)' },
-  open:        { label: 'OPEN',        color: '#8ecdff', bg: 'rgba(142,205,255,0.1)', border: 'rgba(142,205,255,0.3)' },
+  done:        { label: 'DONE',        color: '#34d399', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.3)' },
+  completed:   { label: 'COMPLETED',   color: '#34d399', bg: 'rgba(16,185,129,0.1)',  border: 'rgba(16,185,129,0.3)' },
+  in_progress: { label: 'IN PROGRESS', color: '#fbbf24', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.3)' },
+  blocked:     { label: 'BLOCKED',     color: '#f87171', bg: 'rgba(239,68,68,0.1)',   border: 'rgba(239,68,68,0.3)' },
+  open:        { label: 'OPEN',        color: '#38bdf8', bg: 'rgba(0,210,255,0.1)',   border: 'rgba(0,210,255,0.3)' },
   todo:        { label: 'TODO',        color: '#94a3b8', bg: 'rgba(255,255,255,0.04)', border: 'rgba(255,255,255,0.1)' },
 };
 
 const PLATFORM_COLORS = {
-  jira:      { bg: 'rgba(142,205,255,0.08)', color: '#8ecdff', border: 'rgba(142,205,255,0.2)' },
-  github:    { bg: 'rgba(192,199,210,0.08)', color: '#c0c7d2', border: 'rgba(192,199,210,0.2)' },
-  slack:     { bg: 'rgba(245,158,11,0.08)',  color: '#f59e0b', border: 'rgba(245,158,11,0.2)' },
-  email:     { bg: 'rgba(239,68,68,0.08)',   color: '#ef4444', border: 'rgba(239,68,68,0.2)' },
-  calendar:  { bg: 'rgba(76,175,142,0.08)',  color: '#4caf8e', border: 'rgba(76,175,142,0.2)' },
-  meetings:  { bg: 'rgba(167,139,250,0.08)', color: '#a78bfa', border: 'rgba(167,139,250,0.2)' },
-  incidents: { bg: 'rgba(249,115,22,0.08)',  color: '#f97316', border: 'rgba(249,115,22,0.2)' },
+  jira:      { bg: 'rgba(0,210,255,0.08)', color: '#38bdf8', border: 'rgba(0,210,255,0.25)' },
+  github:    { bg: 'rgba(255,255,255,0.06)', color: '#e2e8f0', border: 'rgba(255,255,255,0.15)' },
+  slack:     { bg: 'rgba(245,158,11,0.08)',  color: '#fbbf24', border: 'rgba(245,158,11,0.25)' },
+  email:     { bg: 'rgba(239,68,68,0.08)',   color: '#f87171', border: 'rgba(239,68,68,0.25)' },
+  calendar:  { bg: 'rgba(16,185,129,0.08)',  color: '#34d399', border: 'rgba(16,185,129,0.25)' },
+  meetings:  { bg: 'rgba(99,102,241,0.08)',  color: '#818cf8', border: 'rgba(99,102,241,0.25)' },
+  incidents: { bg: 'rgba(249,115,22,0.08)',  color: '#fb923c', border: 'rgba(249,115,22,0.25)' },
 };
 
 export default function TaskCard({ task, onClick, selected }) {
@@ -27,32 +27,23 @@ export default function TaskCard({ task, onClick, selected }) {
   return (
     <button
       onClick={onClick}
-      className={`glass-card w-full p-5 text-left group relative overflow-hidden transition-all duration-200 cursor-pointer active:scale-[0.99] ${
+      className={`cockpit-card w-full p-4 text-left group relative overflow-hidden transition-all duration-150 cursor-pointer active:scale-[0.99] bg-[#0f172a] border ${
         selected
-          ? 'border-cyan-400/50 bg-cyan-500/5 shadow-[0_0_24px_rgba(142,205,255,0.2)] ring-1 ring-cyan-400/30'
-          : 'hover:-translate-y-0.5 hover:border-white/15'
+          ? 'border-cyan-400 bg-cyan-950/20 shadow-[0_0_16px_rgba(0,210,255,0.15)] ring-1 ring-cyan-400/40'
+          : 'border-[#1e293b] hover:border-slate-600 hover:bg-[#162032]'
       }`}
-      style={{
-        boxShadow: selected ? undefined : '0 12px 32px -10px rgba(0,0,0,0.5)',
-      }}
     >
-      {/* Dynamic corner ambient glow */}
-      <div
-        className="absolute -left-10 -bottom-10 h-24 w-24 rounded-full blur-2xl opacity-0 group-hover:opacity-70 transition-opacity duration-500 pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(142,205,255,0.15), transparent 70%)' }}
-      />
-
       {/* Header row: Title & Status badge */}
-      <div className="flex items-start justify-between gap-3 mb-2.5">
-        <h4 className="font-headline text-sm font-semibold leading-snug line-clamp-2 flex-1 text-slate-100 group-hover:text-cyan-300 transition-colors">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h4 className="text-xs font-semibold leading-snug line-clamp-2 flex-1 text-slate-100 group-hover:text-cyan-300 transition-colors">
           {task.title || `Task #${task.id}`}
         </h4>
         <span
-          className="shrink-0 text-[9px] font-mono font-semibold tracking-wider px-2 py-0.5 rounded-full"
+          className="shrink-0 text-[9px] font-mono font-semibold tracking-wider px-2 py-0.2 rounded"
           style={{
             background: statusCfg.bg,
             color: statusCfg.color,
-            border: `0.5px solid ${statusCfg.border}`,
+            border: `1px solid ${statusCfg.border}`,
           }}
         >
           {statusCfg.label}
@@ -61,21 +52,21 @@ export default function TaskCard({ task, onClick, selected }) {
 
       {/* Description preview */}
       {task.description && (
-        <p className="font-body text-xs leading-relaxed line-clamp-2 mb-3.5 text-slate-400">
+        <p className="text-[11px] leading-relaxed line-clamp-2 mb-3 text-slate-400">
           {task.description}
         </p>
       )}
 
       {/* Tags row: Hidden, Merged, Platforms */}
-      <div className="flex flex-wrap items-center gap-1.5 mb-4">
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
         {task.is_hidden && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/25">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-mono tracking-wider uppercase font-semibold bg-amber-950/50 text-amber-400 border border-amber-800/40">
             <EyeOff className="h-2.5 w-2.5" />
             HIDDEN
           </span>
         )}
         {(task.source_count || 0) > 1 && (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/25">
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-mono tracking-wider uppercase font-semibold bg-cyan-950/50 text-cyan-400 border border-cyan-800/40">
             <GitMerge className="h-2.5 w-2.5" />
             {task.source_count} FUSED
           </span>
@@ -89,11 +80,11 @@ export default function TaskCard({ task, onClick, selected }) {
           return (
             <span
               key={p}
-              className="inline-flex items-center px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold"
+              className="inline-flex items-center px-1.5 py-0.2 rounded text-[9px] font-mono tracking-wider uppercase font-medium"
               style={{
                 background: pStyle.bg,
                 color: pStyle.color,
-                border: `0.5px solid ${pStyle.border}`,
+                border: `1px solid ${pStyle.border}`,
               }}
             >
               {p}
@@ -102,19 +93,14 @@ export default function TaskCard({ task, onClick, selected }) {
         })}
       </div>
 
-      {/* Footer: Type, Category, and Assignee */}
-      <div
-        className="flex flex-wrap items-center gap-3 pt-3"
-        style={{ borderTop: '0.5px solid rgba(255,255,255,0.06)' }}
-      >
-        {task.type && (
-          <span className="flex items-center gap-1.5 text-slate-400">
-            <Layers className="h-3 w-3 text-slate-500" />
-            <span className="font-mono text-[10px] tracking-wider uppercase">
-              {task.type}
-            </span>
+      {/* Footer: Type, Assignee */}
+      <div className="flex items-center justify-between pt-2.5 border-t border-[#1e293b]/70">
+        <span className="flex items-center gap-1 text-slate-400">
+          <Layers className="h-3 w-3 text-slate-500" />
+          <span className="font-mono text-[9px] tracking-wider uppercase">
+            {task.type || 'TASK'}
           </span>
-        )}
+        </span>
 
         {(() => {
           const isUnassigned =
@@ -126,21 +112,17 @@ export default function TaskCard({ task, onClick, selected }) {
           const initials = isUnassigned ? 'UN' : task.assignee.substring(0, 2);
 
           return (
-            <div className="flex items-center gap-1.5 ml-auto">
+            <div className="flex items-center gap-1.5">
               <div
-                className={`h-5 w-5 rounded-full flex items-center justify-center font-mono text-[9px] font-bold uppercase ${
+                className={`h-4.5 w-4.5 rounded-full flex items-center justify-center font-mono text-[8px] font-bold uppercase ${
                   isUnassigned
-                    ? 'text-slate-500 bg-slate-800 border border-slate-700/60'
-                    : 'text-slate-900 bg-cyan-300 font-bold'
+                    ? 'text-slate-500 bg-slate-800 border border-slate-700'
+                    : 'text-slate-900 bg-cyan-400'
                 }`}
               >
                 {initials}
               </div>
-              <span
-                className={`font-body text-xs truncate max-w-[120px] ${
-                  isUnassigned ? 'text-slate-500' : 'text-slate-300'
-                }`}
-              >
+              <span className={`text-[11px] truncate max-w-[110px] ${isUnassigned ? 'text-slate-500' : 'text-slate-300 font-medium'}`}>
                 {name}
               </span>
             </div>

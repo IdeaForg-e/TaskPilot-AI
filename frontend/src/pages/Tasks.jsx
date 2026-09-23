@@ -8,7 +8,7 @@ import ErrorMessage from '../components/common/ErrorMessage';
 import { Filter } from 'lucide-react';
 
 export default function Tasks() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') || '';
 
   const [tasks, setTasks] = useState([]);
@@ -77,90 +77,85 @@ export default function Tasks() {
 
   return (
     <>
-      <div className="space-y-6 animate-fade-in-up">
-      {/* Header */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-2 border-b border-white/5">
-        <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="h-2 w-2 rounded-full bg-cyan-400" />
-            <span className="font-mono text-[10px] tracking-widest uppercase text-cyan-400 font-semibold">
-              TASK_INDEX // REPOSITORY
-            </span>
+      <div className="space-y-5 animate-fade-in-up">
+        {/* Header */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-[#1e293b]">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,210,255,0.8)]" />
+              <span className="font-mono text-[10px] tracking-widest uppercase text-cyan-400 font-semibold">
+                TASK_INDEX // REPOSITORY
+              </span>
+            </div>
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Task Directory
+            </h1>
+            <p className="text-xs text-slate-400 mt-1 max-w-lg leading-relaxed">
+              Filter, inspect, and trace parsed engineering tasks fused from Jira, GitHub, Slack, and Email.
+            </p>
           </div>
-          <h2 className="font-headline text-3xl font-light text-slate-100 tracking-tight">
-            Task Directory
-          </h2>
-          <p className="font-body text-xs text-slate-400 mt-1 max-w-lg">
-            Filter, inspect, and trace parsed engineering tasks fused from Jira, GitHub, Slack, and Email.
-          </p>
-        </div>
 
-        <div className="flex items-center gap-3 self-start sm:self-auto">
-          <div className="glass-card px-4 py-2 flex items-center gap-2 border-white/10 shadow-lg">
-            <span className="font-headline text-lg font-bold text-cyan-300 tabular-nums">
-              {filteredTasks.length}
-            </span>
-            <span className="font-mono text-[10px] text-slate-400 uppercase tracking-wider">
-              {filteredTasks.length === 1 ? 'TASK MATCH' : 'TASKS MATCHED'}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Filter bar */}
-      <div
-        className="glass-card p-4 flex flex-wrap items-center gap-3 shadow-xl"
-        style={{
-          boxShadow: '0 12px 32px -10px rgba(0,0,0,0.5)',
-        }}
-      >
-        <div className="flex items-center gap-2 mr-1 pl-1">
-          <Filter className="h-3.5 w-3.5 text-cyan-400" />
-          <span className="font-mono text-[10px] uppercase tracking-wider text-slate-300 font-semibold">
-            FILTERS:
-          </span>
-        </div>
-
-        {[
-          { value: statusFilter,   set: setStatusFilter,   options: statuses,  placeholder: 'Status: All' },
-          { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'Type: All' },
-          { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'Assignee: All' },
-          { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'Platform: All' },
-        ].map(({ value, set, options, placeholder }, idx) => (
-          <div key={idx} className="relative">
-            <select
-              value={value}
-              onChange={(e) => set(e.target.value)}
-              className="appearance-none bg-slate-900/80 hover:bg-slate-800/80 border border-white/10 focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/20 px-3.5 py-2 pr-8 text-xs font-mono rounded-xl cursor-pointer min-w-[140px] text-slate-200 outline-none transition-all shadow-inner"
-            >
-              {options.map((o) => (
-                <option key={o} value={o} style={{ background: '#0d131f', color: '#e2e8f0' }}>
-                  {o === 'all' ? placeholder : o.toUpperCase()}
-                </option>
-              ))}
-            </select>
-            <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">
-              ▼
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <div className="px-3 py-1.5 rounded-md bg-[#0f172a] border border-[#1e293b] flex items-center gap-2">
+              <span className="text-base font-bold text-cyan-400 font-mono tabular-nums">
+                {filteredTasks.length}
+              </span>
+              <span className="font-mono text-[9px] text-slate-400 uppercase tracking-wider">
+                {filteredTasks.length === 1 ? 'TASK MATCH' : 'TASKS MATCHED'}
+              </span>
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Filter bar */}
+        <div className="cockpit-card p-3 flex flex-wrap items-center gap-2.5 bg-[#0f172a] border border-[#1e293b]">
+          <div className="flex items-center gap-1.5 mr-1 pl-1">
+            <Filter className="h-3.5 w-3.5 text-cyan-400" />
+            <span className="font-mono text-[10px] uppercase tracking-wider text-slate-300 font-semibold">
+              FILTERS:
+            </span>
+          </div>
+
+          {[
+            { value: statusFilter,   set: setStatusFilter,   options: statuses,  placeholder: 'Status: All' },
+            { value: typeFilter,     set: setTypeFilter,     options: types,     placeholder: 'Type: All' },
+            { value: assigneeFilter, set: setAssigneeFilter, options: assignees, placeholder: 'Assignee: All' },
+            { value: sourceFilter,   set: setSourceFilter,   options: sources,   placeholder: 'Platform: All' },
+          ].map(({ value, set, options, placeholder }, idx) => (
+            <div key={idx} className="relative">
+              <select
+                value={value}
+                onChange={(e) => set(e.target.value)}
+                className="appearance-none bg-[#090d16] hover:bg-[#111827] border border-[#1e293b] focus:border-cyan-400 px-3 py-1.5 pr-7 text-xs font-mono rounded cursor-pointer min-w-[130px] text-slate-200 outline-none transition-all"
+              >
+                {options.map((o) => (
+                  <option key={o} value={o}>
+                    {o === 'all' ? placeholder : o.toUpperCase()}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[9px]">
+                ▼
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Task list */}
+        <div className="w-full">
+          <TaskList
+            tasks={filteredTasks}
+            onSelectTask={handleSelectTask}
+            selectedTaskId={selectedTask?.id}
+            isDetailOpen={false}
+          />
+        </div>
       </div>
 
-      {/* Task list */}
-      <div className="w-full">
-        <TaskList
-          tasks={filteredTasks}
-          onSelectTask={handleSelectTask}
-          selectedTaskId={selectedTask?.id}
-          isDetailOpen={false}
-        />
-      </div>
-    </div>
-
-    {/* Task Detail Modal Pop-up (Rendered outside the transform-animated container) */}
-    {selectedTask && (
-      <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
-    )}
-  </>
-);
+      {/* Task Detail Modal Pop-up */}
+      {selectedTask && (
+        <TaskDetail task={selectedTask} tasks={tasks} onClose={() => setSelectedTask(null)} />
+      )}
+    </>
+  );
 }

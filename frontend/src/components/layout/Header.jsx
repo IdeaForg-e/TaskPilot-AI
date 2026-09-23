@@ -4,8 +4,8 @@ import {
   Menu, Play, Loader2, CheckCircle2, XCircle, AlertTriangle,
   Search, Bell, Sun, Moon,
 } from 'lucide-react';
-import { getApiErrorMessage, runPipeline, getLatestPipelineRun, getTasks, getPlan } from '../../services/api';
 import { useTheme } from '../../context/ThemeContext';
+import { getApiErrorMessage, runPipeline, getLatestPipelineRun, getTasks, getPlan } from '../../services/api';
 
 const PAGE_TITLES = {
   '/':         'Command Center',
@@ -109,13 +109,13 @@ export default function Header({ onMenuClick }) {
       return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,'0')}-${String(t.getDate()).padStart(2,'0')}`;
     };
 
-    // 4. Next Upcoming Task from today's plan, or fallback to highest priority pending task
+    // 4. Next Upcoming Task from today's plan
     let todayPlan = null;
     try {
       const planRes = await getPlan(getTodayStr());
       todayPlan = planRes.data || null;
     } catch (err) {
-      // Fallback silent if today's plan is not generated yet
+      // Fallback silent
     }
 
     let foundUpcoming = false;
@@ -267,52 +267,42 @@ export default function Header({ onMenuClick }) {
   const NoticeIcon = status === 'error' ? XCircle : status === 'warning' ? AlertTriangle : CheckCircle2;
   const noticeClass =
     status === 'error'
-      ? 'border-red-500/30 bg-red-950/90 text-red-100'
+      ? 'border-rose-500/30 bg-rose-950/90 text-rose-200'
       : status === 'warning'
-        ? 'border-amber-500/30 bg-amber-950/90 text-amber-100'
-        : 'border-emerald-500/30 bg-emerald-950/90 text-emerald-100';
+        ? 'border-amber-500/30 bg-amber-950/90 text-amber-200'
+        : 'border-emerald-500/30 bg-emerald-950/90 text-emerald-200';
 
   return (
     <>
-      <header
-        className="sticky top-0 z-30 flex items-center gap-4 px-4 md:px-6 py-3 transition-colors"
-        style={{
-          background: '#efeee9',
-          backdropFilter: 'blur(20px)',
-          WebkitBackdropFilter: 'blur(20px)',
-          borderBottom: '1px solid #dad7cb',
-        }}
-      >
-        {/* Mobile menu */}
-        <button
-          onClick={onMenuClick}
-          className="rounded-xl p-2 md:hidden transition-colors hover:bg-black/5 active:scale-95"
-          style={{ color: 'var(--outline)' }}
-          aria-label="Toggle navigation menu"
-        >
-          <Menu className="h-4.5 w-4.5 text-[#2c332b]" />
-        </button>
+      <header className="sticky top-0 z-30 flex items-center justify-between gap-4 px-5 py-3 bg-[#0a0e17]/90 backdrop-blur-md border-b border-[#1e293b]">
+        {/* Left: Mobile Toggle & Breadcrumbs */}
+        <div className="flex items-center gap-3 min-w-0">
+          <button
+            onClick={onMenuClick}
+            className="rounded-md p-1.5 md:hidden text-slate-400 hover:text-white hover:bg-slate-800/50"
+            aria-label="Toggle navigation menu"
+          >
+            <Menu className="h-4.5 w-4.5" />
+          </button>
 
-        {/* Breadcrumb / Page Context */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <span className="font-mono text-[10px] tracking-wider uppercase text-[#525d50] hidden sm:block">
-            OPS_CENTER
-          </span>
-          <span className="hidden sm:block text-[#6c6e36] text-xs">/</span>
-          <div className="flex items-center gap-2">
-            <span className="font-headline text-sm font-semibold text-[#2c332b] tracking-tight">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-[10px] tracking-wider uppercase text-slate-500 hidden sm:block">
+              OPS_CENTER
+            </span>
+            <span className="hidden sm:block text-slate-600 text-xs">/</span>
+            <span className="text-sm font-semibold text-white tracking-tight truncate">
               {pageTitle}
             </span>
             <span
-              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-mono tracking-wider font-semibold uppercase ${
+              className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-mono tracking-wider uppercase font-semibold ${
                 isPipelineRunning
-                  ? 'bg-[#0284c7]/10 text-[#0284c7] border border-[#0284c7]/30'
-                  : 'bg-[#10b981]/10 text-[#10b981] border border-[#10b981]/20'
+                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 shadow-[0_0_10px_rgba(0,210,255,0.2)]'
+                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
               }`}
             >
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
-                  isPipelineRunning ? 'bg-[#0284c7] animate-ping' : 'bg-[#10b981]'
+                  isPipelineRunning ? 'bg-cyan-400 animate-ping' : 'bg-emerald-400'
                 }`}
               />
               {isPipelineRunning ? 'Orchestrating' : 'Nominal'}
@@ -320,14 +310,10 @@ export default function Header({ onMenuClick }) {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Center: Command Palette Search */}
         <form
           onSubmit={handleSearchSubmit}
-          className="hidden md:flex flex-1 max-w-sm items-center gap-2.5 rounded-xl px-3.5 py-1.5 transition-all focus-within:border-[#0284c7] focus-within:ring-1 focus-within:ring-[#0284c7]"
-          style={{
-            background: '#f8f6f0',
-            border: '1px solid #e2dfd8',
-          }}
+          className="hidden md:flex flex-1 max-w-sm items-center gap-2 rounded-md px-3 py-1.5 bg-[#0f172a] border border-[#1e293b] focus-within:border-cyan-500 focus-within:ring-1 focus-within:ring-cyan-500/40 transition-all"
         >
           <Search className="h-3.5 w-3.5 shrink-0 text-slate-400" />
           <input
@@ -335,109 +321,105 @@ export default function Header({ onMenuClick }) {
             value={searchVal}
             onChange={(e) => setSearchVal(e.target.value)}
             placeholder="Search tasks, agents, signals..."
-            className="w-full bg-transparent border-0 outline-none text-xs font-body text-slate-200 placeholder:text-slate-500"
+            className="w-full bg-transparent border-0 outline-none text-xs text-slate-200 placeholder:text-slate-500"
           />
-          <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 text-[9px] font-mono font-semibold text-slate-400 bg-white/5 border border-white/10 rounded-md">
+          <kbd className="hidden lg:inline-flex items-center px-1.5 py-0.2 text-[9px] font-mono text-slate-400 bg-slate-800 border border-slate-700 rounded">
             ↵ Enter
           </kbd>
         </form>
 
-        {/* Right side actions */}
-        <div className="ml-auto flex items-center gap-2">
-          {/* Status message */}
+        {/* Right: Actions */}
+        <div className="flex items-center gap-2.5">
+          {/* Status badge notice */}
           {status === 'success' && notice && (
-            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in text-emerald-400 font-mono">
+            <span className="hidden lg:flex items-center gap-1.5 text-xs text-emerald-400 font-mono animate-fade-in-up">
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
-              <span className="truncate max-w-[200px]">{notice}</span>
+              <span className="truncate max-w-[180px]">{notice}</span>
             </span>
           )}
           {status === 'error' && notice && (
-            <span className="hidden md:flex items-center gap-1.5 text-xs animate-scale-in text-rose-400 font-mono">
+            <span className="hidden lg:flex items-center gap-1.5 text-xs text-rose-400 font-mono animate-fade-in-up">
               <XCircle className="h-3.5 w-3.5 shrink-0" />
               <span className="truncate max-w-[180px]">{notice}</span>
             </span>
           )}
 
-          {/* Notification bell */}
+          {/* Theme Switcher Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className="p-2 rounded-md bg-[#0f172a] border border-[#1e293b] text-slate-300 hover:text-white hover:border-slate-700 transition-colors flex items-center justify-center group"
+            title={theme === 'dark' ? 'Switch to White Theme' : 'Switch to Dark Theme'}
+            aria-label="Toggle Theme"
+          >
+            {theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-amber-400 group-hover:rotate-45 transition-transform duration-300" />
+            ) : (
+              <Moon className="h-4 w-4 text-sky-500 group-hover:-rotate-12 transition-transform duration-300" />
+            )}
+          </button>
+
+          {/* Notifications Trigger */}
           <div className="relative">
             <button
               onClick={() => setShowNotifications(!showNotifications)}
-              className="rounded-xl p-2 transition-all relative cursor-pointer hover:bg-[#e7e5dc] text-[#525d50] hover:text-[#2c332b] active:scale-95"
-              style={{
-                background: '#efeee9',
-                border: '1px solid #dad7cb',
-              }}
+              className="relative p-2 rounded-md bg-[#0f172a] border border-[#1e293b] text-slate-300 hover:text-white hover:border-slate-700 transition-colors"
               title="System Alerts & Telemetry"
             >
               <Bell className="h-4 w-4" />
               {notifications.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-[#080b11] animate-pulse" />
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-rose-500 ring-2 ring-[#0a0e17] animate-pulse" />
               )}
             </button>
 
+            {/* Notifications Dropdown Panel */}
             {showNotifications && (
               <div
-                className="absolute right-0 mt-2.5 w-84 rounded-2xl p-4 shadow-xl z-50 animate-scale-in"
-                style={{
-                  background: '#f7f6f2',
-                  backdropFilter: 'blur(16px)',
-                  border: '1px solid #dad7cb',
-                  boxShadow: '0 16px 40px -8px rgba(44,51,43,0.15)',
-                }}
+                className="absolute right-0 mt-2 w-80 rounded-md p-3.5 bg-[#0f172a] border border-[#1e293b] shadow-2xl shadow-black/80 z-50 animate-scale-in"
               >
-                <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-[#dad7cb]">
+                <div className="flex items-center justify-between pb-2.5 mb-2.5 border-b border-[#1e293b]">
                   <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-[#0284c7]" />
-                    <span className="font-headline text-xs font-bold text-[#2c332b] uppercase tracking-wider">
+                    <span className="h-2 w-2 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(0,210,255,0.8)]" />
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-200 font-mono">
                       Signals & Alerts
                     </span>
                   </div>
-                  <span className="text-[10px] font-mono text-[#0284c7] bg-[#0284c7]/10 px-2 py-0.5 rounded-full border border-[#0284c7]/20">
+                  <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-800/40">
                     {notifications.length} active
                   </span>
                 </div>
+
                 <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
                   {notifications.length === 0 ? (
-                    <p className="text-xs text-[#788275] font-body text-center py-6">
-                      No anomalous signals detected. All subsystems nominal.
+                    <p className="text-xs text-slate-500 text-center py-6 font-mono">
+                      All telemetry nominal. Zero alerts.
                     </p>
                   ) : (
                     notifications.map((n) => {
-                      let badgeColor = '#b91c1c';
-                      let bgTint = 'rgba(185,28,28,0.08)';
-                      let borderTint = 'rgba(185,28,28,0.2)';
+                      let badgeDot = 'bg-rose-500';
+                      let containerBg = 'bg-rose-950/20 border-rose-900/30 text-rose-300';
                       if (n.type === 'warning') {
-                        badgeColor = '#b45309';
-                        bgTint = 'rgba(180,83,9,0.08)';
-                        borderTint = 'rgba(180,83,9,0.2)';
+                        badgeDot = 'bg-amber-400';
+                        containerBg = 'bg-amber-950/20 border-amber-900/30 text-amber-300';
                       } else if (n.type === 'success') {
-                        badgeColor = '#2e7d55';
-                        bgTint = 'rgba(46,125,85,0.08)';
-                        borderTint = 'rgba(46,125,85,0.2)';
+                        badgeDot = 'bg-emerald-400';
+                        containerBg = 'bg-emerald-950/20 border-emerald-900/30 text-emerald-300';
                       } else if (n.type === 'upcoming') {
-                        badgeColor = '#0284c7';
-                        bgTint = 'rgba(2,132,199,0.08)';
-                        borderTint = 'rgba(2,132,199,0.2)';
+                        badgeDot = 'bg-cyan-400';
+                        containerBg = 'bg-cyan-950/20 border-cyan-900/30 text-cyan-300';
                       }
 
                       return (
                         <div
                           key={n.id}
-                          className="rounded-xl p-3 flex gap-2.5 transition-all hover:translate-x-0.5"
-                          style={{
-                            background: bgTint,
-                            border: `1px solid ${borderTint}`,
-                          }}
+                          className={`rounded-md p-2.5 flex items-start gap-2.5 border transition-all ${containerBg}`}
                         >
-                          <span
-                            className="h-2 w-2 rounded-full mt-1.5 shrink-0"
-                            style={{ background: badgeColor }}
-                          />
+                          <span className={`h-2 w-2 rounded-full mt-1 shrink-0 ${badgeDot}`} />
                           <div className="min-w-0">
-                            <p className="text-xs font-semibold text-[#2c332b] truncate font-headline">
+                            <p className="text-xs font-medium text-slate-100 truncate">
                               {n.title}
                             </p>
-                            <p className="text-[11px] text-[#525d50] mt-0.5 leading-relaxed font-body">
+                            <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
                               {n.desc}
                             </p>
                           </div>
@@ -450,42 +432,36 @@ export default function Header({ onMenuClick }) {
             )}
           </div>
 
-          {/* Run Pipeline CTA */}
+          {/* Run Pipeline Primary CTA */}
           <button
             onClick={handleRunPipeline}
             disabled={status === 'loading' || isPipelineRunning}
-            className="relative inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold font-headline text-slate-900 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shadow-[0_0_20px_rgba(142,205,255,0.25)] hover:shadow-[0_0_28px_rgba(142,205,255,0.4)]"
-            style={{
-              background: 'linear-gradient(135deg, #a5d8ff 0%, #70b8ff 50%, #4da3ff 100%)',
-            }}
+            className="btn-primary inline-flex items-center gap-2 px-3.5 py-1.5 rounded-md text-xs font-semibold text-white bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 border border-cyan-400/30 shadow-md shadow-cyan-600/20 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {status === 'loading' || isPipelineRunning ? (
               <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin text-slate-900" />
-                <span className="hidden sm:inline font-mono uppercase tracking-wider text-[11px]">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-white" />
+                <span className="font-mono text-[11px] uppercase tracking-wider">
                   Orchestrating...
                 </span>
               </>
             ) : (
               <>
-                <Play className="h-3 w-3 fill-slate-900 text-slate-900" />
-                <span className="hidden sm:inline tracking-tight">Run Pipeline</span>
+                <Play className="h-3 w-3 fill-white text-white" />
+                <span>Run Pipeline</span>
               </>
             )}
           </button>
         </div>
       </header>
 
-      {/* Toast notification */}
+      {/* Global Toast Notice */}
       {notice && status !== 'loading' && (
         <div
-          className={`fixed right-4 top-20 z-50 flex max-w-[calc(100vw-2rem)] items-start gap-2.5 rounded-2xl border px-4 py-3 text-xs shadow-2xl backdrop-blur-2xl sm:max-w-md animate-scale-in ${noticeClass}`}
-          style={{
-            boxShadow: '0 20px 40px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.06)',
-          }}
+          className={`fixed right-4 top-16 z-50 flex items-start gap-2.5 rounded-md border px-3.5 py-2.5 text-xs shadow-xl backdrop-blur-xl sm:max-w-md animate-fade-in-up ${noticeClass}`}
         >
           <NoticeIcon className="mt-0.5 h-4 w-4 shrink-0" />
-          <span className="leading-relaxed font-body text-slate-200">{notice}</span>
+          <span className="leading-snug text-slate-100">{notice}</span>
         </div>
       )}
     </>
