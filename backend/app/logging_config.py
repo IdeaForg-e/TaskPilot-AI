@@ -5,20 +5,24 @@ import os
 def setup_logging():
     log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
-    # Define log file path OUTSIDE the backend directory so watchfiles doesn't detect changes
-    import app.config as cfg
-    log_dir = os.path.join(cfg.settings.DATA_DIR, "..", "logs")
-    os.makedirs(log_dir, exist_ok=True)
-    log_file = os.path.join(log_dir, "taskpilot.log")
+    handlers = [logging.StreamHandler(sys.stdout)]
     
-    # Configure root logger
+    # Only attach FileHandler if write permissions are available and not on Vercel
+    if not os.getenv("VERCEL") and not os.getenv("AWS_LAMBDA_FUNCTION_NAME"):
+        try:
+            import app.config as cfg
+            log_dir = os.path.join(cfg.settings.DATA_DIR, "..", "logs")
+            os.makedirs(log_dir, exist_ok=True)
+            log_file = os.path.join(log_dir, "taskpilot.log")
+            handlers.append(logging.FileHandler(log_file, encoding="utf-8"))
+        except Exception:
+            pass
+
     logging.basicConfig(
         level=logging.INFO,
         format=log_format,
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler(log_file, encoding="utf-8")
-        ]
+        handlers=handlers,
+        force=True
     )
     
     # Configure logging for uvicorn
@@ -26,7 +30,7 @@ def setup_logging():
     logging.getLogger("uvicorn.access").setLevel(logging.INFO)
     
     logger = logging.getLogger("taskpilot")
-    logger.info(f"Logging initialized. Writing log file to {log_file}")
+    logger.info("Logging initialized.")
     return logger
 
 logger = logging.getLogger("taskpilot")

@@ -9,6 +9,8 @@ BASE_DIR = os.path.dirname(BACKEND_DIR)
 load_dotenv(os.path.join(BACKEND_DIR, ".env"))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
 
+IS_SERVERLESS = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
 class Settings:
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "openai/gpt-oss-20b")
@@ -17,7 +19,7 @@ class Settings:
     NVIDIA_BASE_URL: str = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
     NVIDIA_MODEL_FAST: str = os.getenv("NVIDIA_MODEL_FAST", "nvidia/nemotron-3.5-lightning-30b-a3b")
     NVIDIA_MODEL_REASONING: str = os.getenv("NVIDIA_MODEL_REASONING", "nvidia/nemotron-3-super-120b-a12b")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///./taskpilot.db")
-    DATA_DIR: str = os.path.join(BASE_DIR, "data")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////tmp/taskpilot.db" if IS_SERVERLESS else "sqlite:///./taskpilot.db")
+    DATA_DIR: str = os.getenv("DATA_DIR", "/tmp/data" if IS_SERVERLESS else os.path.join(BASE_DIR, "data"))
 
 settings = Settings()

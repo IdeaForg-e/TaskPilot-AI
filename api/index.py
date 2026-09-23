@@ -8,9 +8,16 @@ if backend_path not in sys.path:
 
 try:
     from app.main import app
+    from app.database import init_db
 except ImportError:
     from backend.app.main import app
+    from backend.app.database import init_db
+
+# Initialize database on cold start
+try:
+    init_db()
+except Exception:
+    pass
 
 # Export app for Vercel
 app = app
-
