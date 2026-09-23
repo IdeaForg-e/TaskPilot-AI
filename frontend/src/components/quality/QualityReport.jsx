@@ -16,13 +16,13 @@ export default function QualityReport({ reports = [] }) {
         return (
           <div
             key={report.task_id || report.id}
-            className={`glass-card p-5 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 shadow-xl ${
+            className={`glass-card p-5 relative overflow-hidden transition-all duration-200 hover:-translate-y-0.5 ${
               poor
-                ? 'border-l-4 border-l-rose-500 bg-rose-500/[0.02]'
-                : 'border-l-4 border-l-emerald-500 bg-emerald-500/[0.02]'
+                ? 'border-l-4 border-l-rose-500'
+                : 'border-l-4 border-l-[#2e7d55]'
             }`}
             style={{
-              boxShadow: '0 12px 32px -10px rgba(0,0,0,0.5)',
+              boxShadow: '0 4px 16px -4px rgba(44,51,43,0.08)',
             }}
           >
             {/* Header */}
@@ -34,10 +34,10 @@ export default function QualityReport({ reports = [] }) {
                   <CircleCheck className="h-4.5 w-4.5 text-emerald-400 mt-0.5 shrink-0" />
                 )}
                 <div>
-                  <h4 className="font-headline text-sm font-semibold text-slate-100 leading-snug">
+                  <h4 className="font-headline text-sm font-semibold text-[#2c332b] leading-snug">
                     {report.task_title || `Task #${report.task_id || report.id}`}
                   </h4>
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[#788275]">
                     ID: {report.task_id || report.id}
                   </span>
                 </div>
@@ -46,8 +46,8 @@ export default function QualityReport({ reports = [] }) {
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-mono tracking-wider uppercase font-semibold shrink-0 ${
                   poor
-                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                    : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-rose-500/10 text-rose-600 border border-rose-500/30'
+                    : 'bg-[#2e7d55]/10 text-[#2e7d55] border border-[#2e7d55]/30'
                 }`}
               >
                 {poor ? 'DEFICIENT' : 'PASSING'}
@@ -58,11 +58,11 @@ export default function QualityReport({ reports = [] }) {
             <div
               className="rounded-2xl p-4 mb-4"
               style={{
-                background: 'rgba(12,18,28,0.7)',
-                border: '0.5px solid rgba(255,255,255,0.06)',
+                background: '#efeee9',
+                border: '1px solid #dad7cb',
               }}
             >
-              <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold block mb-2">
+              <span className="font-mono text-[9px] uppercase tracking-wider text-[#788275] font-semibold block mb-2">
                 SCHEMA INTEGRITY SCORE
               </span>
               <QualityScore score={report.score || 0} />
@@ -72,8 +72,8 @@ export default function QualityReport({ reports = [] }) {
             {report.missing_fields?.length > 0 && (
               <div className="mb-4 pl-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <ClipboardList className="h-3.5 w-3.5 text-rose-400" />
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold">
+                  <ClipboardList className="h-3.5 w-3.5 text-rose-500" />
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[#788275] font-semibold">
                     MISSING ATTRIBUTES / OMISSIONS
                   </span>
                 </div>
@@ -81,7 +81,7 @@ export default function QualityReport({ reports = [] }) {
                   {report.missing_fields.map((field) => (
                     <span
                       key={field}
-                      className="px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold bg-rose-500/10 text-rose-300 border border-rose-500/25"
+                      className="px-2 py-0.5 rounded-md text-[9px] font-mono tracking-wider uppercase font-semibold bg-rose-500/10 text-rose-600 border border-rose-500/25"
                     >
                       {field}
                     </span>
@@ -94,16 +94,16 @@ export default function QualityReport({ reports = [] }) {
             {report.clarification_questions?.length > 0 && (
               <div className="pl-1 pt-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <HelpCircle className="h-3.5 w-3.5 text-cyan-400" />
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-slate-400 font-semibold">
+                  <HelpCircle className="h-3.5 w-3.5 text-[#0284c7]" />
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[#788275] font-semibold">
                     COPILOT REFINEMENT PROMPTS
                   </span>
                 </div>
                 <ul className="space-y-1.5 ml-5">
                   {report.clarification_questions.map((q, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 bg-cyan-400" />
-                      <span className="font-body text-xs text-slate-300 leading-relaxed">
+                      <span className="h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 bg-[#0284c7]" />
+                      <span className="font-body text-xs text-[#525d50] leading-relaxed">
                         {q}
                       </span>
                     </li>

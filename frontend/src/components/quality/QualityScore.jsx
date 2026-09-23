@@ -5,26 +5,25 @@ export default function QualityScore({ score = 0 }) {
   return (
     <div className="flex items-center gap-3">
       <div
-        className="h-1.5 flex-1 overflow-hidden rounded-full"
-        style={{ background: 'rgba(255,255,255,0.06)' }}
+        className="h-2 flex-1 overflow-hidden rounded-full"
+        style={{ background: '#dad7cb' }}
       >
         <div
           className="h-full rounded-full"
           style={{
             width: `${clamped}%`,
             background: good
-              ? 'linear-gradient(90deg, #10b981, #06b6d4)'
-              : 'linear-gradient(90deg, #ef4444, #f97316)',
+              ? 'linear-gradient(90deg, #2e7d55, #0284c7)'
+              : 'linear-gradient(90deg, #b91c1c, #f97316)',
             boxShadow: good
-              ? '0 0 8px rgba(16,185,129,0.3)'
-              : '0 0 8px rgba(239,68,68,0.3)',
-            animation: 'progressFill 1s cubic-bezier(0.4,0,0.2,1) forwards',
+              ? '0 0 6px rgba(46,125,85,0.25)'
+              : '0 0 6px rgba(185,28,28,0.25)',
           }}
         />
       </div>
       <span
         className="font-headline text-sm font-semibold w-10 text-right shrink-0"
-        style={{ color: good ? '#4caf8e' : '#ef4444' }}
+        style={{ color: good ? '#2e7d55' : '#b91c1c' }}
       >
         {clamped}%
       </span>
