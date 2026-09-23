@@ -12,6 +12,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
 IS_SERVERLESS = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
 
 class Settings:
+    IS_SERVERLESS: bool = IS_SERVERLESS
     GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "")
     GROQ_MODEL_FAST: str = os.getenv("GROQ_MODEL_FAST", "openai/gpt-oss-20b")
     GROQ_MODEL_REASONING: str = os.getenv("GROQ_MODEL_REASONING", "openai/gpt-oss-120b")

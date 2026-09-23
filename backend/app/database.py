@@ -20,8 +20,12 @@ engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread":
 def set_sqlite_pragma(dbapi_connection, connection_record):
     try:
         cursor = dbapi_connection.cursor()
-        cursor.execute("PRAGMA journal_mode=WAL")
-        cursor.execute("PRAGMA synchronous=NORMAL")
+        # WAL mode requires shared memory (-shm file) which fails on Vercel/Lambda serverless /tmp.
+        if getattr(settings, "IS_SERVERLESS", False):
+            cursor.execute("PRAGMA journal_mode=DELETE")
+        else:
+            cursor.execute("PRAGMA journal_mode=WAL")
+            cursor.execute("PRAGMA synchronous=NORMAL")
         cursor.close()
     except Exception:
         pass
