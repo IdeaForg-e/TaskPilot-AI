@@ -122,6 +122,8 @@ async def root():
     return {"message": "TaskPilot AI API", "version": "1.0.0"}
 
 @app.get("/health")
+@app.get("/api/health")
+@app.get("/api/v1/health")
 async def health():
     from agents.llm_client import LLMClient
     from app.config import settings
