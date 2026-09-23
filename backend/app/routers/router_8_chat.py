@@ -23,6 +23,57 @@ class ChatRequest(BaseModel):
     message: str
     context: Optional[dict] = None
 
+def _generate_telemetry_fallback_reply(user_query: str, tasks, priorities, plans) -> str:
+    query_lower = user_query.lower()
+    
+    # Try to find target task matching user query keywords
+    keywords = [w for w in query_lower.replace('"', '').replace("'", '').split() if len(w) > 3]
+    best_task = None
+    best_score = 0
+
+    for t in tasks:
+        if not t.title:
+            continue
+        t_title_lower = t.title.lower()
+        if user_query.strip('"\'').lower() in t_title_lower or t_title_lower in query_lower:
+            best_task = t
+            break
+        matches = sum(1 for kw in keywords if kw in t_title_lower)
+        if matches > best_score:
+            best_score = matches
+            best_task = t
+
+    if best_task:
+        p_item = next((p for p in priorities if p.master_task_id == best_task.id), None)
+        rank_info = f"Rank **#{p_item.rank}** (Priority Score: **{p_item.overall_score}**)" if p_item else "Unranked"
+        explanation = f"\n\n**Priority Rationale**: {p_item.explanation}" if p_item and p_item.explanation else ""
+        desc_info = f"\n\n**Description**: {best_task.description}" if best_task.description else ""
+
+        return (
+            f"### 📋 Task Telemetry Status\n\n"
+            f"* **Task Title**: {best_task.title}\n"
+            f"* **Status**: `{best_task.status.upper()}`\n"
+            f"* **Priority Rank**: {rank_info}\n"
+            f"* **Category / Type**: `{best_task.task_type}`"
+            f"{desc_info}"
+            f"{explanation}\n\n"
+            f"*(Retrieved directly from live TaskPilot database)*"
+        )
+
+    # General workspace status if no specific task matched
+    total_tasks = len(tasks)
+    top_summary = ""
+    for p in priorities[:3]:
+        t_title = next((t.title for t in tasks if t.id == p.master_task_id), "Unknown")
+        top_summary += f"\n* **Rank #{p.rank}**: {t_title} (Score: **{p.overall_score}**)"
+
+    return (
+        f"### 🚀 TaskPilot Intelligence Summary\n\n"
+        f"Synchronized **{total_tasks} active tasks** across multi-agent pipelines.\n\n"
+        f"**Top Workspace Priorities**:{top_summary or ' None'}\n\n"
+        f"Ask me about any specific task title or type `inject P1 <issue>` to simulate an emergency incident!"
+    )
+
 @router.post("/chat", response_model=APIResponse)
 def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
     user_query = payload.message.strip()
@@ -123,12 +174,9 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
 
             logger.info(f"Chat appended new event to {filename}: {title_val}")
             
-            # Re-run pipeline incrementally: only the new event is ingested and
-            # extracted — existing fused tasks keep their context (fast path).
             orchestrator = OrchestratorService(db)
             result = orchestrator.run_full_pipeline(incremental=True)
             
-            # Query the newly prioritized task to find its priority rank and score
             priority_info = ""
             new_task = db.query(MasterTask).filter(MasterTask.title == title_val).first()
             if new_task:
@@ -165,19 +213,10 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
         
         llm = LLMClient()
         
-        # Check if LLM has any providers configured
+        # If no provider API key configured or LLM calls disabled, fallback gracefully to database telemetry
         if not llm.providers:
-            reply = (
-                "⚠️ **LLM Service Not Configured**\n\n"
-                "I cannot generate intelligent responses because no LLM API keys are configured.\n\n"
-                "**To fix this:**\n"
-                "1. Open `backend/.env`\n"
-                "2. Add your key:\n"
-                "   - `GROQ_API_KEY=your_groq_key`\n"
-                "3. Restart the backend server\n\n"
-                "Until then, I can still inject P1 tasks and re-run the pipeline."
-            )
-            return APIResponse(success=True, data={"reply": reply}, message="LLM not configured")
+            reply = _generate_telemetry_fallback_reply(user_query, tasks, priorities, plans)
+            return APIResponse(success=True, data={"reply": reply}, message="Response generated from telemetry")
         
         prompt = f"""
         You are TaskPilot AI, a personalized task intelligence assistant for software engineers.
@@ -192,6 +231,11 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
         YOUR RESPONSE:
         """
         reply = llm.complete_text(prompt)
+        
+        # If LLM returned the unreachable fallback string, generate smart database telemetry response
+        if "unreachable" in reply.lower() or "no llm provider" in reply.lower():
+            reply = _generate_telemetry_fallback_reply(user_query, tasks, priorities, plans)
+
         llm_diagnostics = LLMClient.get_diagnostics()
         return APIResponse(
             success=True,
