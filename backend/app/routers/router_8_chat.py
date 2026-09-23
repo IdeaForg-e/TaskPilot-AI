@@ -23,11 +23,58 @@ class ChatRequest(BaseModel):
     message: str
     context: Optional[dict] = None
 
+STOP_WORDS = {
+    "what", "how", "is", "are", "the", "on", "for", "all", "this", "that", "task", "tasks",
+    "status", "show", "tell", "me", "with", "from", "about", "give", "list", "please", "can",
+    "you", "does", "done", "work", "progress", "pipeline", "many", "there", "which", "where",
+    "when", "who", "why", "have", "been", "being", "has", "had", "current", "currently"
+}
+
 def _generate_telemetry_fallback_reply(user_query: str, tasks, priorities, plans) -> str:
     query_lower = user_query.lower()
     
-    # Try to find target task matching user query keywords
-    keywords = [w for w in query_lower.replace('"', '').replace("'", '').split() if len(w) > 3]
+    # Intent 1: Task Count / Statistics
+    if any(phrase in query_lower for phrase in ["how many", "total task", "task count", "number of task", "total count", "statistics", "overview"]):
+        open_count = sum(1 for t in tasks if getattr(t, 'status', '').lower() in ['open', 'pending', 'in_progress', 'in-progress'])
+        closed_count = sum(1 for t in tasks if getattr(t, 'status', '').lower() in ['completed', 'closed', 'done'])
+        return (
+            f"### 📊 Workspace Task Statistics\n\n"
+            f"* **Total Active Tasks**: **{len(tasks)}**\n"
+            f"* **Pending / Open Tasks**: **{open_count}**\n"
+            f"* **Completed Tasks**: **{closed_count}**\n"
+            f"* **Ranked Tasks**: **{len(priorities)}**\n\n"
+            f"*(Retrieved live from workspace telemetry)*"
+        )
+        
+    # Intent 2: Top Priorities / Leaderboard
+    if any(phrase in query_lower for phrase in ["priority", "priorities", "top task", "leaderboard", "highest", "rank", "important"]):
+        top_list = ""
+        for p in priorities[:5]:
+            t_item = next((t for t in tasks if t.id == p.master_task_id), None)
+            t_title = t_item.title if t_item else "Unknown Task"
+            t_status = t_item.status.upper() if t_item and t_item.status else "OPEN"
+            top_list += f"\n{p.rank}. **{t_title}** — Priority Score: `{p.overall_score}` (`{t_status}`)"
+            
+        return (
+            f"### 🏆 Top Ranked Priorities\n"
+            f"{top_list or 'No priorities calculated yet. Run the pipeline to rank tasks.'}\n\n"
+            f"*(Ranked by Multi-Agent Prioritization Matrix)*"
+        )
+
+    # Intent 3: Daily Plan / Schedule
+    if any(phrase in query_lower for phrase in ["plan", "schedule", "today", "daily", "calendar", "agenda"]):
+        if plans:
+            return (
+                f"### 📅 Current Daily Schedule ({plans.plan_date})\n\n"
+                f"* **Schedule Status**: `{plans.load_status.upper()}`\n"
+                f"* **Available Work Hours**: `{plans.available_hours} hrs`\n\n"
+                f"Check the **AI Planner** page to view and adjust your time slots!"
+            )
+        return "### 📅 Daily Schedule\n\nNo daily plan has been generated for today. Click **Run Pipeline** to generate your AI schedule."
+
+    # Intent 4: Specific Task Lookup (Match title using non-stop words)
+    words = [w for w in query_lower.replace('"', '').replace("'", '').replace("?", "").split() if len(w) > 2 and w not in STOP_WORDS]
+    
     best_task = None
     best_score = 0
 
@@ -35,11 +82,16 @@ def _generate_telemetry_fallback_reply(user_query: str, tasks, priorities, plans
         if not t.title:
             continue
         t_title_lower = t.title.lower()
-        if user_query.strip('"\'').lower() in t_title_lower or t_title_lower in query_lower:
+        
+        # Exact or substring match
+        clean_query = user_query.strip('?"\' ').lower()
+        if clean_query in t_title_lower or t_title_lower in clean_query:
             best_task = t
             break
-        matches = sum(1 for kw in keywords if kw in t_title_lower)
-        if matches > best_score:
+            
+        # Keyword overlap match (excluding stop words)
+        matches = sum(1 for kw in words if kw in t_title_lower)
+        if matches >= 2 and matches > best_score:
             best_score = matches
             best_task = t
 
@@ -60,7 +112,7 @@ def _generate_telemetry_fallback_reply(user_query: str, tasks, priorities, plans
             f"*(Retrieved directly from live TaskPilot database)*"
         )
 
-    # General workspace status if no specific task matched
+    # General fallback summary
     total_tasks = len(tasks)
     top_summary = ""
     for p in priorities[:3]:
@@ -68,10 +120,15 @@ def _generate_telemetry_fallback_reply(user_query: str, tasks, priorities, plans
         top_summary += f"\n* **Rank #{p.rank}**: {t_title} (Score: **{p.overall_score}**)"
 
     return (
-        f"### 🚀 TaskPilot Intelligence Summary\n\n"
+        f"### 🚀 TaskPilot Intelligence Assistant\n\n"
         f"Synchronized **{total_tasks} active tasks** across multi-agent pipelines.\n\n"
-        f"**Top Workspace Priorities**:{top_summary or ' None'}\n\n"
-        f"Ask me about any specific task title or type `inject P1 <issue>` to simulate an emergency incident!"
+        f"**Top Priorities**:{top_summary or ' None'}\n\n"
+        f"**You can ask me:**\n"
+        f"- *\"How many tasks are there?\"*\n"
+        f"- *\"What are the top priorities?\"*\n"
+        f"- *\"What is today's schedule?\"*\n"
+        f"- *\"How is progress on [task title]?\"*\n"
+        f"- Or type `inject P1 <issue>` to simulate an emergency incident!"
     )
 
 @router.post("/chat", response_model=APIResponse)
@@ -232,7 +289,7 @@ def chat_message(payload: ChatRequest, db: Session = Depends(get_db)):
         """
         reply = llm.complete_text(prompt)
         
-        # If LLM returned the unreachable fallback string, generate smart database telemetry response
+        # If LLM returned unreachable fallback, generate smart database telemetry response based on intent
         if "unreachable" in reply.lower() or "no llm provider" in reply.lower():
             reply = _generate_telemetry_fallback_reply(user_query, tasks, priorities, plans)
 
