@@ -1,0 +1,16 @@
+{
+  "buildCommand": "",
+  "outputDirectory": "",
+  "framework": null,
+  "functions": {
+    "backend/app/main.py": {
+      "maxDuration": 10
+    }
+  },
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "backend/app/main.py"
+    }
+  ]
+}
