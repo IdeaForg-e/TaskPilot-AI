@@ -534,3 +534,127 @@ body {
     radial-gradient(circle at 90% 80%, rgba(129, 140, 248, 0.035) 0%, transparent 40%),
     radial-gradient(circle at 50% 50%, rgba(2, 132, 199, 0.02) 0%, transparent 60%);
 }
+
+/* ─── COMPREHENSIVE LIGHT THEME OVERRIDES ─── */
+[data-theme="light"] {
+  --canvas:                  #f1f5f9;
+  --surface-dim:             #e2e8f0;
+  --surface-bright:          #ffffff;
+  --surface-container-low:   #ffffff;
+  --surface-container:       #f8fafc;
+  --surface-container-high:  #e2e8f0;
+  --surface-container-highest: #cbd5e1;
+
+  --on-surface:              #0f172a;
+  --on-surface-variant:      #334155;
+  --outline:                 #64748b;
+  --outline-variant:         rgba(0, 0, 0, 0.12);
+
+  --card-bg:                 #ffffff;
+  --card-border-top:         rgba(203, 213, 225, 0.8);
+  --card-border-bottom:      rgba(203, 213, 225, 0.5);
+  --card-shadow:             0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --card-inner-glow:         none;
+}
+
+[data-theme="light"] body {
+  background-color: var(--canvas) !important;
+  color: #0f172a !important;
+}
+
+/* Light Theme Text Color Overrides for High Contrast & Legibility */
+[data-theme="light"] .text-slate-100,
+[data-theme="light"] .text-slate-200,
+[data-theme="light"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-300,
+[data-theme="light"] .text-slate-400 {
+  color: #334155 !important;
+}
+
+[data-theme="light"] .text-slate-500 {
+  color: #475569 !important;
+}
+
+/* Light Theme Card & Container Overrides */
+[data-theme="light"] .glass-card {
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.07), 0 2px 4px rgba(15, 23, 42, 0.03) !important;
+}
+
+[data-theme="light"] .glass-card [style*="rgba(15,23,42"] {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f1f5f9 100%) !important;
+}
+
+[data-theme="light"] .bg-slate-900,
+[data-theme="light"] .bg-slate-950,
+[data-theme="light"] .bg-\[\#080b11\],
+[data-theme="light"] .bg-\[\#0a0e17\],
+[data-theme="light"] .bg-\[\#0d121d\],
+[data-theme="light"] .bg-\[\#121826\],
+[data-theme="light"] .bg-\[\#182032\],
+[data-theme="light"] .bg-\[\#1f2940\] {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .bg-slate-900\/60,
+[data-theme="light"] .bg-slate-800\/60,
+[data-theme="light"] .bg-slate-800\/50,
+[data-theme="light"] .bg-slate-900\/50,
+[data-theme="light"] .bg-slate-900\/80,
+[data-theme="light"] .bg-white\/5,
+[data-theme="light"] .bg-white\/10 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+
+/* Light Theme Borders */
+[data-theme="light"] .border-white\/8,
+[data-theme="light"] .border-white\/10,
+[data-theme="light"] .border-white\/5,
+[data-theme="light"] .border-slate-800,
+[data-theme="light"] .border-slate-700 {
+  border-color: #cbd5e1 !important;
+}
+
+/* Light Theme Gradient Text Fixes */
+[data-theme="light"] .text-transparent.bg-clip-text {
+  background-image: linear-gradient(to right, #0284c7, #4f46e5) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+/* Light Theme Inputs & Controls */
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #64748b !important;
+}
+
+/* Light Theme Hairline Rows & Lists */
+[data-theme="light"] .hairline-row {
+  border-bottom-color: #e2e8f0 !important;
+}
+[data-theme="light"] .hairline-row:hover {
+  background-color: #f1f5f9 !important;
+}
+
+/* Light Theme Mesh Background */
+[data-theme="light"] .mesh-bg {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(2, 132, 199, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(79, 70, 229, 0.04) 0%, transparent 40%);
+}
