@@ -4,12 +4,23 @@ from dotenv import load_dotenv
 BACKEND_DIR = os.path.dirname(os.path.dirname(__file__))
 BASE_DIR = os.path.dirname(BACKEND_DIR)
 
-# Prefer the backend-local env file because that is what the dev server and IDE
-# setup use for this project. Keep root .env as a harmless fallback.
+# Prefer backend-local env file
 load_dotenv(os.path.join(BACKEND_DIR, ".env"))
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
 
 IS_SERVERLESS = bool(os.getenv("VERCEL") or os.getenv("AWS_LAMBDA_FUNCTION_NAME"))
+
+db_env = os.getenv("DATABASE_URL", "")
+if IS_SERVERLESS:
+    # On Vercel, force SQLite to /tmp/taskpilot.db to prevent read-only directory errors
+    if not db_env or "sqlite" in db_env:
+        DATABASE_URL = "sqlite:////tmp/taskpilot.db"
+    else:
+        DATABASE_URL = db_env
+    DATA_DIR = os.getenv("DATA_DIR", "/tmp/data")
+else:
+    DATABASE_URL = db_env or "sqlite:///./taskpilot.db"
+    DATA_DIR = os.getenv("DATA_DIR", os.path.join(BASE_DIR, "data"))
 
 class Settings:
     IS_SERVERLESS: bool = IS_SERVERLESS
@@ -20,7 +31,7 @@ class Settings:
     NVIDIA_BASE_URL: str = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
     NVIDIA_MODEL_FAST: str = os.getenv("NVIDIA_MODEL_FAST", "nvidia/nemotron-3.5-lightning-30b-a3b")
     NVIDIA_MODEL_REASONING: str = os.getenv("NVIDIA_MODEL_REASONING", "nvidia/nemotron-3-super-120b-a12b")
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:////tmp/taskpilot.db" if IS_SERVERLESS else "sqlite:///./taskpilot.db")
-    DATA_DIR: str = os.getenv("DATA_DIR", "/tmp/data" if IS_SERVERLESS else os.path.join(BASE_DIR, "data"))
+    DATABASE_URL: str = DATABASE_URL
+    DATA_DIR: str = DATA_DIR
 
 settings = Settings()

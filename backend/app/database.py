@@ -1,26 +1,45 @@
 import os
+import logging
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from sqlalchemy.pool import StaticPool
 
 from app.config import settings
 
-# Ensure sqlite target directory exists if file-based database path is specified
-if "sqlite" in settings.DATABASE_URL:
-    db_file = settings.DATABASE_URL.replace("sqlite:////", "/").replace("sqlite:///", "").replace("sqlite://", "")
-    if db_file and db_file != ":memory:":
-        db_dir = os.path.dirname(os.path.abspath(db_file))
-        try:
-            os.makedirs(db_dir, exist_ok=True)
-        except Exception:
-            pass
+logger = logging.getLogger("taskpilot.database")
 
-engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False, "timeout": 45})
+def create_db_engine():
+    url = settings.DATABASE_URL
+    if "sqlite" in url and ":memory:" not in url:
+        clean_path = url.replace("sqlite:////", "/").replace("sqlite:///", "")
+        if not clean_path.startswith("/"):
+            clean_path = "/" + clean_path
+        db_dir = os.path.dirname(clean_path)
+        if db_dir:
+            try:
+                os.makedirs(db_dir, exist_ok=True)
+            except Exception as e:
+                logger.warning(f"Could not create db directory {db_dir}: {e}")
+
+    try:
+        eng = create_engine(url, connect_args={"check_same_thread": False, "timeout": 45})
+        with eng.connect() as conn:
+            pass
+        return eng
+    except Exception as exc:
+        logger.error(f"Failed to connect to SQLite at {url}: {exc}. Using in-memory fallback.")
+        return create_engine(
+            "sqlite:///:memory:",
+            connect_args={"check_same_thread": False},
+            poolclass=StaticPool,
+        )
+
+engine = create_db_engine()
 
 @event.listens_for(engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     try:
         cursor = dbapi_connection.cursor()
-        # WAL mode requires shared memory (-shm file) which fails on Vercel/Lambda serverless /tmp.
         if getattr(settings, "IS_SERVERLESS", False):
             cursor.execute("PRAGMA journal_mode=DELETE")
         else:
@@ -38,14 +57,24 @@ class Base(DeclarativeBase):
 _db_initialized = False
 
 def init_db():
-    global _db_initialized
+    global _db_initialized, engine, SessionLocal
     import app.models  # noqa: F401
     try:
         Base.metadata.create_all(bind=engine)
         _db_initialized = True
     except Exception as exc:
-        import logging
-        logging.getLogger("taskpilot.api").error(f"Database initialization error: {exc}")
+        logger.error(f"Database init_db error: {exc}. Retrying with in-memory SQLite.")
+        try:
+            engine = create_engine(
+                "sqlite:///:memory:",
+                connect_args={"check_same_thread": False},
+                poolclass=StaticPool,
+            )
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+            Base.metadata.create_all(bind=engine)
+            _db_initialized = True
+        except Exception as e:
+            logger.error(f"In-memory database fallback failed: {e}")
 
 def get_db():
     global _db_initialized
