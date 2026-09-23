@@ -62,6 +62,7 @@ def init_db():
     try:
         Base.metadata.create_all(bind=engine)
         _db_initialized = True
+        seed_if_empty()
     except Exception as exc:
         logger.error(f"Database init_db error: {exc}. Retrying with in-memory SQLite.")
         try:
@@ -73,8 +74,23 @@ def init_db():
             SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
             Base.metadata.create_all(bind=engine)
             _db_initialized = True
+            seed_if_empty()
         except Exception as e:
             logger.error(f"In-memory database fallback failed: {e}")
+
+def seed_if_empty():
+    try:
+        from app.models.task import MasterTask
+        from app.services.agent_0_orchestrator_service import OrchestratorService
+        db = SessionLocal()
+        count = db.query(MasterTask).count()
+        if count == 0:
+            logger.info("Database is empty on startup. Auto-running pipeline to seed initial tasks...")
+            orch = OrchestratorService(db)
+            orch.run_full_pipeline()
+        db.close()
+    except Exception as e:
+        logger.warning(f"Auto-seeding pipeline failed: {e}")
 
 def get_db():
     global _db_initialized

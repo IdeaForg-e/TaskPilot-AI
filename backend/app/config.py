@@ -1,4 +1,5 @@
 import os
+import shutil
 from dotenv import load_dotenv
 
 BACKEND_DIR = os.path.dirname(os.path.dirname(__file__))
@@ -35,3 +36,20 @@ class Settings:
     DATA_DIR: str = DATA_DIR
 
 settings = Settings()
+
+def ensure_data_seeded():
+    source_dir = os.path.join(BASE_DIR, "data")
+    target_dir = settings.DATA_DIR
+    if os.path.abspath(source_dir) != os.path.abspath(target_dir) and os.path.exists(source_dir):
+        try:
+            os.makedirs(target_dir, exist_ok=True)
+            for fname in os.listdir(source_dir):
+                if fname.endswith(".json"):
+                    src_file = os.path.join(source_dir, fname)
+                    dst_file = os.path.join(target_dir, fname)
+                    if not os.path.exists(dst_file) and os.path.isfile(src_file):
+                        shutil.copy2(src_file, dst_file)
+        except Exception:
+            pass
+
+ensure_data_seeded()
