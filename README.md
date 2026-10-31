@@ -408,9 +408,9 @@ Built for the **DELL FutureMind AI Hackathon** by:
 
 | Team Member | Engineering Responsibility |
 |:---|:---|
-| **Disha** | Backend Lead (FastAPI architecture, SQLite database, API routers) |
+| **Disha** | Backend Lead (FastAPI architecture, SQLite database, API routers), Calendar Scheduler Agent, Copilot chat |
 | **Priyanka** | Agent Engineer 1 (Ingestion normalizer, Extraction agent, Fusion deduplicator) |
-| **Chaitanya** | Agent Engineer 2 (7-dimension Quality auditor, Prioritization formula, Calendar scheduler) |
+| **Chaitanya** | Agent Engineer 2 (7-dimension Quality auditor, Prioritization formula) |
 | **Disha + Jagruti** | Frontend Engineers (React 18 SPA, Tailwind CSS v4 dashboard, responsive UI) |
 | **Anil** | Integration Lead (Orchestrator, pipeline lifecycle, LLM resilience, deployment) |
 
